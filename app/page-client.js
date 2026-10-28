@@ -3,8 +3,8 @@ export function initializePage() {
   const $ = (id) => document.getElementById(id);
   const km = tg.initDataUnsafe?.user?.language_code === "km";
   const T = km
-    ? { l: "បិទភ្ជាប់តំណ YouTube", p: "លេង", f: "ចូលចិត្ត", h: "ថ្មីៗ", sh: "ចែករំលែក", b: "ត្រឡប់ក្រោយ", yt: "បើក YouTube", browse: "បើក YouTube ដោយផ្ទាល់", e: "វីដេអូនេះមិនអាចលេងនៅទីនេះបានទេ សូមបើកក្នុង YouTube", invalid: "សូមបញ្ចូលតំណ YouTube ត្រឹមត្រូវ។" }
-    : { l: "Paste a YouTube link", p: "Play", f: "Favorites", h: "Recent", sh: "Share", b: "Back", yt: "Open YouTube", browse: "Browse YouTube directly", e: "This video can't be played here. Use the open button to watch it on YouTube.", invalid: "Enter a valid YouTube link or video ID." };
+    ? { l: "បិទភ្ជាប់តំណ YouTube", p: "លេង", f: "ចូលចិត្ត", h: "ថ្មីៗ", sh: "ចែករំលែក", b: "ត្រឡប់ក្រោយ", yt: "បើក YouTube", auto: "បើកក្នុង {n} វិនាទី · ចុចកន្លែងផ្សេងដើម្បីបោះបង់", cancel: "បានបោះបង់ការបើកស្វ័យប្រវត្តិ", e: "វីដេអូនេះមិនអាចលេងនៅទីនេះបានទេ សូមបើកក្នុង YouTube", invalid: "សូមបញ្ចូលតំណ YouTube ត្រឹមត្រូវ។" }
+    : { l: "Paste a YouTube link", p: "Play", f: "Favorites", h: "Recent", sh: "Share", b: "Back", yt: "Open YouTube", auto: "Opening in {n}s · tap anywhere else to cancel", cancel: "Auto-open cancelled", e: "This video can't be played here. Use the open button to watch it on YouTube.", invalid: "Enter a valid YouTube link or video ID." };
 
   function applyTheme() {
     const theme = tg.colorScheme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
@@ -42,7 +42,12 @@ export function initializePage() {
   const store = {
     get: (key) => new Promise((resolve) => {
       try {
-        tg.CloudStorage?.getItem(key, (error, value) => resolve(!error && value ? JSON.parse(value) : lget(key)));
+        const cloudStorage = tg.CloudStorage;
+        if (!cloudStorage?.getItem) {
+          resolve(lget(key));
+          return;
+        }
+        cloudStorage.getItem(key, (error, value) => resolve(!error && value ? JSON.parse(value) : lget(key)));
       } catch {
         resolve(lget(key));
       }
@@ -60,6 +65,7 @@ export function initializePage() {
   let player = null;
   let loop = false;
   let pending = null;
+  let countdownTimer = null;
   const speeds = [1, 1.25, 1.5, 2, 0.5];
   let speedIndex = 0;
   const parseId = (value) => {
@@ -76,13 +82,13 @@ export function initializePage() {
   $("link").placeholder = T.l;
   $("ptxt").textContent = T.p;
   $("linkError").textContent = T.invalid;
-  $("favT").querySelector("span").textContent = T.f;
-  $("hisT").querySelector("span").textContent = T.h;
+  $("favT").querySelector(".section-title").textContent = T.f;
+  $("hisT").querySelector(".section-title").textContent = T.h;
   $("share").querySelector("b").textContent = T.sh;
   $("pback").querySelector("b").textContent = T.b;
   $("err").textContent = T.e;
   $("htxt").textContent = T.yt;
-  $("hsub").textContent = T.browse;
+  $("hsub").textContent = T.auto.replace("{n}", 3);
   if (!tg.addToHomeScreen) $("a2hs").classList.add("hide");
 
   const user = tg.initDataUnsafe?.user;
@@ -103,7 +109,37 @@ export function initializePage() {
     }
   }
 
+  function stopCountdown(silent) {
+    if (countdownTimer === null) return;
+    clearInterval(countdownTimer);
+    countdownTimer = null;
+    $("hero").classList.remove("run");
+    $("hsub").textContent = silent ? "" : T.cancel;
+  }
+
+  function startCountdown() {
+    let remaining = 3;
+    $("hsub").textContent = T.auto.replace("{n}", remaining);
+    $("hero").classList.add("run");
+    countdownTimer = setInterval(() => {
+      remaining--;
+      if (remaining <= 0) {
+        stopCountdown(true);
+        go("https://m.youtube.com");
+        return;
+      }
+      $("hsub").textContent = T.auto.replace("{n}", remaining);
+    }, 1000);
+  }
+
+  const cancelCountdown = (event) => {
+    if (countdownTimer !== null && !event.target.closest?.("#hero")) stopCountdown();
+  };
+  document.addEventListener("pointerdown", cancelCountdown, true);
+  document.addEventListener("keydown", cancelCountdown, true);
+
   function show(view) {
+    if (view !== "home") stopCountdown(true);
     ["home", "player"].forEach((name) => $(name).classList.toggle("hide", name !== view));
     try {
       if (view === "home") tg.BackButton?.hide();
@@ -153,7 +189,10 @@ export function initializePage() {
     try { tg.addToHomeScreen?.(); } catch {}
   };
 
-  $("hero").onclick = () => go("https://m.youtube.com");
+  $("hero").onclick = () => {
+    stopCountdown(true);
+    go("https://m.youtube.com");
+  };
 
   function makeItem(video) {
     const element = document.createElement("div");
@@ -304,15 +343,19 @@ export function initializePage() {
     const deepLink = parseId(new URLSearchParams(location.search).get("v")) ||
       parseId(tg.initDataUnsafe?.start_param);
     if (deepLink) play(deepLink);
+    else startCountdown();
   };
   initializeStorage();
 
   return () => {
+    stopCountdown(true);
     document.removeEventListener("gesturestart", preventZoom);
     document.removeEventListener("gesturechange", preventZoom);
     document.removeEventListener("gestureend", preventZoom);
     document.removeEventListener("touchmove", preventMultiTouch);
     document.removeEventListener("touchend", preventDoubleTap);
+    document.removeEventListener("pointerdown", cancelCountdown, true);
+    document.removeEventListener("keydown", cancelCountdown, true);
     $("link").removeEventListener("keydown", onLinkKeyDown);
     $("link").removeEventListener("input", onLinkInput);
     window.removeEventListener("pageshow", onPageShow);

@@ -50,7 +50,7 @@ export default function Page() {
             <span className="brand-copy"><h1>YouTube Helper</h1><p>Your videos, one tap away</p></span>
             <span className="status-pill"><span />Ready</span>
           </header>
-          <button className="hero glass-card" id="hero" type="button"><span className="hero-glint" /><span className="hin"><Icon name="play" /><b id="htxt" /></span><small id="hsub" /></button>
+          <button className="hero glass-card" id="hero" type="button"><span className="fill" /><span className="hero-glint" /><span className="hin"><Icon name="play" /><b id="htxt" /></span><small id="hsub" /></button>
           <div className="user profile-card glass-card" id="user">
             <div className="av" id="av">Y</div>
             <div className="profile-copy"><span className="profile-label" id="profile-label">Local profile</span><div className="uname" id="uname">Your library</div><div className="uhandle" id="uhandle">Saved on this device</div></div>
@@ -66,8 +66,8 @@ export default function Page() {
             <button data-go="https://m.youtube.com/feed/trending" type="button"><Icon name="fire" />Trending</button>
             <button id="a2hs" type="button"><Icon name="plus" />Home Screen</button>
           </div>
-          <div className="list-section"><h2 id="favT"><span className="section-icon"><Icon name="star" /></span><span /></h2><div id="favs" /></div>
-          <div className="list-section"><h2 id="hisT"><span className="section-icon"><Icon name="clock" /></span><span /></h2><div id="hist" /></div>
+          <div className="list-section"><h2 id="favT"><span className="section-icon"><Icon name="star" /></span><span className="section-title" /></h2><div id="favs" /></div>
+          <div className="list-section"><h2 id="hisT"><span className="section-icon"><Icon name="clock" /></span><span className="section-title" /></h2><div id="hist" /></div>
         </section>
 
         <section id="player" className="view hide">
