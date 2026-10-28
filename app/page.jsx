@@ -43,32 +43,35 @@ export default function Page() {
     <>
       <Symbols />
       <main>
-        <section id="home">
-          <header>
-            <svg viewBox="0 0 110 78" aria-hidden="true"><rect width="110" height="78" rx="20" fill="#f00" /><polygon points="44,22 44,56 74,39" fill="#fff" /></svg>
-            <h1>YouTube Helper</h1>
+        <section id="home" className="view home-view">
+          <header className="app-header">
+            <span className="brand-mark">
+              <svg viewBox="0 0 110 78" aria-hidden="true"><rect width="110" height="78" rx="20" fill="#f00" /><polygon points="44,22 44,56 74,39" fill="#fff" /></svg>
+            </span>
+            <span className="brand-copy"><h1>YouTube Helper</h1><p>Your videos, one tap away</p></span>
+            <span className="status-pill"><span />Ready</span>
           </header>
-          <button className="hero" id="hero" type="button"><span className="fill" /><span className="hin"><Icon name="play" /><b id="htxt" /></span><small id="hsub" /></button>
+          <button className="hero glass-card" id="hero" type="button"><span className="fill" /><span className="hero-glint" /><span className="hin"><Icon name="play" /><b id="htxt" /></span><small id="hsub" /></button>
           <div className="user hide" id="user"><div className="av" id="av" /><div><div className="uname" id="uname" /><div className="uhandle" id="uhandle" /></div></div>
-          <div className="row" id="srow"><input id="q" /><button className="red" id="sbtn" type="button" aria-label="Search"><Icon name="search" /></button></div>
-          <div className="row"><input id="link" /><button className="red" id="pbtn" type="button"><Icon name="play" /><b id="ptxt" /></button></div>
-          <div className="grid">
+          <div className="input-card glass-card" id="srow"><label htmlFor="q">Find something to watch</label><div className="row"><input id="q" aria-label="Search videos" /><button className="red icon-button" id="sbtn" type="button" aria-label="Search videos"><Icon name="search" /></button></div></div>
+          <div className="input-card glass-card link-card"><label htmlFor="link">Play a video by link</label><div className="row"><input id="link" aria-label="YouTube video link" /><button className="red play-button" id="pbtn" type="button"><Icon name="play" /><b id="ptxt" /></button></div></div>
+          <div className="grid quick-links">
             <button data-go="https://m.youtube.com/shorts" type="button"><Icon name="shorts" />Shorts</button>
             <button data-go="https://m.youtube.com/feed/trending" type="button"><Icon name="fire" />Trending</button>
             <button id="a2hs" type="button"><Icon name="plus" />Home Screen</button>
           </div>
-          <h2 id="favT"><Icon name="star" /><span /></h2><div id="favs" />
-          <h2 id="hisT"><Icon name="clock" /><span /></h2><div id="hist" />
+          <div className="list-section"><h2 id="favT"><span className="section-icon"><Icon name="star" /></span><span /></h2><div id="favs" /></div>
+          <div className="list-section"><h2 id="hisT"><span className="section-icon"><Icon name="clock" /></span><span /></h2><div id="hist" /></div>
         </section>
 
-        <section id="search" className="hide">
-          <button id="sback" type="button"><Icon name="back" /><b /></button>
+        <section id="search" className="view hide">
+          <button className="back-button glass-card" id="sback" type="button"><Icon name="back" /><b /></button>
           <div id="sres" className="search-results" />
         </section>
 
-        <section id="player" className="hide">
-          <button id="pback" type="button"><Icon name="back" /><b /></button>
-          <div id="pwrap"><div id="yt" /></div>
+        <section id="player" className="view hide">
+          <button className="back-button glass-card" id="pback" type="button"><Icon name="back" /><b /></button>
+          <div id="pwrap" className="glass-card"><div id="yt" /></div>
           <p id="ptitle" />
           <p className="note hide" id="err" />
           <div className="ctl">
