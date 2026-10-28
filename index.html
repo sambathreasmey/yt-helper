@@ -213,7 +213,16 @@ try { tg.BackButton.onClick(home); } catch (e) {}
 $("pback").onclick = $("sback").onclick = () => { hap(); home(); };
 
 /* leaving for the real YouTube site: exit fullscreen first so nothing sits under the status bar */
-function go(url) { hap(); try { tg.exitFullscreen(); } catch (e) {} setTimeout(() => location.replace(url), 250); }
+const OPEN_MODE = "inapp";   // "inapp"   = YouTube opens inside the Mini App window (Helper stays in history, back swipe/button may return)
+                             // "browser" = YouTube opens on top via Telegram's browser; closing it returns to Helper
+function go(url) {
+  hap();
+  if (OPEN_MODE === "browser") { tg.openLink(url, { try_instant_view: false }); return; }
+  try { tg.exitFullscreen(); } catch (e) {}
+  setTimeout(() => location.assign(url), 250);   // assign (not replace) keeps Helper in the history
+}
+/* coming back to Helper from YouTube: restore fullscreen */
+window.addEventListener("pageshow", e => { if (e.persisted) { try { tg.requestFullscreen(); } catch (x) {} applyTheme(); } });
 document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => go(b.dataset.go));
 $("a2hs").onclick = () => { hap(); try { tg.addToHomeScreen(); } catch (e) {} };
 
