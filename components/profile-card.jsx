@@ -8,7 +8,7 @@ export function ProfileCard({ profile }) {
   const [imageFailed, setImageFailed] = useState(false);
 
   return (
-    <Card className="mb-3 flex min-h-[76px] items-center gap-3 p-3.5">
+    <Card className="mb-3 flex min-h-[76px] items-center gap-3 p-3.5" data-layout-slot="profile">
       <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-strong text-muted">
         {profile?.photoUrl && !imageFailed ? (
           <img

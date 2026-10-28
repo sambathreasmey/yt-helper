@@ -25,7 +25,7 @@ export function VideoLinkForm({ onPlay, language = "en" }) {
   }
 
   return (
-    <Card className="mb-3">
+    <Card className="mb-3" data-layout-slot="form">
       <CardHeader className="pb-3">
         <CardTitle>{isKhmer ? "ចាក់វីដេអូ" : "Play a video"}</CardTitle>
         <CardDescription className="mt-1">

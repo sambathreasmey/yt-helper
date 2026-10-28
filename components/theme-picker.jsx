@@ -6,14 +6,26 @@ import {
   ChevronDown,
   Clapperboard,
   CirclePlay,
+  Cloud,
+  Droplets,
+  Flower2,
+  Grid2X2,
+  Heart,
   Film,
   Headphones,
+  LayoutDashboard,
   Monitor,
+  MoonStar,
   Moon,
+  Orbit,
+  PanelsTopLeft,
   Palette,
   Play,
+  Rows3,
   RotateCcw,
+  Shapes,
   Sparkles,
+  Stars,
   Sun,
   WandSparkles,
   Waves,
@@ -47,6 +59,37 @@ const appIcons = [
   { value: "headphones", label: "Headphones", icon: Headphones },
 ];
 
+const backgrounds = [
+  { value: "aurora", label: "Aurora", icon: Waves },
+  { value: "drift", label: "Drift", icon: Wind },
+  { value: "cute", label: "Cute", icon: Sparkles },
+  { value: "petals", label: "Petals", icon: Flower2 },
+  { value: "bubbles", label: "Bubbles", icon: Droplets },
+  { value: "stars", label: "Starlight", icon: Stars },
+  { value: "clouds", label: "Clouds", icon: Cloud },
+  { value: "confetti", label: "Confetti", icon: Shapes },
+  { value: "hearts", label: "Hearts", icon: Heart },
+  { value: "waves", label: "Waves", icon: Waves },
+  { value: "galaxy", label: "Galaxy", icon: MoonStar },
+  { value: "none", label: "None", icon: CircleOff },
+];
+
+const animationStyles = [
+  { value: "float", label: "Float", icon: Wind },
+  { value: "breathe", label: "Breathe", icon: Cloud },
+  { value: "twinkle", label: "Twinkle", icon: Sparkles },
+  { value: "orbit", label: "Orbit", icon: Orbit },
+  { value: "wave", label: "Wave", icon: Waves },
+  { value: "none", label: "Still", icon: CircleOff },
+];
+
+const layouts = [
+  { value: "stacked", label: "Classic", icon: Rows3 },
+  { value: "compact", label: "Compact", icon: PanelsTopLeft },
+  { value: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { value: "gallery", label: "Gallery", icon: Grid2X2 },
+];
+
 const optionGroups = [
   {
     key: "surface",
@@ -63,15 +106,6 @@ const optionGroups = [
       { value: "soft", label: "Soft" },
       { value: "rounded", label: "Round" },
       { value: "sharp", label: "Sharp" },
-    ],
-  },
-  {
-    key: "background",
-    label: "Background",
-    options: [
-      { value: "aurora", label: "Aurora", icon: Waves },
-      { value: "drift", label: "Drift", icon: Wind },
-      { value: "none", label: "None", icon: CircleOff },
     ],
   },
 ];
@@ -199,6 +233,28 @@ export function ThemePicker() {
           </fieldset>
 
           <fieldset className="mt-4">
+            <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted">Background · 12 styles</legend>
+            <div className="grid grid-cols-3 gap-2">
+              {backgrounds.map(({ value, label, icon: Icon }) => (
+                <button
+                  aria-pressed={appearance.background === value}
+                  className={cn(
+                    "background-choice flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl border border-border px-1.5 py-2 text-[10px] font-medium text-muted transition hover:border-accent/50 hover:text-foreground",
+                    `background-preview-${value}`,
+                    appearance.background === value && "border-accent bg-accent-soft text-accent ring-1 ring-accent/40",
+                  )}
+                  key={value}
+                  onClick={() => setPreference("background", value)}
+                  type="button"
+                >
+                  <Icon aria-hidden="true" size={16} />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset className="mt-4">
             <legend className="mb-2 flex w-full items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-muted">
               <span>Glass blur</span>
               <output className="rounded-full bg-accent-soft px-2 py-1 text-[10px] normal-case tracking-normal text-accent" htmlFor="glass-blur">
@@ -250,6 +306,46 @@ export function ThemePicker() {
               </div>
             </fieldset>
           ))}
+
+          <fieldset className="mt-4">
+            <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted">Animation style</legend>
+            <div className="grid grid-cols-3 gap-1.5">
+              {animationStyles.map(({ value, label, icon: Icon }) => (
+                <button
+                  aria-pressed={appearance.animationStyle === value}
+                  className={cn(
+                    "flex min-h-9 items-center justify-center gap-1 rounded-lg border border-border bg-surface px-1 text-[10px] font-medium text-muted transition hover:text-foreground",
+                    appearance.animationStyle === value && "border-accent bg-accent-soft text-accent",
+                  )}
+                  key={value}
+                  onClick={() => setPreference("animationStyle", value)}
+                  type="button"
+                >
+                  <Icon aria-hidden="true" size={13} />{label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset className="mt-4">
+            <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted">Page layout</legend>
+            <div className="grid grid-cols-2 gap-1.5">
+              {layouts.map(({ value, label, icon: Icon }) => (
+                <button
+                  aria-pressed={appearance.layout === value}
+                  className={cn(
+                    "flex min-h-10 items-center gap-2 rounded-xl border border-border bg-surface px-3 text-xs font-medium text-muted transition hover:text-foreground",
+                    appearance.layout === value && "border-accent bg-accent-soft text-accent",
+                  )}
+                  key={value}
+                  onClick={() => setPreference("layout", value)}
+                  type="button"
+                >
+                  <Icon aria-hidden="true" size={15} />{label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
 
           <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
             <label className="flex cursor-pointer items-center gap-2 text-xs font-medium">

@@ -12,6 +12,8 @@ export const DEFAULT_APPEARANCE = {
   corners: "soft",
   blur: 70,
   background: "aurora",
+  animationStyle: "float",
+  layout: "stacked",
   appIcon: "circle-play",
   motion: true,
 };
@@ -30,7 +32,12 @@ const VALID_OPTIONS = {
   accent: Object.keys(ACCENTS),
   surface: ["glass", "solid"],
   corners: ["soft", "rounded", "sharp"],
-  background: ["aurora", "drift", "none"],
+  background: [
+    "aurora", "drift", "cute", "petals", "bubbles", "stars",
+    "clouds", "confetti", "hearts", "waves", "galaxy", "none",
+  ],
+  animationStyle: ["float", "breathe", "twinkle", "orbit", "wave", "none"],
+  layout: ["stacked", "compact", "dashboard", "gallery"],
   appIcon: ["circle-play", "play", "film", "clapperboard", "headphones"],
 };
 
@@ -130,6 +137,8 @@ export function ThemeProvider({ children }) {
       document.documentElement.dataset.surface = appearance.surface;
       document.documentElement.dataset.corners = appearance.corners;
       document.documentElement.dataset.background = appearance.background;
+      document.documentElement.dataset.animationStyle = appearance.animationStyle;
+      document.documentElement.dataset.layout = appearance.layout;
       document.documentElement.dataset.motion = appearance.motion ? "on" : "off";
       document.documentElement.style.setProperty("--accent", accentColor);
       document.documentElement.style.setProperty("--glass-blur", `${appearance.blur * 0.32}px`);

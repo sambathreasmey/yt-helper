@@ -1,7 +1,6 @@
 "use client";
 
 import { Clapperboard, CirclePlay, Film, Headphones, Play } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { ThemePicker } from "@/components/theme-picker";
 import { useTheme } from "@/providers/theme-provider";
 
@@ -18,7 +17,7 @@ export function AppHeader() {
   const AppIcon = appIconComponents[appearance.appIcon] || CirclePlay;
 
   return (
-    <header className="mb-5 flex min-h-14 items-center gap-3">
+    <header className="mb-5 flex min-h-14 items-center gap-3" data-layout-slot="header">
       <span className="app-brand-icon grid size-12 shrink-0 place-items-center rounded-2xl border border-border bg-accent-soft text-accent shadow-glass">
         <AppIcon aria-hidden="true" size={23} strokeWidth={1.8} />
       </span>
@@ -26,10 +25,7 @@ export function AppHeader() {
         <span className="block text-base font-semibold tracking-tight">YouTube Helper</span>
         <span className="mt-0.5 block text-xs text-muted">Your videos, one tap away</span>
       </span>
-      <div className="flex shrink-0 items-center gap-2">
-        <ThemePicker />
-        <Badge><span className="size-1.5 rounded-full bg-muted" />Ready</Badge>
-      </div>
+      <ThemePicker />
     </header>
   );
 }

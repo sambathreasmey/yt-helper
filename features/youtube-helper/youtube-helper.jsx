@@ -8,12 +8,14 @@ import { QuickActions } from "@/components/quick-actions";
 import { VideoLinkForm } from "@/components/video-link-form";
 import { VideoLibrary } from "@/components/video-library";
 import { YouTubePlayer } from "@/features/youtube-helper/video-player";
+import { useTheme } from "@/providers/theme-provider";
 import { useTelegram } from "@/hooks/use-telegram";
 import { useVideoLibrary } from "@/hooks/use-video-library";
 import { fetchVideoTitle, parseYouTubeVideoId } from "@/services/youtube";
 import { impactTelegram, openTelegramLink } from "@/services/telegram-client";
 
 export function YouTubeHelper() {
+  const { appearance } = useTheme();
   const { telegram, profile } = useTelegram();
   const library = useVideoLibrary(telegram);
   const [view, setView] = useState("home");
@@ -112,20 +114,25 @@ export function YouTubeHelper() {
   }
 
   const isFavorite = Boolean(video && library.favorites.some((favorite) => favorite.id === video.id));
+  const quickActions = (
+    <QuickActions
+      onAddToHome={addToHomeScreen}
+      onOpen={navigateToYouTube}
+      showAddToHome={Boolean(telegram?.addToHomeScreen)}
+    />
+  );
+  const videoLinkForm = <VideoLinkForm language={language} onPlay={playVideo} />;
 
   return (
-    <main className="mx-auto w-full max-w-[520px]">
+    <main className="layout-main mx-auto w-full max-w-[520px]">
       {view === "home" ? (
-        <section className="view-enter">
+        <section className="layout-shell view-enter" data-layout={appearance.layout}>
           <AppHeader />
           <HomeHero countdown={countdown} language={language} onOpenYouTube={() => navigateToYouTube()} />
           <ProfileCard profile={profile} />
-          <VideoLinkForm language={language} onPlay={playVideo} />
-          <QuickActions
-            onAddToHome={addToHomeScreen}
-            onOpen={navigateToYouTube}
-            showAddToHome={Boolean(telegram?.addToHomeScreen)}
-          />
+          {appearance.layout === "dashboard"
+            ? <>{quickActions}{videoLinkForm}</>
+            : <>{videoLinkForm}{quickActions}</>}
           <VideoLibrary
             favorites={library.favorites}
             history={library.history}

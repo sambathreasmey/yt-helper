@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 export function QuickActions({ onOpen, onAddToHome, showAddToHome }) {
   return (
-    <div className="mb-6 grid grid-cols-2 gap-2.5">
+    <div className="mb-6 grid grid-cols-2 gap-2.5" data-layout-slot="quick">
       <Button onClick={() => onOpen("https://m.youtube.com/shorts")}>
         <Smartphone aria-hidden="true" className="text-muted" size={18} />
         Shorts

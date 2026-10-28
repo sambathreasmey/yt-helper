@@ -12,9 +12,14 @@ function VideoSection({ icon: Icon, title, videos, onPlay }) {
           <Icon aria-hidden="true" size={16} />
         </span>
         <span className="leading-none">{title}</span>
-        <span className="ml-auto text-xs font-medium text-muted">{videos.length}</span>
+        <span
+          aria-label={`${videos.length} ${title.toLowerCase()}`}
+          className="ml-auto inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-accent/20 bg-accent-soft text-xs font-bold tabular-nums text-accent"
+        >
+          {videos.length}
+        </span>
       </h2>
-      <div className="grid gap-2">
+      <div className="grid gap-2" data-layout-items>
         {videos.map((video) => (
           <Card key={video.id} className="overflow-hidden">
             <button
@@ -48,7 +53,7 @@ function VideoSection({ icon: Icon, title, videos, onPlay }) {
 export function VideoLibrary({ favorites, history, onPlay, language = "en" }) {
   const isKhmer = language === "km";
   return (
-    <div>
+    <div data-layout-slot="library">
       <VideoSection icon={Star} title={isKhmer ? "ចូលចិត្ត" : "Favorites"} videos={favorites} onPlay={onPlay} />
       <VideoSection icon={Clock3} title={isKhmer ? "ថ្មីៗ" : "Recent"} videos={history} onPlay={onPlay} />
     </div>
