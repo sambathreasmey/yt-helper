@@ -48,19 +48,19 @@
 <head>
 <meta charset="utf-8">
 <title>YouTube Helper</title>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root{--bg:#0f0f0f;--card:#272727;--mut:#aaa;--red:#f00}
 *{box-sizing:border-box}
-html,body{margin:0;min-height:100%;background:var(--bg);color:#fff;font-family:-apple-system,Segoe UI,Roboto,sans-serif}
+html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;margin:0;min-height:100%;background:var(--bg);color:#fff;font-family:-apple-system,Segoe UI,Roboto,sans-serif}
 body{padding:calc(var(--tg-safe-area-inset-top,0px) + var(--tg-content-safe-area-inset-top,0px) + 8px) 12px calc(var(--tg-safe-area-inset-bottom,0px) + 14px)}
 .hide{display:none!important}
 header{display:flex;align-items:center;gap:10px;margin:4px 0 14px}
 header svg{width:44px;height:31px}
 h1{font-size:20px;margin:0}
 .row{display:flex;gap:8px;margin-bottom:10px}
-input{flex:1;min-width:0;padding:12px;border:0;border-radius:10px;background:var(--card);color:#fff;font-size:15px}
+input{flex:1;min-width:0;padding:12px;border:0;border-radius:10px;background:var(--card);color:#fff;font-size:16px}
 button{padding:11px 14px;border:0;border-radius:10px;background:var(--card);color:#fff;font-size:14px;font-weight:600}
 button.red{background:var(--red)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
@@ -139,6 +139,12 @@ const store = {
 let hist = [], favs = [], cur = null, player = null, loop = false, pending = null;
 const speeds = [1, 1.25, 1.5, 2, 0.5]; let si = 0;
 const parseId = s => { const m = (s || "").match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|[?&]v=)([\w-]{11})/) || (/^[\w-]{11}$/.test((s || "").trim()) ? [0, s.trim()] : null); return m ? m[1] : null; };
+
+/* ---------- disable zoom (pinch + double-tap) ---------- */
+["gesturestart", "gesturechange", "gestureend"].forEach(ev => document.addEventListener(ev, e => e.preventDefault()));
+document.addEventListener("touchmove", e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+let lastTap = 0;
+document.addEventListener("touchend", e => { const n = Date.now(); if (n - lastTap < 300) e.preventDefault(); lastTap = n; }, { passive: false });
 
 /* ---------- setup ---------- */
 tg.ready(); tg.expand();
