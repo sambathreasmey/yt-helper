@@ -1,5 +1,6 @@
 import { CirclePlay } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ThemePicker } from "@/components/theme-picker";
 
 export function AppHeader() {
   return (
@@ -11,7 +12,10 @@ export function AppHeader() {
         <span className="block text-base font-semibold tracking-tight">YouTube Helper</span>
         <span className="mt-0.5 block text-xs text-muted">Your videos, one tap away</span>
       </span>
-      <Badge><span className="size-1.5 rounded-full bg-muted" />Ready</Badge>
+      <div className="flex shrink-0 items-center gap-2">
+        <ThemePicker />
+        <Badge><span className="size-1.5 rounded-full bg-muted" />Ready</Badge>
+      </div>
     </header>
   );
 }

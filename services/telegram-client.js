@@ -16,17 +16,6 @@ export function getTelegramProfile(telegram) {
   };
 }
 
-export function applyTelegramTheme(telegram, theme) {
-  const color = theme === "light" ? "#f3f3f3" : "#101112";
-  for (const method of ["setHeaderColor", "setBackgroundColor", "setBottomBarColor"]) {
-    try {
-      telegram?.[method]?.(color);
-    } catch {
-      // Theme methods vary across Telegram Web App versions.
-    }
-  }
-}
-
 export function impactTelegram(telegram, style = "light") {
   try {
     telegram?.HapticFeedback?.impactOccurred(style);

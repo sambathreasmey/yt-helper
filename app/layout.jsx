@@ -1,4 +1,5 @@
 import Script from "next/script";
+import { ThemeProvider } from "@/providers/theme-provider";
 import "./globals.css";
 
 export const metadata = {
@@ -22,7 +23,7 @@ export default function RootLayout({ children }) {
           src="https://telegram.org/js/telegram-web-app.js"
           strategy="beforeInteractive"
         />
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );
