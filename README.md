@@ -1,6 +1,7 @@
 # YouTube Helper
 
-This is a Next.js static export, ready to deploy to GitHub Pages.
+A Next.js static export for GitHub Pages, built with Tailwind CSS and reusable,
+shadcn-style UI primitives.
 
 ## Run locally
 
@@ -9,15 +10,26 @@ npm ci
 npm run dev
 ```
 
+Paste a YouTube video URL or ID to play it. When opened without a video link,
+the app opens YouTube after three seconds; interacting with the page cancels
+the countdown. Favorites and recent videos are saved locally and use Telegram
+Cloud Storage when the app is opened as a Telegram Mini App.
+
 ## Deploy to GitHub Pages
 
 The workflow in `.github/workflows/deploy.yml` builds and deploys the site when
-you push to `main` or run it manually. In the repository settings, set
-**Pages → Build and deployment → Source** to **GitHub Actions**.
+you push to `main` or run it manually. In repository settings, select
+**Pages → Build and deployment → Source → GitHub Actions**.
 
-The workflow sets the correct base path for project repositories and deploys
-user/organization Pages repositories at the root path. Paste a YouTube video
-link or video ID into the app to play it. When opened without a video link, the
-app offers to open YouTube after a three-second countdown; tapping elsewhere
-cancels it. Favorites and recent videos are saved locally, and Telegram profile
-details and cloud storage are used when opened as a Telegram Mini App.
+The workflow sets the base path for project repositories and deploys
+user/organization Pages repositories at the root path.
+
+## Project structure
+
+- `app/` contains the Next.js route, layout, and Tailwind entry point.
+- `components/ui/` contains reusable buttons, cards, badges, and inputs.
+- `components/` contains shared page-level UI.
+- `features/youtube-helper/` composes the YouTube Helper feature.
+- `hooks/` contains stateful React integrations for Telegram, storage, and playback.
+- `services/` contains YouTube, Telegram, and library-storage adapters. Add future
+  API clients here so components do not depend on transport details.
