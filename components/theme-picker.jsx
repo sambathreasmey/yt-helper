@@ -1,7 +1,25 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, Monitor, Moon, Palette, RotateCcw, Sun, WandSparkles } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  Clapperboard,
+  CirclePlay,
+  Film,
+  Headphones,
+  Monitor,
+  Moon,
+  Palette,
+  Play,
+  RotateCcw,
+  Sparkles,
+  Sun,
+  WandSparkles,
+  Waves,
+  Wind,
+  CircleOff,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/providers/theme-provider";
 import { cn } from "@/lib/utils";
@@ -21,6 +39,14 @@ const accents = [
   { value: "peach", label: "Peach", color: "#efa276" },
 ];
 
+const appIcons = [
+  { value: "circle-play", label: "Circle play", icon: CirclePlay },
+  { value: "play", label: "Play", icon: Play },
+  { value: "film", label: "Film", icon: Film },
+  { value: "clapperboard", label: "Clapperboard", icon: Clapperboard },
+  { value: "headphones", label: "Headphones", icon: Headphones },
+];
+
 const optionGroups = [
   {
     key: "surface",
@@ -37,6 +63,15 @@ const optionGroups = [
       { value: "soft", label: "Soft" },
       { value: "rounded", label: "Round" },
       { value: "sharp", label: "Sharp" },
+    ],
+  },
+  {
+    key: "background",
+    label: "Background",
+    options: [
+      { value: "aurora", label: "Aurora", icon: Waves },
+      { value: "drift", label: "Drift", icon: Wind },
+      { value: "none", label: "None", icon: CircleOff },
     ],
   },
 ];
@@ -81,7 +116,7 @@ export function ThemePicker() {
       {open && (
         <section
           aria-label="Appearance settings"
-          className="appearance-panel glass absolute right-0 top-[calc(100%+10px)] z-50 w-[min(21rem,calc(100vw-2rem))] overflow-hidden rounded-3xl p-4 shadow-2xl"
+          className="appearance-panel glass absolute right-0 top-[calc(100%+10px)] z-50 max-h-[min(80vh,42rem)] w-[min(22rem,calc(100vw-2rem))] overflow-y-auto rounded-3xl p-4 shadow-2xl"
           role="dialog"
         >
           <div className="mb-4 flex items-start justify-between gap-3">
@@ -140,22 +175,75 @@ export function ThemePicker() {
             </div>
           </fieldset>
 
+          <fieldset className="mt-4">
+            <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted">App icon</legend>
+            <div className="grid grid-cols-5 gap-2">
+              {appIcons.map(({ value, label, icon: Icon }) => (
+                <button
+                  aria-label={`${label} app icon`}
+                  aria-pressed={appearance.appIcon === value}
+                  className={cn(
+                    "relative grid size-10 place-items-center rounded-xl border border-border bg-surface text-muted transition-colors hover:bg-surface-strong hover:text-foreground",
+                    appearance.appIcon === value && "border-accent bg-accent-soft text-accent",
+                  )}
+                  key={value}
+                  onClick={() => setPreference("appIcon", value)}
+                  title={label}
+                  type="button"
+                >
+                  <Icon aria-hidden="true" size={18} />
+                  {appearance.appIcon === value && <Check aria-hidden="true" className="absolute -right-1 -top-1 rounded-full bg-background p-0.5 text-accent" size={13} />}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset className="mt-4">
+            <legend className="mb-2 flex w-full items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-muted">
+              <span>Glass blur</span>
+              <output className="rounded-full bg-accent-soft px-2 py-1 text-[10px] normal-case tracking-normal text-accent" htmlFor="glass-blur">
+                {appearance.blur}%
+              </output>
+            </legend>
+            <input
+              aria-label="Glass blur amount"
+              aria-valuetext={`${appearance.blur}% blur`}
+              className="appearance-slider h-2 w-full cursor-pointer rounded-full bg-surface-strong"
+              id="glass-blur"
+              max="100"
+              min="0"
+              onChange={(event) => setPreference("blur", Number(event.target.value))}
+              step="1"
+              type="range"
+              disabled={appearance.surface === "solid"}
+              style={{ "--range-progress": `${appearance.blur}%` }}
+              value={appearance.blur}
+            />
+            <p className="mt-1 text-[10px] text-muted">
+              {appearance.surface === "solid" ? "Choose Glass cards to adjust blur." : "Adjust how frosted the cards look."}
+            </p>
+            <div className="mt-1 flex justify-between text-[10px] text-muted">
+              <span>Clear</span><span>Frosted</span>
+            </div>
+          </fieldset>
+
           {optionGroups.map((group) => (
             <fieldset className="mt-4 flex items-center justify-between gap-3" key={group.key}>
               <legend className="sr-only">{group.label}</legend>
               <span className="text-xs font-medium">{group.label}</span>
-              <div className="flex rounded-xl bg-surface p-1">
+              <div className="flex flex-wrap justify-end rounded-xl bg-surface p-1">
                 {group.options.map((option) => (
                   <button
                     aria-pressed={appearance[group.key] === option.value}
                     className={cn(
-                      "min-h-8 rounded-lg px-2.5 text-[11px] font-medium text-muted transition-colors hover:text-foreground",
+                      "inline-flex min-h-8 items-center gap-1 rounded-lg px-2.5 text-[11px] font-medium text-muted transition-colors hover:text-foreground",
                       appearance[group.key] === option.value && "bg-surface-strong text-foreground shadow-sm",
                     )}
                     key={option.value}
                     onClick={() => setPreference(group.key, option.value)}
                     type="button"
                   >
+                    {option.icon && <option.icon aria-hidden="true" size={12} />}
                     {option.label}
                   </button>
                 ))}
@@ -171,7 +259,7 @@ export function ThemePicker() {
                 onChange={(event) => setPreference("motion", event.target.checked)}
                 type="checkbox"
               />
-              Animations
+              <Sparkles aria-hidden="true" size={14} />Animations
             </label>
             <button
               className="inline-flex min-h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-muted transition-colors hover:bg-surface hover:text-foreground"

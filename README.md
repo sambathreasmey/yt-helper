@@ -16,10 +16,12 @@ the countdown. Favorites and recent videos are saved locally and use Telegram
 Cloud Storage when the app is opened as a Telegram Mini App.
 
 Use **Customize** in the header to select System, Light, or Dark, pick from six
-accent colors, change between Glass and Solid cards, adjust corner shapes, and
-turn animations on or off. Preferences are saved locally. System follows
-Telegram's theme in the Mini App and the operating system preference in a
-regular browser.
+accent colors, choose the app icon and animated background, adjust Glass card
+blur from 0–100%, change card surfaces and corner shapes, and turn animations
+on or off. Preferences are saved locally. System follows Telegram's theme in
+the Mini App and the operating system preference in a regular browser. Blur is
+available when Glass cards are selected; background effects also respect the
+animation and reduced-motion preferences.
 
 ## Deploy to GitHub Pages
 

@@ -10,6 +10,9 @@ export const DEFAULT_APPEARANCE = {
   accent: "neutral",
   surface: "glass",
   corners: "soft",
+  blur: 70,
+  background: "aurora",
+  appIcon: "circle-play",
   motion: true,
 };
 
@@ -27,6 +30,8 @@ const VALID_OPTIONS = {
   accent: Object.keys(ACCENTS),
   surface: ["glass", "solid"],
   corners: ["soft", "rounded", "sharp"],
+  background: ["aurora", "drift", "none"],
+  appIcon: ["circle-play", "play", "film", "clapperboard", "headphones"],
 };
 
 const ThemeContext = createContext(null);
@@ -44,6 +49,9 @@ function readAppearance() {
             .filter(([key, values]) => values.includes(parsed[key]))
             .map(([key]) => [key, parsed[key]]),
         ),
+        blur: Number.isFinite(parsed.blur)
+          ? Math.min(100, Math.max(0, Math.round(parsed.blur)))
+          : DEFAULT_APPEARANCE.blur,
         motion: typeof parsed.motion === "boolean" ? parsed.motion : DEFAULT_APPEARANCE.motion,
       };
     }
@@ -92,6 +100,10 @@ export function ThemeProvider({ children }) {
       if (typeof value === "boolean") updateAppearance({ motion: value });
       return;
     }
+    if (key === "blur") {
+      if (Number.isFinite(value)) updateAppearance({ blur: Math.min(100, Math.max(0, Math.round(value))) });
+      return;
+    }
     if (VALID_OPTIONS[key]?.includes(value)) updateAppearance({ [key]: value });
   }, [updateAppearance]);
 
@@ -117,8 +129,10 @@ export function ThemeProvider({ children }) {
       document.documentElement.dataset.accent = appearance.accent;
       document.documentElement.dataset.surface = appearance.surface;
       document.documentElement.dataset.corners = appearance.corners;
+      document.documentElement.dataset.background = appearance.background;
       document.documentElement.dataset.motion = appearance.motion ? "on" : "off";
       document.documentElement.style.setProperty("--accent", accentColor);
+      document.documentElement.style.setProperty("--glass-blur", `${appearance.blur * 0.32}px`);
 
       const background = theme === "light" ? "#f3f3f3" : "#101112";
       for (const method of ["setHeaderColor", "setBackgroundColor", "setBottomBarColor"]) {
