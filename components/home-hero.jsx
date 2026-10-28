@@ -26,7 +26,7 @@ export function HomeHero({ countdown, onOpenYouTube, language = "en" }) {
         />
       )}
       <span className="relative z-10 flex items-center gap-3 text-2xl font-bold tracking-tight">
-        <Play aria-hidden="true" className="fill-current" size={27} />
+        <Play aria-hidden="true" className="fill-current text-accent" size={27} />
         {isKhmer ? "បើក YouTube" : "Open YouTube"}
       </span>
       <span className="relative z-10 min-h-4 pl-10 text-xs font-medium text-white/75">{subtitle}</span>

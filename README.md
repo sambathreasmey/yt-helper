@@ -15,9 +15,11 @@ the app opens YouTube after three seconds; interacting with the page cancels
 the countdown. Favorites and recent videos are saved locally and use Telegram
 Cloud Storage when the app is opened as a Telegram Mini App.
 
-Use the theme picker in the header to choose System, Light, or Dark. The choice
-is saved in local storage; System follows Telegram's theme in the Mini App and
-the operating system preference in a regular browser.
+Use **Customize** in the header to select System, Light, or Dark, pick from six
+accent colors, change between Glass and Solid cards, adjust corner shapes, and
+turn animations on or off. Preferences are saved locally. System follows
+Telegram's theme in the Mini App and the operating system preference in a
+regular browser.
 
 ## Deploy to GitHub Pages
 

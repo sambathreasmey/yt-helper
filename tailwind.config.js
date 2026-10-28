@@ -11,6 +11,7 @@ module.exports = {
         "surface-strong": "var(--surface-strong)",
         border: "var(--line)",
         accent: "var(--accent)",
+        "accent-soft": "var(--accent-soft)",
       },
       boxShadow: {
         glass: "var(--shadow)",
