@@ -5,15 +5,17 @@
   <title>YouTube Helper</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>html,body{margin:0;height:100%;background:#000}</style>
+  <style>html,body{margin:0;height:100%;background:#0f0f0f}</style>
 </head>
 <body>
 <script>
   const tg = window.Telegram.WebApp;
   tg.ready();
-  tg.expand();
-  try { tg.requestFullscreen(); } catch (e) {}
+  tg.expand();                                   // full height, keeps Telegram's top bar (no overlap)
   try { tg.disableVerticalSwipes(); } catch (e) {}
+  try { tg.setHeaderColor("#0f0f0f"); } catch (e) {}      // blend header with YouTube dark theme
+  try { tg.setBackgroundColor("#0f0f0f"); } catch (e) {}
+  try { tg.setBottomBarColor("#0f0f0f"); } catch (e) {}
   setTimeout(() => { location.replace("https://m.youtube.com"); }, 300);
 </script>
 </body>
