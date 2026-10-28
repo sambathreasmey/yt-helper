@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>YouTube Helper</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>html,body{margin:0;height:100%;background:#000}</style>
+</head>
+<body>
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  tg.expand();
+  try { tg.requestFullscreen(); } catch (e) {}
+  try { tg.disableVerticalSwipes(); } catch (e) {}
+  setTimeout(() => { location.replace("https://m.youtube.com"); }, 300);
+</script>
+</body>
+</html>
