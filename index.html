@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -38,6 +38,213 @@
   try { tg.setBackgroundColor("#0f0f0f"); } catch (e) {}
   try { tg.setBottomBarColor("#0f0f0f"); } catch (e) {}
   setTimeout(() => { location.replace("https://m.youtube.com"); }, 1500);
+</script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>YouTube Helper</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg:#0f0f0f;--card:#272727;--mut:#aaa;--red:#f00}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:#fff;font-family:-apple-system,Segoe UI,Roboto,sans-serif}
+body{padding:calc(var(--tg-safe-area-inset-top,0px) + var(--tg-content-safe-area-inset-top,0px) + 8px) 12px calc(var(--tg-safe-area-inset-bottom,0px) + 14px)}
+.hide{display:none!important}
+header{display:flex;align-items:center;gap:10px;margin:4px 0 14px}
+header svg{width:44px;height:31px}
+h1{font-size:20px;margin:0}
+.row{display:flex;gap:8px;margin-bottom:10px}
+input{flex:1;min-width:0;padding:12px;border:0;border-radius:10px;background:var(--card);color:#fff;font-size:15px}
+button{padding:11px 14px;border:0;border-radius:10px;background:var(--card);color:#fff;font-size:14px;font-weight:600}
+button.red{background:var(--red)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+h2{font-size:15px;color:var(--mut);margin:16px 0 8px}
+.item{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.item img{width:120px;aspect-ratio:16/9;object-fit:cover;border-radius:8px;background:#222;flex:none}
+.item span{font-size:14px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+#pwrap{aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden}
+#pwrap iframe{width:100%;height:100%;border:0}
+.ctl{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+#ptitle{font-size:16px;margin:10px 0 0}
+.note{color:var(--mut);font-size:13px;margin:6px 0}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="home">
+  <header>
+    <svg viewBox="0 0 110 78"><rect width="110" height="78" rx="20" fill="#f00"/><polygon points="44,22 44,56 74,39" fill="#fff"/></svg>
+    <h1>YouTube Helper</h1>
+  </header>
+  <div class="row" id="srow"><input id="q" placeholder=""><button class="red" id="sbtn">🔍</button></div>
+  <div class="row"><input id="link" placeholder=""><button class="red" id="pbtn"></button></div>
+  <div class="grid">
+    <button data-go="https://m.youtube.com">▶️ YouTube</button>
+    <button data-go="https://m.youtube.com/shorts">📱 Shorts</button>
+    <button data-go="https://music.youtube.com">🎵 Music</button>
+    <button data-go="https://m.youtube.com/feed/trending">🔥 Trending</button>
+    <button id="app">↗️ YouTube app</button>
+    <button id="a2hs">➕ Home Screen</button>
+  </div>
+  <h2 id="favT"></h2><div id="favs"></div>
+  <h2 id="hisT"></h2><div id="hist"></div>
+</div>
+
+<!-- SEARCH -->
+<div id="search" class="hide"><button id="sback"></button><div id="sres" style="margin-top:12px"></div></div>
+
+<!-- PLAYER -->
+<div id="player" class="hide">
+  <button id="pback"></button>
+  <div id="pwrap" style="margin-top:10px"><div id="yt"></div></div>
+  <p id="ptitle"></p>
+  <p class="note hide" id="err"></p>
+  <div class="ctl">
+    <button id="back10">⏪ 10s</button><button id="fwd10">10s ⏩</button>
+    <button id="speed">1x</button><button id="loop">🔁 Off</button>
+    <button id="fav">☆</button><button id="share"></button><button id="open">↗️</button>
+  </div>
+</div>
+
+<script>
+const tg = Telegram.WebApp;
+const API_KEY = "";                    // optional: YouTube Data API key for in-app search
+const $ = id => document.getElementById(id);
+const km = (tg.initDataUnsafe?.user?.language_code === "km");
+const T = km
+  ? {s:"ស្វែងរកវីដេអូ",l:"បិទភ្ជាប់តំណ YouTube",p:"លេង",f:"ចូលចិត្ត",h:"ថ្មីៗ",sh:"ចែករំលែក",b:"← ត្រឡប់ក្រោយ",e:"វីដេអូនេះមិនអាចលេងនៅទីនេះបានទេ សូមបើកក្នុង YouTube"}
+  : {s:"Search videos",l:"Paste YouTube link",p:"Play",f:"Favorites",h:"Recent",sh:"Share",b:"← Back",e:"This video can't be played here. Use ↗️ to open it on YouTube."};
+
+const hap = t => { try { tg.HapticFeedback.impactOccurred(t || "light"); } catch (e) {} };
+const lget = k => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
+const store = {
+  get: k => new Promise(r => {
+    try { tg.CloudStorage.getItem(k, (err, v) => r(!err && v ? JSON.parse(v) : lget(k))); }
+    catch (e) { r(lget(k)); }
+  }),
+  set: (k, v) => {
+    const s = JSON.stringify(v);
+    try { localStorage.setItem(k, s); } catch (e) {}
+    try { tg.CloudStorage.setItem(k, s); } catch (e) {}
+  }
+};
+
+let hist = [], favs = [], cur = null, player = null, loop = false, pending = null;
+const speeds = [1, 1.25, 1.5, 2, 0.5]; let si = 0;
+const parseId = s => { const m = (s || "").match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|[?&]v=)([\w-]{11})/) || (/^[\w-]{11}$/.test((s || "").trim()) ? [0, s.trim()] : null); return m ? m[1] : null; };
+
+/* ---------- setup ---------- */
+tg.ready(); tg.expand();
+try { tg.requestFullscreen(); } catch (e) {}
+try { tg.disableVerticalSwipes(); } catch (e) {}
+["setHeaderColor", "setBackgroundColor", "setBottomBarColor"].forEach(f => { try { tg[f]("#0f0f0f"); } catch (e) {} });
+$("q").placeholder = T.s; $("link").placeholder = T.l; $("pbtn").textContent = T.p;
+$("favT").textContent = "⭐ " + T.f; $("hisT").textContent = "🕘 " + T.h;
+$("share").textContent = "📤 " + T.sh; $("sback").textContent = T.b; $("pback").textContent = T.b; $("err").textContent = T.e;
+if (!API_KEY) $("srow").classList.add("hide");
+if (!tg.addToHomeScreen) $("a2hs").classList.add("hide");
+
+/* ---------- views ---------- */
+function show(v) {
+  ["home", "search", "player"].forEach(x => $(x).classList.toggle("hide", x !== v));
+  try { v === "home" ? tg.BackButton.hide() : tg.BackButton.show(); } catch (e) {}
+  scrollTo(0, 0);
+}
+const home = () => { if (player && player.pauseVideo) try { player.pauseVideo(); } catch (e) {} show("home"); renderLists(); };
+try { tg.BackButton.onClick(home); } catch (e) {}
+$("pback").onclick = $("sback").onclick = () => { hap(); home(); };
+
+/* leave to the real YouTube site: exit fullscreen first so nothing sits under the status bar */
+function go(url) { hap(); try { tg.exitFullscreen(); } catch (e) {} setTimeout(() => location.replace(url), 250); }
+document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => go(b.dataset.go));
+$("app").onclick = () => { hap(); tg.openLink("https://www.youtube.com/"); };
+$("a2hs").onclick = () => { hap(); try { tg.addToHomeScreen(); } catch (e) {} };
+
+/* ---------- lists ---------- */
+function item(v, onclick) {
+  const d = document.createElement("div"); d.className = "item";
+  d.innerHTML = `<img loading="lazy" src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg"><span></span>`;
+  d.querySelector("span").textContent = v.t || v.id;
+  d.onclick = onclick || (() => play(v.id)); return d;
+}
+function renderLists() {
+  [["favs", favs], ["hist", hist]].forEach(([el, arr]) => {
+    $(el).replaceChildren(...arr.map(v => item(v)));
+  });
+  $("favT").classList.toggle("hide", !favs.length); $("hisT").classList.toggle("hide", !hist.length);
+}
+async function titleOf(id) {
+  try { const r = await fetch("https://www.youtube.com/oembed?format=json&url=" + encodeURIComponent("https://youtu.be/" + id)); return (await r.json()).title; }
+  catch (e) { return id; }
+}
+
+/* ---------- player ---------- */
+function mk(id) {
+  if (player && player.loadVideoById) { player.loadVideoById(id); return; }
+  if (!window.YT || !YT.Player) { pending = id; return; }
+  player = new YT.Player("yt", {
+    videoId: id, width: "100%", height: "100%",
+    playerVars: { autoplay: 1, playsinline: 1, rel: 0, modestbranding: 1 },
+    events: {
+      onStateChange: e => { if (e.data === 0 && loop) { player.seekTo(0); player.playVideo(); } },
+      onError: () => $("err").classList.remove("hide")
+    }
+  });
+}
+window.onYouTubeIframeAPIReady = () => { if (pending) { const p = pending; pending = null; mk(p); } };
+const s = document.createElement("script"); s.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(s);
+
+async function play(id) {
+  hap(); cur = { id, t: id }; show("player"); $("err").classList.add("hide");
+  $("ptitle").textContent = ""; mk(id); updFav();
+  const t = await titleOf(id); cur.t = t; $("ptitle").textContent = t;
+  hist = [{ id, t: t.slice(0, 50) }, ...hist.filter(v => v.id !== id)].slice(0, 20);
+  store.set("hist", hist);
+  if (favs.find(v => v.id === id)) { favs = favs.map(v => v.id === id ? { id, t: t.slice(0, 50) } : v); store.set("favs", favs); }
+}
+function updFav() { $("fav").textContent = favs.find(v => v.id === cur.id) ? "⭐" : "☆"; }
+$("fav").onclick = () => {
+  hap("medium");
+  favs = favs.find(v => v.id === cur.id) ? favs.filter(v => v.id !== cur.id) : [{ id: cur.id, t: (cur.t || cur.id).slice(0, 50) }, ...favs].slice(0, 20);
+  store.set("favs", favs); updFav();
+};
+$("speed").onclick = () => { hap(); si = (si + 1) % speeds.length; try { player.setPlaybackRate(speeds[si]); } catch (e) {} $("speed").textContent = speeds[si] + "x"; };
+$("loop").onclick = () => { hap(); loop = !loop; $("loop").textContent = "🔁 " + (loop ? "On" : "Off"); };
+$("back10").onclick = () => { hap(); try { player.seekTo(player.getCurrentTime() - 10, true); } catch (e) {} };
+$("fwd10").onclick = () => { hap(); try { player.seekTo(player.getCurrentTime() + 10, true); } catch (e) {} };
+$("share").onclick = () => { hap(); tg.openTelegramLink("https://t.me/share/url?url=" + encodeURIComponent("https://youtu.be/" + cur.id) + "&text=" + encodeURIComponent(cur.t || "")); };
+$("open").onclick = () => { hap(); tg.openLink("https://youtu.be/" + cur.id); };
+
+/* ---------- paste link ---------- */
+$("pbtn").onclick = () => { const id = parseId($("link").value); if (id) { $("link").value = ""; play(id); } else hap("heavy"); };
+
+/* ---------- search (needs API_KEY) ---------- */
+async function doSearch() {
+  const q = $("q").value.trim(); if (!q || !API_KEY) return;
+  hap(); show("search"); $("sres").textContent = "...";
+  try {
+    const r = await fetch("https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=15&q=" + encodeURIComponent(q) + "&key=" + API_KEY);
+    const j = await r.json();
+    $("sres").replaceChildren(...(j.items || []).map(i => item({ id: i.id.videoId, t: i.snippet.title })));
+  } catch (e) { $("sres").textContent = "Error"; }
+}
+$("sbtn").onclick = doSearch;
+$("q").addEventListener("keydown", e => { if (e.key === "Enter") doSearch(); });
+
+/* ---------- start ---------- */
+(async () => {
+  hist = (await store.get("hist")) || []; favs = (await store.get("favs")) || [];
+  renderLists();
+  const deep = parseId(new URLSearchParams(location.search).get("v")) || parseId(tg.initDataUnsafe?.start_param);
+  if (deep) play(deep);
+})();
 </script>
 </body>
 </html>
