@@ -1,11 +1,10 @@
 export function initializePage() {
   const tg = window.Telegram?.WebApp || createTelegramFallback();
-  const API_KEY = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY || "";
   const $ = (id) => document.getElementById(id);
   const km = tg.initDataUnsafe?.user?.language_code === "km";
   const T = km
-    ? { s: "ស្វែងរកវីដេអូ", l: "បិទភ្ជាប់តំណ YouTube", p: "លេង", f: "ចូលចិត្ត", h: "ថ្មីៗ", sh: "ចែករំលែក", b: "ត្រឡប់ក្រោយ", yt: "បើក YouTube", auto: "បើកក្នុង {n} វិនាទី · ចុចកន្លែងផ្សេងដើម្បីបោះបង់", cancel: "បានបោះបង់ការបើកស្វ័យប្រវត្តិ", e: "វីដេអូនេះមិនអាចលេងនៅទីនេះបានទេ សូមបើកក្នុង YouTube" }
-    : { s: "Search videos", l: "Paste YouTube link", p: "Play", f: "Favorites", h: "Recent", sh: "Share", b: "Back", yt: "Open YouTube", auto: "Opening in {n}s · tap anywhere else to cancel", cancel: "Auto-open cancelled", e: "This video can't be played here. Use the open button to watch it on YouTube." };
+    ? { l: "បិទភ្ជាប់តំណ YouTube", p: "លេង", f: "ចូលចិត្ត", h: "ថ្មីៗ", sh: "ចែករំលែក", b: "ត្រឡប់ក្រោយ", yt: "បើក YouTube", browse: "បើក YouTube ដោយផ្ទាល់", e: "វីដេអូនេះមិនអាចលេងនៅទីនេះបានទេ សូមបើកក្នុង YouTube", invalid: "សូមបញ្ចូលតំណ YouTube ត្រឹមត្រូវ។" }
+    : { l: "Paste a YouTube link", p: "Play", f: "Favorites", h: "Recent", sh: "Share", b: "Back", yt: "Open YouTube", browse: "Browse YouTube directly", e: "This video can't be played here. Use the open button to watch it on YouTube.", invalid: "Enter a valid YouTube link or video ID." };
 
   function applyTheme() {
     const theme = tg.colorScheme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
@@ -61,7 +60,6 @@ export function initializePage() {
   let player = null;
   let loop = false;
   let pending = null;
-  let countdownTimer = null;
   const speeds = [1, 1.25, 1.5, 2, 0.5];
   let speedIndex = 0;
   const parseId = (value) => {
@@ -75,24 +73,24 @@ export function initializePage() {
   tg.expand?.();
   try { tg.requestFullscreen?.(); } catch {}
   try { tg.disableVerticalSwipes?.(); } catch {}
-  $("q").placeholder = T.s;
   $("link").placeholder = T.l;
   $("ptxt").textContent = T.p;
+  $("linkError").textContent = T.invalid;
   $("favT").querySelector("span").textContent = T.f;
   $("hisT").querySelector("span").textContent = T.h;
   $("share").querySelector("b").textContent = T.sh;
-  $("sback").querySelector("b").textContent = T.b;
   $("pback").querySelector("b").textContent = T.b;
   $("err").textContent = T.e;
   $("htxt").textContent = T.yt;
-  if (!API_KEY) $("srow").classList.add("hide");
+  $("hsub").textContent = T.browse;
   if (!tg.addToHomeScreen) $("a2hs").classList.add("hide");
 
   const user = tg.initDataUnsafe?.user;
   if (user) {
     const name = [user.first_name, user.last_name].filter(Boolean).join(" ") || user.username || "";
+    $("profile-label").textContent = "Telegram profile";
     $("uname").textContent = name;
-    $("uhandle").textContent = user.username ? `@${user.username}` : "";
+    $("uhandle").textContent = user.username ? `@${user.username}` : "Connected with Telegram";
     const avatar = $("av");
     if (user.photo_url) {
       const image = new Image();
@@ -103,20 +101,10 @@ export function initializePage() {
     } else {
       avatar.textContent = (name[0] || "?").toUpperCase();
     }
-    $("user").classList.remove("hide");
-  }
-
-  function stopCountdown(silent) {
-    if (!countdownTimer) return;
-    clearInterval(countdownTimer);
-    countdownTimer = null;
-    $("hero").classList.remove("run");
-    $("hsub").textContent = silent ? "" : T.cancel;
   }
 
   function show(view) {
-    if (view !== "home") stopCountdown();
-    ["home", "search", "player"].forEach((name) => $(name).classList.toggle("hide", name !== view));
+    ["home", "player"].forEach((name) => $(name).classList.toggle("hide", name !== view));
     try {
       if (view === "home") tg.BackButton?.hide();
       else tg.BackButton?.show();
@@ -137,7 +125,7 @@ export function initializePage() {
   };
   const backToHome = () => { hap(); home(); };
   tg.BackButton?.onClick?.(home);
-  $("pback").onclick = $("sback").onclick = backToHome;
+  $("pback").onclick = backToHome;
 
   const KEEP_HISTORY = false;
   const OPEN_MODE = "inapp";
@@ -165,31 +153,7 @@ export function initializePage() {
     try { tg.addToHomeScreen?.(); } catch {}
   };
 
-  let countdownLeft = 0;
-  const countdownText = () => { $("hsub").textContent = T.auto.replace("{n}", countdownLeft); };
-  const startCountdown = () => {
-    countdownLeft = 3;
-    countdownText();
-    $("hero").classList.add("run");
-    countdownTimer = setInterval(() => {
-      countdownLeft--;
-      if (countdownLeft <= 0) {
-        stopCountdown(true);
-        go("https://m.youtube.com");
-      } else {
-        countdownText();
-      }
-    }, 1000);
-  };
-  $("hero").onclick = () => {
-    stopCountdown(true);
-    go("https://m.youtube.com");
-  };
-  const cancelCountdown = (event) => {
-    if (countdownTimer && !event.target.closest?.("#hero")) stopCountdown();
-  };
-  document.addEventListener("pointerdown", cancelCountdown, true);
-  document.addEventListener("keydown", cancelCountdown, true);
+  $("hero").onclick = () => go("https://m.youtube.com");
 
   function makeItem(video) {
     const element = document.createElement("div");
@@ -314,35 +278,24 @@ export function initializePage() {
     hap();
     tg.openLink(`https://youtu.be/${cur.id}`);
   };
-  $("pbtn").onclick = () => {
+  const playLink = () => {
     const id = parseId($("link").value);
     if (id) {
       $("link").value = "";
+      $("linkError").classList.add("hide");
       play(id);
     } else {
       hap("heavy");
+      $("linkError").classList.remove("hide");
     }
   };
-
-  async function doSearch() {
-    const query = $("q").value.trim();
-    if (!query || !API_KEY) return;
-    hap();
-    show("search");
-    $("sres").textContent = "...";
-    try {
-      const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=15&q=${encodeURIComponent(query)}&key=${API_KEY}`);
-      const result = await response.json();
-      $("sres").replaceChildren(...(result.items || []).map((item) => makeItem({ id: item.id.videoId, t: item.snippet.title })));
-    } catch {
-      $("sres").textContent = "Error";
-    }
-  }
-  $("sbtn").onclick = doSearch;
-  const onSearchKeyDown = (event) => {
-    if (event.key === "Enter") doSearch();
+  $("pbtn").onclick = playLink;
+  const onLinkKeyDown = (event) => {
+    if (event.key === "Enter") playLink();
   };
-  $("q").addEventListener("keydown", onSearchKeyDown);
+  const onLinkInput = () => $("linkError").classList.add("hide");
+  $("link").addEventListener("keydown", onLinkKeyDown);
+  $("link").addEventListener("input", onLinkInput);
 
   const initializeStorage = async () => {
     hist = (await store.get("hist")) || [];
@@ -351,20 +304,17 @@ export function initializePage() {
     const deepLink = parseId(new URLSearchParams(location.search).get("v")) ||
       parseId(tg.initDataUnsafe?.start_param);
     if (deepLink) play(deepLink);
-    else startCountdown();
   };
   initializeStorage();
 
   return () => {
-    stopCountdown(true);
     document.removeEventListener("gesturestart", preventZoom);
     document.removeEventListener("gesturechange", preventZoom);
     document.removeEventListener("gestureend", preventZoom);
     document.removeEventListener("touchmove", preventMultiTouch);
     document.removeEventListener("touchend", preventDoubleTap);
-    document.removeEventListener("pointerdown", cancelCountdown, true);
-    document.removeEventListener("keydown", cancelCountdown, true);
-    $("q").removeEventListener("keydown", onSearchKeyDown);
+    $("link").removeEventListener("keydown", onLinkKeyDown);
+    $("link").removeEventListener("input", onLinkInput);
     window.removeEventListener("pageshow", onPageShow);
     colorScheme.removeEventListener?.("change", applyTheme);
     tg.offEvent?.("themeChanged", applyTheme);

@@ -1,27 +1,27 @@
 :root {
   color-scheme: dark;
-  --bg: #090b10;
-  --surface: rgb(255 255 255 / 5%);
-  --surface-strong: rgb(255 255 255 / 8%);
+  --bg: #101112;
+  --surface: rgb(255 255 255 / 4%);
+  --surface-strong: rgb(255 255 255 / 7%);
   --line: rgb(255 255 255 / 9%);
-  --mut: #9da4b3;
-  --tx: #f7f8fb;
-  --red: #ff2638;
-  --red-bright: #ff4352;
-  --shadow: 0 18px 54px rgb(0 0 0 / 28%);
+  --mut: #a1a1aa;
+  --tx: #f4f4f5;
+  --accent: #d4d4d8;
+  --accent-bright: #f4f4f5;
+  --shadow: 0 18px 54px rgb(0 0 0 / 24%);
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --bg: #f4f6fb;
+  --bg: #f3f3f3;
   --surface: rgb(255 255 255 / 68%);
   --surface-strong: rgb(255 255 255 / 84%);
-  --line: rgb(29 41 66 / 9%);
-  --mut: #687286;
-  --tx: #172033;
-  --red: #ed2639;
-  --red-bright: #ff4352;
-  --shadow: 0 18px 54px rgb(39 52 79 / 10%);
+  --line: rgb(0 0 0 / 9%);
+  --mut: #66666d;
+  --tx: #19191b;
+  --accent: #252528;
+  --accent-bright: #414145;
+  --shadow: 0 18px 54px rgb(0 0 0 / 8%);
 }
 
 * {
@@ -41,10 +41,7 @@ body {
 body {
   padding: calc(var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px) + 18px)
     16px calc(var(--tg-safe-area-inset-bottom, 0px) + 28px);
-  background:
-    radial-gradient(ellipse at 12% 2%, rgb(255 38 56 / 15%), transparent 34rem),
-    radial-gradient(ellipse at 95% 22%, rgb(82 105 255 / 12%), transparent 30rem),
-    var(--bg);
+  background: var(--bg);
   background-attachment: fixed;
 }
 
@@ -93,8 +90,8 @@ i {
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 20%);
   border-radius: 16px;
-  background: linear-gradient(145deg, #ff4654, #d90019);
-  box-shadow: 0 8px 24px rgb(255 38 56 / 28%);
+  background: linear-gradient(145deg, #e4e4e7, #a1a1aa);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 16%);
 }
 
 .brand-mark svg {
@@ -139,8 +136,8 @@ h1 {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #54d995;
-  box-shadow: 0 0 10px rgb(84 217 149 / 70%);
+  background: #a1a1aa;
+  box-shadow: 0 0 8px rgb(161 161 170 / 40%);
 }
 
 .glass-card {
@@ -162,21 +159,21 @@ h1 {
   overflow: hidden;
   margin: 0 0 18px;
   padding: 24px 22px;
-  border: 1px solid rgb(255 255 255 / 24%);
+  border: 1px solid var(--line);
   border-radius: 24px;
   background:
-    radial-gradient(ellipse at 88% 0%, rgb(255 255 255 / 24%), transparent 44%),
-    linear-gradient(120deg, #ff3347, #e60024 72%, #c90027);
-  color: #fff;
+    radial-gradient(ellipse at 88% 0%, rgb(255 255 255 / 9%), transparent 44%),
+    linear-gradient(120deg, #292a2d, #1d1e20 72%, #17181a);
+  color: #f4f4f5;
   text-align: left;
-  box-shadow: 0 14px 36px rgb(255 26 52 / 24%), inset 0 1px rgb(255 255 255 / 18%);
+  box-shadow: 0 14px 36px rgb(0 0 0 / 24%), inset 0 1px rgb(255 255 255 / 10%);
   isolation: isolate;
   transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
 .hero:hover {
   transform: translateY(-2px);
-  box-shadow: 0 18px 42px rgb(255 26 52 / 32%), inset 0 1px rgb(255 255 255 / 18%);
+  box-shadow: 0 18px 42px rgb(0 0 0 / 32%), inset 0 1px rgb(255 255 255 / 10%);
 }
 
 .hero:active {
@@ -209,18 +206,6 @@ h1 {
   opacity: 0.88;
 }
 
-.hero .fill {
-  position: absolute;
-  z-index: -1;
-  inset: 0 auto 0 0;
-  width: 0;
-  background: rgb(70 0 10 / 25%);
-}
-
-.hero.run .fill {
-  animation: fill 3s linear forwards;
-}
-
 .hero-glint {
   position: absolute;
   z-index: -1;
@@ -229,7 +214,7 @@ h1 {
   width: 30%;
   height: 200%;
   transform: rotate(22deg);
-  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 13%), transparent);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 7%), transparent);
   animation: glint 7s ease-in-out infinite;
   pointer-events: none;
 }
@@ -272,9 +257,9 @@ input {
 }
 
 input:focus {
-  border-color: rgb(255 60 78 / 55%);
+  border-color: rgb(161 161 170 / 60%);
   background: var(--surface-strong);
-  box-shadow: 0 0 0 3px rgb(255 38 56 / 12%);
+  box-shadow: 0 0 0 3px rgb(161 161 170 / 12%);
 }
 
 input::placeholder {
@@ -312,28 +297,22 @@ button:active {
 }
 
 button:focus-visible {
-  outline: 3px solid rgb(255 75 91 / 55%);
+  outline: 3px solid rgb(161 161 170 / 65%);
   outline-offset: 3px;
 }
 
-button.red,
+button.play-button,
 button.on {
   border-color: transparent;
-  background: linear-gradient(135deg, var(--red-bright), var(--red));
-  color: #fff;
-  box-shadow: 0 6px 16px rgb(255 38 56 / 22%);
+  background: linear-gradient(135deg, var(--accent-bright), var(--accent));
+  color: var(--bg);
+  box-shadow: 0 6px 16px rgb(0 0 0 / 18%);
 }
 
-button.red:hover,
+button.play-button:hover,
 button.on:hover {
-  background: linear-gradient(135deg, #ff5966, #ed1028);
-  box-shadow: 0 8px 20px rgb(255 38 56 / 30%);
-}
-
-.icon-button {
-  width: 48px;
-  flex: none;
-  padding: 0;
+  background: linear-gradient(135deg, var(--accent-bright), var(--accent));
+  box-shadow: 0 8px 20px rgb(0 0 0 / 24%);
 }
 
 .play-button {
@@ -365,7 +344,7 @@ button.on:hover {
 }
 
 .quick-links button .ic {
-  color: var(--red-bright);
+  color: var(--mut);
 }
 
 #a2hs {
@@ -395,10 +374,40 @@ button.on:hover {
   justify-content: center;
   overflow: hidden;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--red-bright), #c90027);
+  background: linear-gradient(135deg, #77777e, #45454b);
   color: #fff;
   font-size: 18px;
   font-weight: 700;
+}
+
+.profile-card {
+  position: relative;
+  min-height: 76px;
+  margin-bottom: 14px;
+  padding: 14px;
+}
+
+.profile-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.profile-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--mut);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.profile-indicator {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: #85858d;
 }
 
 .av img {
@@ -417,6 +426,11 @@ button.on:hover {
   margin-top: 3px;
   color: var(--mut);
   font-size: 12px;
+}
+
+.input-error {
+  margin: 10px 2px 0;
+  color: var(--mut);
 }
 
 .list-section {
@@ -442,7 +456,7 @@ h2 {
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--surface);
-  color: var(--red-bright);
+  color: var(--mut);
 }
 
 .section-icon .ic {
@@ -488,10 +502,6 @@ h2 {
   line-height: 1.4;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
-}
-
-.search-results {
-  margin-top: 14px;
 }
 
 .back-button {
@@ -544,14 +554,8 @@ h2 {
 }
 
 #fav.star .ic {
-  fill: #ffd44d;
-  stroke: #ffd44d;
-}
-
-@keyframes fill {
-  to {
-    width: 100%;
-  }
+  fill: currentColor;
+  stroke: currentColor;
 }
 
 @keyframes glint {

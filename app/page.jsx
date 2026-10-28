@@ -17,7 +17,6 @@ function Symbols() {
   return (
     <svg aria-hidden="true" width="0" height="0" className="symbols">
       <defs>
-        <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></symbol>
         <symbol id="i-play" viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20" /></symbol>
         <symbol id="i-shorts" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3" /><path d="M12 18h.01" /></symbol>
         <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></symbol>
@@ -46,15 +45,22 @@ export default function Page() {
         <section id="home" className="view home-view">
           <header className="app-header">
             <span className="brand-mark">
-              <svg viewBox="0 0 110 78" aria-hidden="true"><rect width="110" height="78" rx="20" fill="#f00" /><polygon points="44,22 44,56 74,39" fill="#fff" /></svg>
+              <svg viewBox="0 0 110 78" aria-hidden="true"><rect width="110" height="78" rx="20" fill="#d4d4d8" /><polygon points="44,22 44,56 74,39" fill="#161719" /></svg>
             </span>
             <span className="brand-copy"><h1>YouTube Helper</h1><p>Your videos, one tap away</p></span>
             <span className="status-pill"><span />Ready</span>
           </header>
-          <button className="hero glass-card" id="hero" type="button"><span className="fill" /><span className="hero-glint" /><span className="hin"><Icon name="play" /><b id="htxt" /></span><small id="hsub" /></button>
-          <div className="user hide" id="user"><div className="av" id="av" /><div><div className="uname" id="uname" /><div className="uhandle" id="uhandle" /></div></div>
-          <div className="input-card glass-card" id="srow"><label htmlFor="q">Find something to watch</label><div className="row"><input id="q" aria-label="Search videos" /><button className="red icon-button" id="sbtn" type="button" aria-label="Search videos"><Icon name="search" /></button></div></div>
-          <div className="input-card glass-card link-card"><label htmlFor="link">Play a video by link</label><div className="row"><input id="link" aria-label="YouTube video link" /><button className="red play-button" id="pbtn" type="button"><Icon name="play" /><b id="ptxt" /></button></div></div>
+          <button className="hero glass-card" id="hero" type="button"><span className="hero-glint" /><span className="hin"><Icon name="play" /><b id="htxt" /></span><small id="hsub" /></button>
+          <div className="user profile-card glass-card" id="user">
+            <div className="av" id="av">Y</div>
+            <div className="profile-copy"><span className="profile-label" id="profile-label">Local profile</span><div className="uname" id="uname">Your library</div><div className="uhandle" id="uhandle">Saved on this device</div></div>
+            <span className="profile-indicator" aria-hidden="true" />
+          </div>
+          <div className="input-card glass-card link-card">
+            <label htmlFor="link">Play a video</label>
+            <div className="row"><input id="link" type="text" inputMode="url" enterKeyHint="go" autoComplete="url" aria-label="YouTube video link" /><button className="play-button" id="pbtn" type="button"><Icon name="play" /><b id="ptxt" /></button></div>
+            <p className="note input-error hide" id="linkError" role="alert" />
+          </div>
           <div className="grid quick-links">
             <button data-go="https://m.youtube.com/shorts" type="button"><Icon name="shorts" />Shorts</button>
             <button data-go="https://m.youtube.com/feed/trending" type="button"><Icon name="fire" />Trending</button>
@@ -62,11 +68,6 @@ export default function Page() {
           </div>
           <div className="list-section"><h2 id="favT"><span className="section-icon"><Icon name="star" /></span><span /></h2><div id="favs" /></div>
           <div className="list-section"><h2 id="hisT"><span className="section-icon"><Icon name="clock" /></span><span /></h2><div id="hist" /></div>
-        </section>
-
-        <section id="search" className="view hide">
-          <button className="back-button glass-card" id="sback" type="button"><Icon name="back" /><b /></button>
-          <div id="sres" className="search-results" />
         </section>
 
         <section id="player" className="view hide">
