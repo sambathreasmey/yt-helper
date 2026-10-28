@@ -78,11 +78,11 @@ export function initializePage() {
   $("q").placeholder = T.s;
   $("link").placeholder = T.l;
   $("ptxt").textContent = T.p;
-  $("#favT span").textContent = T.f;
-  $("#hisT span").textContent = T.h;
-  $("#share b").textContent = T.sh;
-  $("#sback b").textContent = T.b;
-  $("#pback b").textContent = T.b;
+  $("favT").querySelector("span").textContent = T.f;
+  $("hisT").querySelector("span").textContent = T.h;
+  $("share").querySelector("b").textContent = T.sh;
+  $("sback").querySelector("b").textContent = T.b;
+  $("pback").querySelector("b").textContent = T.b;
   $("err").textContent = T.e;
   $("htxt").textContent = T.yt;
   if (!API_KEY) $("srow").classList.add("hide");
