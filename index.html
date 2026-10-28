@@ -5,18 +5,39 @@
   <title>YouTube Helper</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>html,body{margin:0;height:100%;background:#0f0f0f}</style>
+  <style>
+    html,body{margin:0;height:100%;background:#0f0f0f;color:#fff;font-family:-apple-system,Segoe UI,Roboto,sans-serif}
+    .splash{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}
+    .logo{width:110px;height:78px}
+    h1{margin:0;font-size:28px;letter-spacing:.5px}
+    p{margin:0;color:#aaa;font-size:15px}
+    .dots{display:flex;gap:8px;margin-top:10px}
+    .dots span{width:9px;height:9px;border-radius:50%;background:#f00;animation:b 1s infinite ease-in-out}
+    .dots span:nth-child(2){animation-delay:.15s}
+    .dots span:nth-child(3){animation-delay:.3s}
+    @keyframes b{0%,80%,100%{opacity:.25;transform:scale(.8)}40%{opacity:1;transform:scale(1.1)}}
+  </style>
 </head>
 <body>
+  <div class="splash">
+    <svg class="logo" viewBox="0 0 110 78" xmlns="http://www.w3.org/2000/svg">
+      <rect width="110" height="78" rx="20" fill="#f00"/>
+      <polygon points="44,22 44,56 74,39" fill="#fff"/>
+    </svg>
+    <h1>YouTube Helper</h1>
+    <p>Loading...</p>
+    <div class="dots"><span></span><span></span><span></span></div>
+  </div>
+
 <script>
   const tg = window.Telegram.WebApp;
   tg.ready();
-  tg.expand();                                   // full height, keeps Telegram's top bar (no overlap)
+  tg.expand();
   try { tg.disableVerticalSwipes(); } catch (e) {}
-  try { tg.setHeaderColor("#0f0f0f"); } catch (e) {}      // blend header with YouTube dark theme
+  try { tg.setHeaderColor("#0f0f0f"); } catch (e) {}
   try { tg.setBackgroundColor("#0f0f0f"); } catch (e) {}
   try { tg.setBottomBarColor("#0f0f0f"); } catch (e) {}
-  setTimeout(() => { location.replace("https://m.youtube.com"); }, 300);
+  setTimeout(() => { location.replace("https://m.youtube.com"); }, 1500);
 </script>
 </body>
 </html>
