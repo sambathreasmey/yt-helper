@@ -102,33 +102,6 @@ h2{display:flex;align-items:center;gap:7px;font-size:15px;color:var(--mut);margi
 <script>
 const tg = Telegram.WebApp;
 const API_KEY = "";                    // optional: YouTube Data API key for in-app search
-
-// Configure this with your deployed backend URL, e.g. "https://api.example.com"
-const API_BASE_URL = "";                // TODO: set your backend API base URL
-const USAGE_ENDPOINT = "/api/mini-app/usage";
-
-async function trackUsage(eventName = "open", extra = {}) {
-  const initData = tg.initData; // Raw Telegram-signed data; validate it on your backend.
-  if (!API_BASE_URL || !initData) {
-    if (!initData) console.warn("Telegram initData is unavailable. Open this page inside Telegram.");
-    return;
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL.replace(/\\/$/, "")}${USAGE_ENDPOINT}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ initData, event: eventName, ...extra })
-    });
-    if (!response.ok) throw new Error(`Usage API returned HTTP ${response.status}`);
-    const result = await response.json();
-    console.debug("Mini App usage tracked:", result);
-  } catch (error) {
-    // Usage tracking should never prevent the Mini App from working.
-    console.error("Could not track Mini App usage:", error);
-  }
-}
-
 const $ = id => document.getElementById(id);
 const km = (tg.initDataUnsafe?.user?.language_code === "km");
 const T = km
@@ -168,7 +141,6 @@ const parseId = s => { s = s || ""; const m = s.match(/(?:youtu\.be\/|youtube\.c
 
 /* ---------- setup ---------- */
 tg.ready(); tg.expand();
-trackUsage("open");
 try { tg.requestFullscreen(); } catch (e) {}
 try { tg.disableVerticalSwipes(); } catch (e) {}
 $("q").placeholder = T.s; $("link").placeholder = T.l; $("ptxt").textContent = T.p;
@@ -274,7 +246,6 @@ window.onYouTubeIframeAPIReady = () => { if (pending) { const p = pending; pendi
 const sc = document.createElement("script"); sc.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(sc);
 
 async function play(id) {
-  trackUsage("play_video", { videoId: id });
   hap(); cur = { id, t: id }; show("player"); $("err").classList.add("hide");
   $("ptitle").textContent = ""; mk(id); updFav();
   const t = await titleOf(id); cur.t = t; $("ptitle").textContent = t;
