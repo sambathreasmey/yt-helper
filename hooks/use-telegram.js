@@ -23,17 +23,10 @@ export function useTelegram() {
   }, []);
 
   useEffect(() => {
-    const user = telegram?.initDataUnsafe?.user;
-    if (!user?.id) return;
+    const initData = telegram?.initData;
+    if (!initData) return;
 
-    registerTelegramUser({
-      chatId: user.id,
-      firstName: user.first_name,
-      lastName: user.last_name,
-      username: user.username,
-      languageCode: user.language_code,
-      isPremium: user.is_premium,
-      photoUrl: user.photo_url,
+    registerTelegramUser(initData, {
       platform: telegram?.platform,
       appVersion: telegram?.version,
     });

@@ -1,20 +1,16 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://localhost:8080";
 
-export async function registerTelegramUser(profile) {
-  if (!profile?.chatId) return null;
+export async function registerTelegramUser(initData, profile = {}) {
+  if (!initData) return null;
 
   try {
     const response = await fetch(`${API_BASE_URL}/telegram-user`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Telegram-Init-Data": initData,
+      },
       body: JSON.stringify({
-        chat_id: profile.chatId,
-        first_name: profile.firstName || null,
-        last_name: profile.lastName || null,
-        username: profile.username || null,
-        language_code: profile.languageCode || null,
-        is_premium: Boolean(profile.isPremium),
-        photo_url: profile.photoUrl || null,
         platform: profile.platform || null,
         app_version: profile.appVersion || null,
       }),
