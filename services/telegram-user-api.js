@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://localhost:8080";
+import { API_BASE_URL } from "@/lib/api-config";
 
 export async function registerTelegramUser(initData, profile = {}) {
   if (!initData) return null;

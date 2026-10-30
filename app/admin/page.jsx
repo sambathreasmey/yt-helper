@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ThemePicker } from "@/components/theme-picker";
 import { AdminLogin, SummaryCards, useAdminSummary, isLoggedIn, logout } from "@/components/admin/admin-auth-summary";
 import { UserList } from "@/components/admin/user-list";
-import { UserDetail } from "@/components/admin/user-detail";
+import { UserDetailPanel } from "@/components/admin/user-detail-panel";
 
 export default function AdminPage() {
   const [ready, setReady] = useState(false);
@@ -35,13 +36,16 @@ export default function AdminPage() {
     <main className="mx-auto w-full max-w-[720px] space-y-4 p-4">
       <header className="flex items-center justify-between">
         <h1 className="text-base font-semibold">Telegram users</h1>
-        <Button size="sm" onClick={() => { logout(); setLoggedIn(false); }}>Sign out</Button>
+        <div className="flex items-center gap-2">
+          <ThemePicker />
+          <Button size="sm" onClick={() => { logout(); setLoggedIn(false); }}>Sign out</Button>
+        </div>
       </header>
 
       {error && <p className="text-xs text-red-400">{error}</p>}
 
       {selectedChatId ? (
-        <UserDetail chatId={selectedChatId} onChanged={refresh} onBack={() => setSelectedChatId(null)} />
+        <UserDetailPanel chatId={selectedChatId} onChanged={refresh} onBack={() => setSelectedChatId(null)} />
       ) : (
         <>
           <SummaryCards summary={summary} />

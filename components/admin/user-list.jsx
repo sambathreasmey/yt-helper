@@ -5,68 +5,63 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { listUsers } from "@/services/dashboard-api";
+import { ErrorText, formatUserName, selectClass } from "@/components/admin/ui";
 
-const STATUS_OPTIONS = ["", "ACTIVE", "INACTIVE", "BLOCKED"];
+const PAGE_SIZE = 20;
+const STATUS_OPTIONS = [
+  { value: "", label: "All statuses" },
+  { value: "ACTIVE", label: "Active" },
+  { value: "INACTIVE", label: "Inactive" },
+  { value: "BLOCKED", label: "Blocked" },
+];
+const PLAN_OPTIONS = [
+  { value: "", label: "All plans" },
+  { value: "true", label: "Premium only" },
+  { value: "false", label: "Non-premium" },
+];
 
 export function UserList({ onSelect, refreshKey }) {
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
-  const [premium, setPremium] = useState("");
+  const [filters, setFilters] = useState({ search: "", status: "", is_premium: "" });
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(20);
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+
+  // Any filter change goes back to page 1.
+  function updateFilter(key, value) {
+    setFilters((current) => ({ ...current, [key]: value }));
+    setPage(1);
+  }
 
   useEffect(() => {
     let active = true;
     (async () => {
-      const response = await listUsers({
-        search,
-        status,
-        is_premium: premium,
-        page,
-        page_size: pageSize,
-      });
+      const response = await listUsers({ ...filters, page, page_size: PAGE_SIZE });
       if (!active) return;
-      if (response.ok) {
-        setData(response.data);
-        setError("");
-      } else {
-        setError(response.message);
-      }
+      setData(response.ok ? response.data : null);
+      setError(response.ok ? "" : response.message);
     })();
     return () => { active = false; };
-  }, [search, status, premium, page, pageSize, refreshKey]);
+  }, [filters, page, refreshKey]);
 
-  const totalPages = data ? Math.max(Math.ceil(data.total / pageSize), 1) : 1;
+  const totalPages = data ? Math.max(Math.ceil(data.total / PAGE_SIZE), 1) : 1;
 
   return (
     <Card className="space-y-3 p-4">
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         <Input
           placeholder="Search name, username, chat ID"
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          value={filters.search}
+          onChange={(e) => updateFilter("search", e.target.value)}
         />
-        <select
-          className="h-12 rounded-xl border border-border bg-surface-strong px-3 text-sm"
-          value={status}
-          onChange={(e) => { setStatus(e.target.value); setPage(1); }}
-        >
-          {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s || "All statuses"}</option>)}
+        <select className={selectClass} value={filters.status} onChange={(e) => updateFilter("status", e.target.value)}>
+          {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
-        <select
-          className="h-12 rounded-xl border border-border bg-surface-strong px-3 text-sm"
-          value={premium}
-          onChange={(e) => { setPremium(e.target.value); setPage(1); }}
-        >
-          <option value="">All plans</option>
-          <option value="true">Premium only</option>
-          <option value="false">Non-premium</option>
+        <select className={selectClass} value={filters.is_premium} onChange={(e) => updateFilter("is_premium", e.target.value)}>
+          {PLAN_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
       </div>
 
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      <ErrorText>{error}</ErrorText>
 
       <div className="divide-y divide-border">
         {(data?.items || []).map((user) => (
@@ -77,9 +72,7 @@ export function UserList({ onSelect, refreshKey }) {
             className="flex w-full items-center justify-between gap-3 py-3 text-left hover:bg-surface"
           >
             <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold">
-                {[user.first_name, user.last_name].filter(Boolean).join(" ") || user.username || user.chat_id}
-              </span>
+              <span className="block truncate text-sm font-semibold">{formatUserName(user)}</span>
               <span className="block truncate text-xs text-muted">
                 {user.username ? `@${user.username}` : user.chat_id} · {user.plan_type || "FREE"}
               </span>
@@ -90,7 +83,9 @@ export function UserList({ onSelect, refreshKey }) {
             </span>
           </button>
         ))}
-        {data && data.items.length === 0 && <p className="py-6 text-center text-sm text-muted">No users found.</p>}
+        {data && data.items.length === 0 && (
+          <p className="py-6 text-center text-sm text-muted">No users found.</p>
+        )}
       </div>
 
       <div className="flex items-center justify-between">
