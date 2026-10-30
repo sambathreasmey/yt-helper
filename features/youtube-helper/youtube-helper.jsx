@@ -127,7 +127,7 @@ export function YouTubeHelper() {
     <main className="layout-main mx-auto w-full max-w-[520px]">
       {view === "home" ? (
         <section className="layout-shell view-enter" data-layout={appearance.layout}>
-          <AppHeader />
+          <AppHeader profile={profile} />
           <HomeHero countdown={countdown} language={language} onOpenYouTube={() => navigateToYouTube()} />
           <ProfileCard profile={profile} />
           {appearance.layout === "dashboard"
@@ -141,18 +141,21 @@ export function YouTubeHelper() {
           />
         </section>
       ) : video ? (
-        <YouTubePlayer
-          favorite={isFavorite}
-          language={language}
-          onBack={returnHome}
-          onOpenYouTube={() => navigateToYouTube(`https://youtu.be/${video.id}`)}
-          onShare={shareVideo}
-          onToggleFavorite={() => {
-            impactTelegram(telegram, "medium");
-            library.toggleFavorite({ id: video.id, t: video.title });
-          }}
-          video={video}
-        />
+        <>
+          <AppHeader profile={profile} />
+          <YouTubePlayer
+            favorite={isFavorite}
+            language={language}
+            onBack={returnHome}
+            onOpenYouTube={() => navigateToYouTube(`https://youtu.be/${video.id}`)}
+            onShare={shareVideo}
+            onToggleFavorite={() => {
+              impactTelegram(telegram, "medium");
+              library.toggleFavorite({ id: video.id, t: video.title });
+            }}
+            video={video}
+          />
+        </>
       ) : null}
     </main>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { Clapperboard, CirclePlay, Film, Headphones, Play } from "lucide-react";
+import { TelegramUserBadge } from "@/components/telegram-user-badge";
 import { ThemePicker } from "@/components/theme-picker";
 import { useTheme } from "@/providers/theme-provider";
 
@@ -12,7 +13,7 @@ const appIconComponents = {
   headphones: Headphones,
 };
 
-export function AppHeader() {
+export function AppHeader({ profile = null }) {
   const { appearance } = useTheme();
   const AppIcon = appIconComponents[appearance.appIcon] || CirclePlay;
 
@@ -25,6 +26,7 @@ export function AppHeader() {
         <span className="block text-base font-semibold tracking-tight">YouTube Helper</span>
         <span className="mt-0.5 block text-xs text-muted">Your videos, one tap away</span>
       </span>
+      <TelegramUserBadge profile={profile} />
       <ThemePicker />
     </header>
   );
