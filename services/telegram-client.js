@@ -1,3 +1,9 @@
+export function isInsideTelegram() {
+  if (typeof window === "undefined") return false;
+  const initData = window.Telegram?.WebApp?.initData;
+  return typeof initData === "string" && initData.length > 0;
+}
+
 export function getTelegramClient() {
   if (typeof window === "undefined") return null;
 

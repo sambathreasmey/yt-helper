@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://sambathreasmey1app.pythonanywhere.com";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://localhost:8080";
 
 export async function registerTelegramUser(profile) {
   if (!profile?.chatId) return null;
