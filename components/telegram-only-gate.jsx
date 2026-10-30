@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { isInsideTelegram } from "@/services/telegram-client";
 
-const BOT_LINK = process.env.NEXT_PUBLIC_TELEGRAM_BOT_LINK || "";
+const BOT_LINK = process.env.NEXT_PUBLIC_TELEGRAM_BOT_LINK || "https://t.me/homerestassistantbot?startapp";
 
 export function TelegramOnlyGate({ children }) {
   // null = still checking (Telegram's script may not have run yet)
