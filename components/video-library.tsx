@@ -1,8 +1,16 @@
 import { Clock3, Play, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { getVideoThumbnail } from "@/services/youtube";
+import type { LibraryVideo } from "@/services/library-storage";
 
-function VideoSection({ icon: Icon, title, videos, onPlay }) {
+interface VideoSectionProps {
+  icon: typeof Star;
+  title: string;
+  videos: LibraryVideo[];
+  onPlay: (videoId: string) => void;
+}
+
+function VideoSection({ icon: Icon, title, videos, onPlay }: VideoSectionProps) {
   if (!videos.length) return null;
 
   return (
@@ -50,7 +58,14 @@ function VideoSection({ icon: Icon, title, videos, onPlay }) {
   );
 }
 
-export function VideoLibrary({ favorites, history, onPlay, language = "en" }) {
+interface VideoLibraryProps {
+  favorites: LibraryVideo[];
+  history: LibraryVideo[];
+  onPlay: (videoId: string) => void;
+  language?: string;
+}
+
+export function VideoLibrary({ favorites, history, onPlay, language = "en" }: VideoLibraryProps) {
   const isKhmer = language === "km";
   return (
     <div data-layout-slot="library">

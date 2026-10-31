@@ -13,28 +13,36 @@ import { useTelegram } from "@/hooks/use-telegram";
 import { useVideoLibrary } from "@/hooks/use-video-library";
 import { fetchVideoTitle, parseYouTubeVideoId } from "@/services/youtube";
 import { impactTelegram, openTelegramLink } from "@/services/telegram-client";
+import type { LibraryVideo } from "@/services/library-storage";
+
+type View = "home" | "player";
+
+interface CurrentVideo {
+  id: string;
+  title: string;
+}
 
 export function YouTubeHelper() {
   const { appearance } = useTheme();
   const { telegram, profile } = useTelegram();
   const library = useVideoLibrary(telegram);
-  const [view, setView] = useState("home");
-  const [video, setVideo] = useState(null);
-  const [countdown, setCountdown] = useState(null);
+  const [view, setView] = useState<View>("home");
+  const [video, setVideo] = useState<CurrentVideo | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
   const didInitialize = useRef(false);
   const language = telegram?.initDataUnsafe?.user?.language_code || "en";
 
-  const playVideo = useCallback((videoId) => {
+  const playVideo = useCallback((videoId: string) => {
     setCountdown(null);
     setVideo({ id: videoId, title: videoId });
     setView("player");
     impactTelegram(telegram, "light");
 
-    const videoRecord = { id: videoId, t: videoId };
+    const videoRecord: LibraryVideo = { id: videoId, t: videoId };
     library.addToHistory(videoRecord);
     fetchVideoTitle(videoId).then((title) => {
-      const updated = { id: videoId, t: title };
-      setVideo((current) => current?.id === videoId ? { ...current, title } : current);
+      const updated: LibraryVideo = { id: videoId, t: title };
+      setVideo((current) => (current?.id === videoId ? { ...current, title } : current));
       library.updateLibraryTitle(updated);
     });
   }, [library.addToHistory, library.updateLibraryTitle, telegram]);
@@ -52,7 +60,7 @@ export function YouTubeHelper() {
   useEffect(() => {
     if (countdown === null || countdown === 0) return undefined;
     const timer = window.setInterval(() => {
-      setCountdown((remaining) => remaining === null ? null : Math.max(remaining - 1, 0));
+      setCountdown((remaining) => (remaining === null ? null : Math.max(remaining - 1, 0)));
     }, 1000);
     return () => window.clearInterval(timer);
   }, [countdown]);
@@ -69,8 +77,9 @@ export function YouTubeHelper() {
 
   useEffect(() => {
     if (countdown === null) return undefined;
-    const cancel = (event) => {
-      if (!event.target.closest?.("[data-countdown-trigger]")) setCountdown(null);
+    const cancel = (event: Event) => {
+      const target = event.target as Element | null;
+      if (!target?.closest?.("[data-countdown-trigger]")) setCountdown(null);
     };
     document.addEventListener("pointerdown", cancel, true);
     document.addEventListener("keydown", cancel, true);
@@ -80,10 +89,11 @@ export function YouTubeHelper() {
     };
   }, [countdown]);
 
+
   const returnHome = useCallback(() => {
     setCountdown(null);
     setView("home");
-    try { telegram?.BackButton?.hide(); } catch {
+    try { telegram?.BackButton?.hide?.(); } catch {
       // Older Telegram clients may not implement the Back Button API.
     }
     window.scrollTo(0, 0);

@@ -1,7 +1,13 @@
 import { Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function HomeHero({ countdown, onOpenYouTube, language = "en" }) {
+interface HomeHeroProps {
+  countdown: number | null;
+  onOpenYouTube: () => void;
+  language?: string;
+}
+
+export function HomeHero({ countdown, onOpenYouTube, language = "en" }: HomeHeroProps) {
   const isKhmer = language === "km";
   const subtitle = countdown === null
     ? (isKhmer ? "បើក YouTube ដោយផ្ទាល់" : "Browse YouTube directly")

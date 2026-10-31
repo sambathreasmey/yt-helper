@@ -1,11 +1,12 @@
 "use client";
 
-import { Clapperboard, CirclePlay, Film, Headphones, Play } from "lucide-react";
+import { CirclePlay, Clapperboard, Film, Headphones, Play, type LucideIcon } from "lucide-react";
 import { TelegramUserBadge } from "@/components/telegram-user-badge";
 import { ThemePicker } from "@/components/theme-picker";
 import { useTheme } from "@/providers/theme-provider";
+import type { TelegramProfile } from "@/services/telegram-client";
 
-const appIconComponents = {
+const appIconComponents: Record<string, LucideIcon> = {
   "circle-play": CirclePlay,
   play: Play,
   film: Film,
@@ -13,7 +14,7 @@ const appIconComponents = {
   headphones: Headphones,
 };
 
-export function AppHeader({ profile = null }) {
+export function AppHeader({ profile = null }: { profile?: TelegramProfile | null }) {
   const { appearance } = useTheme();
   const AppIcon = appIconComponents[appearance.appIcon] || CirclePlay;
 

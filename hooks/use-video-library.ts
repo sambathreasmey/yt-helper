@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { loadLibraryList, saveLibraryList } from "@/services/library-storage";
+import { loadLibraryList, saveLibraryList, type LibraryVideo } from "@/services/library-storage";
+import type { TelegramWebApp } from "@/types/telegram";
 
-export function useVideoLibrary(telegram) {
-  const [favorites, setFavorites] = useState([]);
-  const [history, setHistory] = useState([]);
+export function useVideoLibrary(telegram: TelegramWebApp | null | undefined) {
+  const [favorites, setFavorites] = useState<LibraryVideo[]>([]);
+  const [history, setHistory] = useState<LibraryVideo[]>([]);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -31,7 +32,7 @@ export function useVideoLibrary(telegram) {
     saveLibraryList(telegram, "history", history);
   }, [favorites, history, ready, telegram]);
 
-  const toggleFavorite = useCallback((video) => {
+  const toggleFavorite = useCallback((video: LibraryVideo) => {
     setFavorites((current) => {
       return current.some((item) => item.id === video.id)
         ? current.filter((item) => item.id !== video.id)
@@ -39,14 +40,14 @@ export function useVideoLibrary(telegram) {
     });
   }, []);
 
-  const addToHistory = useCallback((video) => {
+  const addToHistory = useCallback((video: LibraryVideo) => {
     setHistory((current) => {
       return [{ ...video, t: (video.t || video.id).slice(0, 50) },
         ...current.filter((item) => item.id !== video.id)].slice(0, 20);
     });
   }, []);
 
-  const updateLibraryTitle = useCallback((video) => {
+  const updateLibraryTitle = useCallback((video: LibraryVideo) => {
     const title = video.t.slice(0, 50);
     setHistory((current) => {
       return current.map((item) => item.id === video.id ? { ...item, t: title } : item);

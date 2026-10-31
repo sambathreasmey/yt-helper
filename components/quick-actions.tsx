@@ -1,7 +1,13 @@
 import { Flame, Plus, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function QuickActions({ onOpen, onAddToHome, showAddToHome }) {
+interface QuickActionsProps {
+  onOpen: (url: string) => void;
+  onAddToHome: () => void;
+  showAddToHome: boolean;
+}
+
+export function QuickActions({ onOpen, onAddToHome, showAddToHome }: QuickActionsProps) {
   return (
     <div className="mb-6 grid grid-cols-2 gap-2.5" data-layout-slot="quick">
       <Button onClick={() => onOpen("https://m.youtube.com/shorts")}>

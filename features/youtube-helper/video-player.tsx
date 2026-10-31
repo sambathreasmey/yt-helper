@@ -5,6 +5,16 @@ import { ArrowLeft, ExternalLink, Repeat2, RotateCcw, RotateCw, Send, Star } fro
 import { Button } from "@/components/ui/button";
 import { useYouTubePlayer } from "@/hooks/use-youtube-player";
 
+interface YouTubePlayerProps {
+  video: { id: string; title: string };
+  favorite: boolean;
+  onBack: () => void;
+  onToggleFavorite: () => void;
+  onShare: () => void;
+  onOpenYouTube: () => void;
+  language?: string;
+}
+
 export function YouTubePlayer({
   video,
   favorite,
@@ -13,7 +23,7 @@ export function YouTubePlayer({
   onShare,
   onOpenYouTube,
   language = "en",
-}) {
+}: YouTubePlayerProps) {
   const [loop, setLoop] = useState(false);
   const [speed, setSpeed] = useState(1);
   const { hostRef, playerRef, error } = useYouTubePlayer(video.id, loop);
@@ -28,10 +38,12 @@ export function YouTubePlayer({
     speedIndex.current = 0;
   }, [video.id]);
 
-  function seekBy(seconds) {
+  function seekBy(seconds: number) {
     try {
       const currentTime = playerRef.current?.getCurrentTime();
-      if (typeof currentTime === "number") playerRef.current.seekTo(Math.max(0, currentTime + seconds), true);
+      if (typeof currentTime === "number" && playerRef.current) {
+        playerRef.current.seekTo(Math.max(0, currentTime + seconds), true);
+      }
     } catch {
       // The player may still be initializing.
     }

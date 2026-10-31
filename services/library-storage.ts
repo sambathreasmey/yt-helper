@@ -1,19 +1,31 @@
-const STORAGE_KEYS = {
+import type { TelegramWebApp } from "@/types/telegram";
+
+export interface LibraryVideo {
+  id: string;
+  t: string;
+}
+
+export type LibraryListName = "favorites" | "history";
+
+const STORAGE_KEYS: Record<LibraryListName, string> = {
   favorites: "favs",
   history: "hist",
 };
 
-function parseVideoList(value) {
+function parseVideoList(value: string | null | undefined): LibraryVideo[] {
   try {
-    const videos = JSON.parse(value || "[]");
+    const videos: unknown = JSON.parse(value || "[]");
     if (!Array.isArray(videos)) return [];
-    return videos.filter((video) => video && typeof video.id === "string");
+    return videos.filter(
+      (video): video is LibraryVideo =>
+        Boolean(video) && typeof (video as LibraryVideo).id === "string",
+    );
   } catch {
     return [];
   }
 }
 
-function readLocal(key) {
+function readLocal(key: string): LibraryVideo[] {
   try {
     return parseVideoList(window.localStorage.getItem(key));
   } catch {
@@ -21,7 +33,7 @@ function readLocal(key) {
   }
 }
 
-function readCloud(telegram, key) {
+function readCloud(telegram: TelegramWebApp | null | undefined, key: string): Promise<LibraryVideo[] | null> {
   return new Promise((resolve) => {
     const cloudStorage = telegram?.CloudStorage;
     if (!cloudStorage?.getItem) {
@@ -39,7 +51,10 @@ function readCloud(telegram, key) {
   });
 }
 
-export async function loadLibraryList(telegram, listName) {
+export async function loadLibraryList(
+  telegram: TelegramWebApp | null | undefined,
+  listName: LibraryListName,
+): Promise<LibraryVideo[]> {
   const key = STORAGE_KEYS[listName];
   if (!key) throw new Error(`Unknown library list: ${listName}`);
 
@@ -47,7 +62,11 @@ export async function loadLibraryList(telegram, listName) {
   return cloudValue ?? readLocal(key);
 }
 
-export function saveLibraryList(telegram, listName, videos) {
+export function saveLibraryList(
+  telegram: TelegramWebApp | null | undefined,
+  listName: LibraryListName,
+  videos: LibraryVideo[],
+): void {
   const key = STORAGE_KEYS[listName];
   if (!key) throw new Error(`Unknown library list: ${listName}`);
 

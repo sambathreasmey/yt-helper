@@ -1,16 +1,26 @@
-export function isInsideTelegram() {
+import type { TelegramWebApp } from "@/types/telegram";
+
+export interface TelegramProfile {
+  name: string;
+  handle: string;
+  photoUrl: string | null;
+}
+
+export type HapticStyle = "light" | "medium" | "heavy" | "rigid" | "soft";
+
+export function isInsideTelegram(): boolean {
   if (typeof window === "undefined") return false;
   const initData = window.Telegram?.WebApp?.initData;
   return typeof initData === "string" && initData.length > 0;
 }
 
-export function getTelegramClient() {
+export function getTelegramClient(): TelegramWebApp | null {
   if (typeof window === "undefined") return null;
 
   return window.Telegram?.WebApp || null;
 }
 
-export function getTelegramProfile(telegram) {
+export function getTelegramProfile(telegram: TelegramWebApp | null | undefined): TelegramProfile | null {
   const user = telegram?.initDataUnsafe?.user;
   if (!user) return null;
 
@@ -22,7 +32,10 @@ export function getTelegramProfile(telegram) {
   };
 }
 
-export function impactTelegram(telegram, style = "light") {
+export function impactTelegram(
+  telegram: TelegramWebApp | null | undefined,
+  style: HapticStyle = "light",
+): void {
   try {
     telegram?.HapticFeedback?.impactOccurred(style);
   } catch {
@@ -30,7 +43,11 @@ export function impactTelegram(telegram, style = "light") {
   }
 }
 
-export function openTelegramLink(telegram, url, { browser = false } = {}) {
+export function openTelegramLink(
+  telegram: TelegramWebApp | null | undefined,
+  url: string,
+  { browser = false }: { browser?: boolean } = {},
+): void {
   if (browser && telegram?.openLink) {
     telegram.openLink(url, { try_instant_view: false });
     return;

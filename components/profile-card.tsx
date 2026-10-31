@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { UserRound } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import type { TelegramProfile } from "@/services/telegram-client";
 
-export function ProfileCard({ profile }) {
+export function ProfileCard({ profile }: { profile: TelegramProfile | null }) {
   const [imageFailed, setImageFailed] = useState(false);
 
   return (

@@ -1,14 +1,46 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 
-let iframeApiPromise;
+export interface YouTubePlayerInstance {
+  getCurrentTime: () => number;
+  seekTo: (seconds: number, allowSeekAhead: boolean) => void;
+  setPlaybackRate: (rate: number) => void;
+  playVideo: () => void;
+  destroy: () => void;
+}
 
-function loadYouTubeIframeApi() {
+interface YouTubeNamespace {
+  Player: new (
+    elementId: string,
+    options: {
+      videoId: string;
+      width: string;
+      height: string;
+      playerVars: Record<string, number>;
+      events: {
+        onStateChange: (event: { data: number }) => void;
+        onError: () => void;
+      };
+    },
+  ) => YouTubePlayerInstance;
+  PlayerState: { ENDED: number };
+}
+
+declare global {
+  interface Window {
+    YT?: YouTubeNamespace;
+    onYouTubeIframeAPIReady?: () => void;
+  }
+}
+
+let iframeApiPromise: Promise<YouTubeNamespace> | undefined;
+
+function loadYouTubeIframeApi(): Promise<YouTubeNamespace> {
   if (window.YT?.Player) return Promise.resolve(window.YT);
   if (iframeApiPromise) return iframeApiPromise;
 
-  iframeApiPromise = new Promise((resolve, reject) => {
+  iframeApiPromise = new Promise<YouTubeNamespace>((resolve, reject) => {
     const previousReady = window.onYouTubeIframeAPIReady;
     window.onYouTubeIframeAPIReady = () => {
       previousReady?.();
@@ -16,9 +48,9 @@ function loadYouTubeIframeApi() {
       else reject(new Error("YouTube player API loaded without a Player constructor."));
     };
 
-    let script = document.querySelector('script[src="https://www.youtube.com/iframe_api"]');
+    let script = document.querySelector<HTMLScriptElement>('script[src="https://www.youtube.com/iframe_api"]');
     const shouldAppend = !script;
-    if (shouldAppend) {
+    if (!script) {
       script = document.createElement("script");
       script.src = "https://www.youtube.com/iframe_api";
       script.async = true;
@@ -33,9 +65,13 @@ function loadYouTubeIframeApi() {
   return iframeApiPromise;
 }
 
-export function useYouTubePlayer(videoId, loop) {
-  const hostRef = useRef(null);
-  const playerRef = useRef(null);
+export function useYouTubePlayer(videoId: string, loop: boolean): {
+  hostRef: RefObject<HTMLDivElement | null>;
+  playerRef: RefObject<YouTubePlayerInstance | null>;
+  error: boolean;
+} {
+  const hostRef = useRef<HTMLDivElement | null>(null);
+  const playerRef = useRef<YouTubePlayerInstance | null>(null);
   const loopRef = useRef(loop);
   const [error, setError] = useState(false);
 
@@ -49,7 +85,7 @@ export function useYouTubePlayer(videoId, loop) {
       .then((youtube) => {
         if (!active || !hostRef.current) return;
 
-        const player = new youtube.Player(hostRef.current.id, {
+        const player: YouTubePlayerInstance = new youtube.Player(hostRef.current.id, {
           videoId,
           width: "100%",
           height: "100%",
@@ -57,7 +93,7 @@ export function useYouTubePlayer(videoId, loop) {
           events: {
             onStateChange: (event) => {
               if (event.data === youtube.PlayerState.ENDED && loopRef.current) {
-                player.seekTo(0);
+                player.seekTo(0, true);
                 player.playVideo();
               }
             },

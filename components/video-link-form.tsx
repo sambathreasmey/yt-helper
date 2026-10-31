@@ -1,18 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { parseYouTubeVideoId } from "@/services/youtube";
 
-export function VideoLinkForm({ onPlay, language = "en" }) {
+interface VideoLinkFormProps {
+  onPlay: (videoId: string) => void;
+  language?: string;
+}
+
+export function VideoLinkForm({ onPlay, language = "en" }: VideoLinkFormProps) {
   const [value, setValue] = useState("");
   const [error, setError] = useState("");
   const isKhmer = language === "km";
 
-  function submit(event) {
+  function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const videoId = parseYouTubeVideoId(value);
     if (!videoId) {

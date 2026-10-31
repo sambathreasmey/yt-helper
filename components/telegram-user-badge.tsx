@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { UserRound } from "lucide-react";
+import type { TelegramProfile } from "@/services/telegram-client";
 
-export function TelegramUserBadge({ profile }) {
+export function TelegramUserBadge({ profile }: { profile: TelegramProfile | null }) {
   const [imageFailed, setImageFailed] = useState(false);
 
   if (!profile) return null;
