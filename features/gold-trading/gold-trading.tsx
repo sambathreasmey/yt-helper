@@ -107,7 +107,7 @@ function TradeFields({
             required
             type="text"
             inputMode="decimal"
-            pattern="(?:[0-9]+(?:\\.[0-9]{1,8})?|\\.[0-9]{1,8})"
+            pattern="(?:[0-9]+(?:[.][0-9]{1,8})?|[.][0-9]{1,8})"
             value={quantity}
             onChange={(event) => setQuantity(event.target.value)}
             placeholder={t("quantityPlaceholder")}
