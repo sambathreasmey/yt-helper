@@ -105,9 +105,9 @@ function TradeFields({
         <div className="flex gap-2">
           <Input
             required
-            type="number"
-            min="0.00000001"
-            step="any"
+            type="text"
+            inputMode="decimal"
+            pattern="(?:[0-9]+(?:\\.[0-9]{1,8})?|\\.[0-9]{1,8})"
             value={quantity}
             onChange={(event) => setQuantity(event.target.value)}
             placeholder={t("quantityPlaceholder")}
