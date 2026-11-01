@@ -20,6 +20,10 @@ or hun (1 damlung = 10 chi = 100 hun), tracks portfolio value and realized /
 unrealized profit or loss in USD, and supports Telegram transaction and target
 price alerts. Gold data is stored by the Flask backend; Telegram Mini App
 `initData` is verified server-side for user-scoped operations.
+The portfolio summary shows one combined profit/loss figure (realized sales
+plus unrealized value of remaining gold). Purchase records show their original
+investment, remaining cost and quantity, current value, and total per-record
+profit/loss, and can be sorted by performance.
 The interface language can be selected as KH (Khmer), EN (English), or CN
 (Chinese) from the top language selector or the appearance settings. Khmer is
 the default; the selection is saved on the user's device.

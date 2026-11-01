@@ -16,8 +16,11 @@ export type GoldHolding = {
   remaining_quantity: string;
   remaining_hun: string;
   unit_price_per_damlung: string;
+  total_cost: string;
   cost_basis: string;
   market_value: string | null;
+  realized_profit_loss: string;
+  unrealized_profit_loss: string | null;
   profit_loss: string | null;
   can_edit: boolean;
   note: string;

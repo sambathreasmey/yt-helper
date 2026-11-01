@@ -43,6 +43,12 @@ function profitClass(value: string | null): string {
   return Number(value) < 0 ? "text-rose-400" : "text-emerald-400";
 }
 
+function formatProfit(value: string | null, locale: string): string {
+  if (value === null) return "—";
+  const formatted = formatUsd(value, locale);
+  return Number(value) > 0 ? `+${formatted}` : formatted;
+}
+
 function Metric({
   label,
   value,
@@ -55,9 +61,17 @@ function Metric({
   amount?: string | null;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface-strong p-3">
+    <div className={`rounded-2xl border p-3 ${
+      emphasize
+        ? amount === null || amount === undefined
+          ? "border-border bg-surface-strong"
+          : Number(amount) < 0
+            ? "border-rose-500/25 bg-rose-500/10"
+            : "border-emerald-500/25 bg-emerald-500/10"
+        : "border-border bg-surface-strong"
+    }`}>
       <p className="text-xs text-muted">{label}</p>
-      <p className={`mt-1 text-lg font-semibold ${emphasize ? profitClass(amount ?? null) : ""}`}>
+      <p className={`mt-1 ${emphasize ? "text-xl" : "text-lg"} font-bold tabular-nums ${emphasize ? profitClass(amount ?? null) : ""}`}>
         {value}
       </p>
     </div>
@@ -306,21 +320,9 @@ export function GoldTrading() {
           <Metric label={t("currentValue")} value={formatUsd(summary.market_value, locale)} />
           <Metric
             label={t("totalProfitLoss")}
-            value={formatUsd(summary.total_profit_loss, locale)}
+            value={formatProfit(summary.total_profit_loss, locale)}
             emphasize
             amount={summary.total_profit_loss}
-          />
-          <Metric
-            label={t("realizedPL")}
-            value={formatUsd(summary.realized_profit_loss, locale)}
-            emphasize
-            amount={summary.realized_profit_loss}
-          />
-          <Metric
-            label={t("unrealizedPL")}
-            value={formatUsd(summary.unrealized_profit_loss, locale)}
-            emphasize
-            amount={summary.unrealized_profit_loss}
           />
         </section>
       )}
@@ -408,7 +410,7 @@ export function GoldTrading() {
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
             <div>
-              <CardTitle>{t("holdings")}</CardTitle>
+              <CardTitle>{t("purchaseRecords")}</CardTitle>
               <CardDescription>{t("openPurchasesDescription")}</CardDescription>
             </div>
             <select
@@ -435,25 +437,61 @@ export function GoldTrading() {
           )}
           {overview?.holdings.map((holding) => {
             const fullyAvailable = holding.can_edit;
+            const purchasedQuantity = `${new Intl.NumberFormat(locale, { maximumFractionDigits: 8 }).format(Number(holding.quantity))} ${t(holding.unit === "damlung" ? "damlungUnit" : holding.unit === "chi" ? "chiUnit" : "hunUnit")}`;
+            const remainingQuantity = `${new Intl.NumberFormat(locale, { maximumFractionDigits: 8 }).format(Number(holding.remaining_quantity))} ${t(holding.unit === "damlung" ? "damlungUnit" : holding.unit === "chi" ? "chiUnit" : "hunUnit")}`;
+            const returnPercent = holding.profit_loss === null
+              ? null
+              : (Number(holding.profit_loss) / Number(holding.total_cost)) * 100;
+            const resultLabel = holding.profit_loss === null
+              ? t("sortProfitLoss")
+              : Number(holding.profit_loss) > 0
+                ? t("profit")
+                : Number(holding.profit_loss) < 0
+                  ? t("loss")
+                  : t("breakEven");
             return (
-              <article key={holding.id} className="rounded-2xl border border-border bg-surface-strong p-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-semibold">
-                      {holding.remaining_quantity} {holding.unit}
-                    </p>
-                    <p className="mt-1 text-xs text-muted">
-                      {t("buyRate")} {formatUsd(holding.unit_price_per_damlung, locale)} / {t("damlungUnit")} · {formatDate(holding.created_on, locale)}
-                    </p>
-                    {holding.note && <p className="mt-1 text-xs text-muted">{holding.note}</p>}
+              <article key={holding.id} className="rounded-2xl border border-border bg-surface-strong p-3.5">
+                <div className="flex items-start justify-between gap-3 border-b border-border pb-3">
+                  <div className="min-w-0">
+                    <p className="font-semibold">{t("purchaseRecord")} #{holding.id}</p>
+                    <p className="mt-1 text-xs text-muted">{formatDate(holding.created_on, locale)}</p>
                   </div>
-                  <p className={`text-sm font-semibold ${profitClass(holding.profit_loss)}`}>
-                    {formatUsd(holding.profit_loss, locale)}
-                  </p>
+                  <div className={`shrink-0 rounded-xl px-3 py-2 text-right ${holding.profit_loss === null ? "bg-surface text-muted" : Number(holding.profit_loss) < 0 ? "bg-rose-500/10 text-rose-400" : "bg-emerald-500/10 text-emerald-400"}`}>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide">{resultLabel}</p>
+                    <p className="mt-0.5 text-sm font-bold tabular-nums">
+                      {formatProfit(holding.profit_loss, locale)}
+                    </p>
+                    {returnPercent !== null && (
+                      <p className="mt-0.5 text-[10px] font-medium">
+                        {t("returnPercent")}: {returnPercent > 0 ? "+" : ""}
+                        {new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(returnPercent)}%
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <p className="mt-2 text-xs text-muted">
-                  {t("value")} {formatUsd(holding.market_value, locale)} · {t("cost")} {formatUsd(holding.cost_basis, locale)}
-                </p>
+                <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-3">
+                  <div>
+                    <p className="text-[11px] text-muted">{t("investedPrincipal")}</p>
+                    <p className="mt-0.5 text-sm font-semibold tabular-nums">{formatUsd(holding.total_cost, locale)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-muted">{t("remainingCost")}</p>
+                    <p className="mt-0.5 text-sm font-semibold tabular-nums">{formatUsd(holding.cost_basis, locale)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-muted">{t("remainingQuantity")}</p>
+                    <p className="mt-0.5 text-sm font-semibold">{remainingQuantity}</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-muted">{t("currentValue")}</p>
+                    <p className="mt-0.5 text-sm font-semibold tabular-nums">{formatUsd(holding.market_value, locale)}</p>
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface px-3 py-2 text-xs">
+                  <span className="text-muted">{t("boughtQuantity", { quantity: purchasedQuantity })}</span>
+                  <span className="font-medium">{t("buyRate")} {formatUsd(holding.unit_price_per_damlung, locale)} / {t("damlungUnit")}</span>
+                </div>
+                {holding.note && <p className="mt-2 text-xs text-muted">{holding.note}</p>}
                 <div className="mt-3 flex justify-end gap-2">
                   <Button
                     aria-label={t("editPurchase")}
