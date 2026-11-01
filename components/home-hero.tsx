@@ -1,4 +1,4 @@
-import { Play } from "lucide-react";
+import { ArrowRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/providers/language-provider";
 
@@ -16,7 +16,7 @@ export function HomeHero({ countdown, onOpenYouTube }: HomeHeroProps) {
   return (
     <Button
       aria-label={t("openYouTube")}
-      className="relative mb-3 flex min-h-[138px] w-full flex-col items-start justify-center gap-2 overflow-hidden rounded-[24px] border border-border bg-[linear-gradient(120deg,#292a2d,#1d1e20_72%,#17181a)] px-6 text-left text-white shadow-[0_14px_36px_rgb(0_0_0_/_24%)] hover:bg-[linear-gradient(120deg,#292a2d,#1d1e20_72%,#17181a)] hover:shadow-[0_18px_42px_rgb(0_0_0_/_32%)]"
+      className="youtube-hero relative mb-3 flex min-h-[172px] w-full flex-col items-start justify-center gap-3 overflow-hidden rounded-[28px] border border-border px-5 py-5 text-left text-white"
       data-countdown-trigger
       data-layout-slot="hero"
       onClick={onOpenYouTube}
@@ -37,12 +37,24 @@ export function HomeHero({ countdown, onOpenYouTube }: HomeHeroProps) {
           <span className="absolute -bottom-1 rounded-full border border-white/10 bg-black/40 px-1.5 py-0.5 text-[8px] uppercase tracking-widest text-white/70">{t("seconds")}</span>
         </span>
       )}
-      <span className="relative z-10 flex items-center gap-3 text-2xl font-bold tracking-tight">
-        <Play aria-hidden="true" className="fill-current text-accent" size={27} />
-        {t("openYouTube")}
+      <span className="youtube-hero-copy relative z-10 flex min-w-0 items-center gap-3">
+        <span className="youtube-hero-logo grid size-[4.25rem] shrink-0 place-items-center rounded-[1.35rem]">
+          <Play aria-hidden="true" className="fill-current" size={39} strokeWidth={1.7} />
+        </span>
+        <span className="min-w-0">
+          <span className="block text-xl font-extrabold tracking-tight">{t("openYouTube")}</span>
+          <span className={`mt-1 block min-h-4 text-xs font-medium leading-relaxed text-white/75 ${countdown !== null ? "pr-14" : ""}`}>
+            {subtitle}
+          </span>
+        </span>
       </span>
-      <span className={`relative z-10 min-h-4 pl-10 text-xs font-medium text-white/75 ${countdown !== null ? "pr-14" : ""}`}>
-        {subtitle}
+      <span className="youtube-hero-action relative z-10 ml-[4.9rem] inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-sm font-bold">
+        <Play aria-hidden="true" className="fill-current" size={17} />
+        <span>{t("openYouTube")}</span>
+        <ArrowRight aria-hidden="true" size={16} />
+      </span>
+      <span aria-hidden="true" className="youtube-hero-decoration">
+        <Play className="fill-current" size={104} />
       </span>
     </Button>
   );

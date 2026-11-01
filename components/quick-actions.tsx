@@ -1,4 +1,4 @@
-import { Flame, Plus, Smartphone } from "lucide-react";
+import { ChevronRight, Flame, Plus, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/providers/language-provider";
 
@@ -11,19 +11,22 @@ interface QuickActionsProps {
 export function QuickActions({ onOpen, onAddToHome, showAddToHome }: QuickActionsProps) {
   const { t } = useLanguage();
   return (
-    <div className="mb-6 grid grid-cols-2 gap-2.5" data-layout-slot="quick">
-      <Button onClick={() => onOpen("https://m.youtube.com/shorts")}>
-        <Smartphone aria-hidden="true" className="text-muted" size={18} />
-        {t("shorts")}
+    <div className="youtube-quick-actions mb-6 grid grid-cols-2 gap-2.5" data-layout-slot="quick">
+      <Button className="youtube-action-tile" data-action="shorts" onClick={() => onOpen("https://m.youtube.com/shorts")}>
+        <span className="youtube-action-icon"><Smartphone aria-hidden="true" size={21} /></span>
+        <span className="youtube-action-label">{t("shorts")}</span>
+        <ChevronRight aria-hidden="true" className="youtube-action-chevron" size={19} />
       </Button>
-      <Button onClick={() => onOpen("https://m.youtube.com/feed/trending")}>
-        <Flame aria-hidden="true" className="text-muted" size={18} />
-        {t("trending")}
+      <Button className="youtube-action-tile" data-action="trending" onClick={() => onOpen("https://m.youtube.com/feed/trending")}>
+        <span className="youtube-action-icon"><Flame aria-hidden="true" size={21} /></span>
+        <span className="youtube-action-label">{t("trending")}</span>
+        <ChevronRight aria-hidden="true" className="youtube-action-chevron" size={19} />
       </Button>
       {showAddToHome && (
-        <Button className="col-span-2" onClick={onAddToHome}>
-          <Plus aria-hidden="true" className="text-muted" size={18} />
-          {t("homeScreen")}
+        <Button className="youtube-action-tile youtube-home-action" data-action="home" onClick={onAddToHome}>
+          <span className="youtube-action-icon"><Plus aria-hidden="true" size={21} /></span>
+          <span className="youtube-action-label">{t("homeScreen")}</span>
+          <ChevronRight aria-hidden="true" className="youtube-action-chevron" size={19} />
         </Button>
       )}
     </div>

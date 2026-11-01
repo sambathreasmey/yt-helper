@@ -1,7 +1,19 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowDownToLine, ArrowUpFromLine, Bell, Coins, Pencil, Trash2 } from "lucide-react";
+import {
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Bell,
+  ChartNoAxesCombined,
+  Coins,
+  FileText,
+  Pencil,
+  Scale,
+  Trash2,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { AppHeader } from "@/components/app-header";
 import { Button } from "@/components/ui/button";
@@ -62,28 +74,29 @@ function formatProfit(value: string | null, locale: string): string {
 function Metric({
   label,
   value,
+  icon: Icon,
+  tone,
   emphasize = false,
   amount,
 }: {
   label: string;
   value: string;
+  icon: LucideIcon;
+  tone: "blue" | "violet" | "gold" | "green" | "accent";
   emphasize?: boolean;
   amount?: string | null;
 }) {
   return (
-    <div className={`rounded-2xl border p-3 ${
-      emphasize
-        ? amount === null || amount === undefined
-          ? "border-border bg-surface-strong"
-          : Number(amount) < 0
-            ? "border-rose-500/25 bg-rose-500/10"
-            : "border-emerald-500/25 bg-emerald-500/10"
-        : "border-border bg-surface-strong"
-    }`}>
-      <p className="text-xs text-muted">{label}</p>
-      <p className={`mt-1 ${emphasize ? "text-xl" : "text-lg"} font-bold tabular-nums ${emphasize ? profitClass(amount ?? null) : ""}`}>
-        {value}
-      </p>
+    <div className="gold-metric-card" data-tone={tone}>
+      <span className="gold-metric-icon" aria-hidden="true">
+        <Icon size={20} strokeWidth={2.2} />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-xs leading-snug text-muted">{label}</span>
+        <span className={`mt-1 block truncate ${emphasize ? "text-lg" : "text-base"} font-bold tabular-nums ${emphasize ? profitClass(amount ?? null) : ""}`}>
+          {value}
+        </span>
+      </span>
     </div>
   );
 }
@@ -113,17 +126,21 @@ function TradeFields({
       <label className="block space-y-1.5 text-xs text-muted">
         {t("quantityUnit")}
         <div className="flex gap-2">
-          <Input
-            required
-            type="text"
-            inputMode="decimal"
-            pattern="(?:[0-9]+(?:[.][0-9]{1,8})?|[.][0-9]{1,8})"
-            value={quantity}
-            onChange={(event) => setQuantity(event.target.value)}
-            placeholder={t("quantityPlaceholder")}
-          />
+          <span className="gold-field-control">
+            <span className="gold-field-icon" aria-hidden="true"><Wallet size={17} /></span>
+            <Input
+              className="gold-field-input"
+              required
+              type="text"
+              inputMode="decimal"
+              pattern="(?:[0-9]+(?:[.][0-9]{1,8})?|[.][0-9]{1,8})"
+              value={quantity}
+              onChange={(event) => setQuantity(event.target.value)}
+              placeholder={t("quantityPlaceholder")}
+            />
+          </span>
           <select
-            className="h-12 rounded-xl border border-border bg-surface-strong px-3 text-sm text-foreground"
+            className="h-12 rounded-full border border-border bg-surface-strong px-4 text-sm text-foreground"
             value={unit}
             onChange={(event) => {
               setUnit(event.target.value as GoldUnit);
@@ -143,26 +160,34 @@ function TradeFields({
         {t("pricePerUnit", {
           unit: t(unit === "damlung" ? "damlungUnit" : unit === "chi" ? "chiUnit" : "hunUnit"),
         })}
-        <Input
-          required
-          type="number"
-          min="0.000001"
-          step="any"
-          value={price}
-          onChange={(event) => setPrice(event.target.value)}
-          placeholder={t("unitPricePlaceholder", {
-            unit: t(unit === "damlung" ? "damlungUnit" : unit === "chi" ? "chiUnit" : "hunUnit"),
-          })}
-        />
+        <span className="gold-field-control">
+          <span className="gold-field-icon gold-field-icon-cyan" aria-hidden="true"><Coins size={17} /></span>
+          <Input
+            className="gold-field-input"
+            required
+            type="number"
+            min="0.000001"
+            step="any"
+            value={price}
+            onChange={(event) => setPrice(event.target.value)}
+            placeholder={t("unitPricePlaceholder", {
+              unit: t(unit === "damlung" ? "damlungUnit" : unit === "chi" ? "chiUnit" : "hunUnit"),
+            })}
+          />
+        </span>
       </label>
       <label className="block space-y-1.5 text-xs text-muted">
         {t("noteOptional")}
-        <Input
-          maxLength={500}
-          value={note}
-          onChange={(event) => setNote(event.target.value)}
-          placeholder={t("notePlaceholder")}
-        />
+        <span className="gold-field-control">
+          <span className="gold-field-icon gold-field-icon-violet" aria-hidden="true"><Pencil size={17} /></span>
+          <Input
+            className="gold-field-input"
+            maxLength={500}
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            placeholder={t("notePlaceholder")}
+          />
+        </span>
       </label>
     </>
   );
@@ -287,65 +312,89 @@ export function GoldTrading() {
     saveAlert.error || removeAlert.error;
 
   return (
-    <main className="mx-auto w-full max-w-[520px] space-y-4">
-      <AppHeader profile={profile} title={t("goldTrading")} subtitle={t("goldSubtitle")} />
+    <main className="gold-dashboard mx-auto w-full max-w-[520px] space-y-4">
+      <AppHeader profile={profile} title={t("goldTrading")} subtitle={t("goldSubtitle")} brandIcon={Coins} brandVariant="gold" />
 
-      <Card>
-        <CardContent className="flex items-center gap-3 p-4">
-          <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-accent-soft text-accent">
-            <Coins aria-hidden="true" size={24} />
+      <Card className="gold-price-hero">
+        <CardContent className="gold-price-content">
+          <span className="gold-price-icon" aria-hidden="true">
+            <Coins size={27} strokeWidth={2.1} />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs text-muted">{t("goldPrice")}</p>
-            <p className="mt-1 text-xl font-bold">
+            <p className="text-xs font-medium text-white/75">{t("goldPrice")}</p>
+            <p className="gold-price-amount">
               {overview?.current_price
                 ? `${formatUsd(overview.current_price.price_per_damlung, locale)} / ${t("damlungUnit")}`
                 : t("priceUnavailable")}
             </p>
             {!overview?.current_price && (
-              <p className="mt-1 text-xs text-muted">{t("adminMustSetPrice")}</p>
+              <p className="mt-1 text-xs text-white/70">{t("adminMustSetPrice")}</p>
             )}
             {overview?.current_price && (
-              <p className="mt-1 text-xs text-muted">
+              <p className="gold-price-updated">
                 {t("updated", { date: formatUtcTimestamp(overview.current_price.updated_on, locale) })}
               </p>
             )}
           </div>
+          <ChartNoAxesCombined className="gold-price-decoration" aria-hidden="true" />
         </CardContent>
       </Card>
 
       {summary && (
-        <section className="grid grid-cols-2 gap-3" aria-label="Gold portfolio summary">
+        <>
+        <section className="gold-metrics-grid" aria-label="Gold portfolio summary">
           <Metric
             label={t("goldHeld")}
             value={`${new Intl.NumberFormat(locale, { maximumFractionDigits: 8 }).format(Number(summary.quantity_hun) / 100)} ${t("damlungUnit")}`}
+            icon={Wallet}
+            tone="blue"
           />
-          <Metric label={t("costBasis")} value={formatUsd(summary.cost_basis, locale)} />
-          <Metric label={t("currentValue")} value={formatUsd(summary.market_value, locale)} />
+          <Metric label={t("costBasis")} value={formatUsd(summary.cost_basis, locale)} icon={Scale} tone="violet" />
+          <Metric label={t("currentValue")} value={formatUsd(summary.market_value, locale)} icon={Coins} tone="gold" />
           <Metric
             label={t("realizedPL")}
             value={formatProfit(summary.realized_profit_loss, locale)}
             emphasize
             amount={summary.realized_profit_loss}
+            icon={ArrowUpFromLine}
+            tone="green"
           />
           <Metric
             label={t("unrealizedPL")}
             value={formatProfit(summary.unrealized_profit_loss, locale)}
             emphasize
             amount={summary.unrealized_profit_loss}
-          />
-          <Metric
-            label={t("totalProfitLoss")}
-            value={formatProfit(summary.total_profit_loss, locale)}
-            emphasize
-            amount={summary.total_profit_loss}
+            icon={ChartNoAxesCombined}
+            tone="accent"
           />
         </section>
+        <Card className="gold-profit-hero">
+          <CardContent className="gold-profit-content">
+            <span className="gold-profit-icon" aria-hidden="true">
+              <ChartNoAxesCombined size={27} strokeWidth={2.2} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium text-white/75">{t("totalProfitLoss")}</p>
+              <p className={`gold-profit-amount ${Number(summary.total_profit_loss) < 0 ? "text-rose-200" : ""}`}>
+                {formatProfit(summary.total_profit_loss, locale)}
+              </p>
+              <div className="gold-profit-breakdown">
+                <span>{t("realizedPL")}: {formatProfit(summary.realized_profit_loss, locale)}</span>
+                <span>{t("unrealizedPL")}: {formatProfit(summary.unrealized_profit_loss, locale)}</span>
+              </div>
+            </div>
+            <ChartNoAxesCombined className="gold-profit-decoration" aria-hidden="true" />
+          </CardContent>
+        </Card>
+        </>
       )}
 
-      <Card>
+      <Card className="gold-trade-form">
         <CardHeader>
-          <CardTitle>{editingPurchaseId ? t("editPurchase") : t("recordPurchase")}</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <span className="gold-section-icon" aria-hidden="true"><FileText size={17} /></span>
+            {editingPurchaseId ? t("editPurchase") : t("recordPurchase")}
+          </CardTitle>
           <CardDescription>
             {t("unitConversions")}
           </CardDescription>
@@ -363,7 +412,7 @@ export function GoldTrading() {
               setNote={setPurchaseNote}
             />
             <div className="flex gap-2">
-              <Button className="w-full" disabled={isPending} type="submit" variant="primary">
+              <Button className="gold-primary-action w-full" disabled={isPending} type="submit" variant="primary">
                 <ArrowDownToLine aria-hidden="true" size={16} />
                 {editingPurchaseId ? t("saveChanges") : t("addPurchase")}
               </Button>
@@ -380,7 +429,7 @@ export function GoldTrading() {
         </CardContent>
       </Card>
 
-      {notice && <p className="rounded-xl bg-accent-soft px-4 py-3 text-sm">{notice}</p>}
+      {notice && <p className="gold-notice rounded-xl px-4 py-3 text-sm">{notice}</p>}
       {mutationError && (
         <p role="alert" className="rounded-xl border border-rose-400/40 bg-rose-400/10 px-4 py-3 text-sm text-rose-300">
           {mutationError.message}
@@ -397,15 +446,18 @@ export function GoldTrading() {
         </p>
       )}
 
-      <Card>
+      <Card className="gold-list-card gold-records-card">
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
-            <div>
+            <div className="gold-card-heading">
+              <span className="gold-card-heading-icon" aria-hidden="true"><Wallet size={17} /></span>
+              <span>
               <CardTitle>{t("purchaseRecords")}</CardTitle>
               <CardDescription>{t("openPurchasesDescription")}</CardDescription>
+              </span>
             </div>
             <select
-              className="h-10 max-w-36 rounded-xl border border-border bg-surface-strong px-2 text-xs text-foreground"
+              className="gold-sort-select h-10 max-w-36 rounded-xl border border-border bg-surface-strong px-2 text-xs text-foreground"
               value={`${sortBy}:${order}`}
               onChange={(event) => {
                 const [nextSort, nextOrder] = event.target.value.split(":");
@@ -422,9 +474,9 @@ export function GoldTrading() {
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {overviewQuery.isPending && <p className="text-sm text-muted">{t("loadingPortfolio")}</p>}
+          {overviewQuery.isPending && <p className="gold-empty-state text-sm text-muted">{t("loadingPortfolio")}</p>}
           {overview && overview.holdings.length === 0 && (
-            <p className="text-sm text-muted">{t("noPurchases")}</p>
+            <p className="gold-empty-state text-sm text-muted">{t("noPurchases")}</p>
           )}
           {overview?.holdings.map((holding) => {
             const fullyAvailable = holding.can_edit;
@@ -448,13 +500,16 @@ export function GoldTrading() {
               ? pricePerUnit(overview.current_price.price_per_damlung, holding.unit)
               : null;
             return (
-              <article key={holding.id} className="rounded-2xl border border-border bg-surface-strong p-3.5">
+              <article key={holding.id} className="gold-holding-card">
                 <div className="flex items-start justify-between gap-3 border-b border-border pb-3">
                   <div className="min-w-0">
                     <p className="font-semibold">{t("purchaseRecord")} #{holding.id}</p>
                     <p className="mt-1 text-xs text-muted">{formatDate(holding.created_on, locale)}</p>
                   </div>
-                  <div className={`shrink-0 rounded-xl px-3 py-2 text-right ${holding.profit_loss === null ? "bg-surface text-muted" : Number(holding.profit_loss) < 0 ? "bg-rose-500/10 text-rose-400" : "bg-emerald-500/10 text-emerald-400"}`}>
+                  <div
+                    className="gold-result-pill shrink-0 rounded-xl px-3 py-2 text-right"
+                    data-result={holding.profit_loss === null ? "neutral" : Number(holding.profit_loss) < 0 ? "loss" : "profit"}
+                  >
                     <p className="text-[10px] font-semibold uppercase tracking-wide">{resultLabel}</p>
                     <p className="mt-0.5 text-sm font-bold tabular-nums">
                       {formatProfit(holding.profit_loss, locale)}
@@ -467,33 +522,34 @@ export function GoldTrading() {
                     )}
                   </div>
                 </div>
-                <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-3">
-                  <div>
+                <div className="gold-detail-grid mt-3 grid grid-cols-2 gap-2">
+                  <div className="gold-detail-item" data-tone="cyan">
                     <p className="text-[11px] text-muted">{t("investedPrincipal")}</p>
                     <p className="mt-0.5 text-sm font-semibold tabular-nums">{formatUsd(holding.total_cost, locale)}</p>
                   </div>
-                  <div>
+                  <div className="gold-detail-item" data-tone="blue">
                     <p className="text-[11px] text-muted">{t("remainingCost")}</p>
                     <p className="mt-0.5 text-sm font-semibold tabular-nums">{formatUsd(holding.cost_basis, locale)}</p>
                   </div>
-                  <div>
+                  <div className="gold-detail-item" data-tone="violet">
                     <p className="text-[11px] text-muted">{t("remainingQuantity")}</p>
                     <p className="mt-0.5 text-sm font-semibold">{remainingQuantity}</p>
                   </div>
-                  <div>
+                  <div className="gold-detail-item" data-tone="gold">
                     <p className="text-[11px] text-muted">{t("currentValue")}</p>
                     <p className="mt-0.5 text-sm font-semibold tabular-nums">{formatUsd(holding.market_value, locale)}</p>
                   </div>
                 </div>
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface px-3 py-2 text-xs">
+                <div className="gold-purchase-meta mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface px-3 py-2 text-xs">
                   <span className="text-muted">{t("boughtQuantity", { quantity: purchasedQuantity })}</span>
                   <span className="font-medium">{t("buyRate")} {formatUsd(pricePerUnit(holding.unit_price_per_damlung, holding.unit), locale)} / {t(holding.unit === "damlung" ? "damlungUnit" : holding.unit === "chi" ? "chiUnit" : "hunUnit")}</span>
                 </div>
-                {holding.note && <p className="mt-2 text-xs text-muted">{holding.note}</p>}
+                {holding.note && <p className="gold-holding-note mt-2 text-xs text-muted">{holding.note}</p>}
                 <div className="mt-3 flex justify-end gap-2">
                   {Number(holding.remaining_hun) > 0 && (
                     <Button
                       aria-label={sellButtonLabel}
+                      className="gold-action-sell"
                       disabled={isPending}
                       onClick={() => {
                         setNotice("");
@@ -514,6 +570,7 @@ export function GoldTrading() {
                   )}
                   <Button
                     aria-label={t("editPurchase")}
+                    className="gold-action-edit"
                     disabled={!fullyAvailable || isPending}
                     onClick={() => editPurchase(holding)}
                     size="sm"
@@ -524,6 +581,7 @@ export function GoldTrading() {
                   </Button>
                   <Button
                     aria-label={t("delete")}
+                    className="gold-action-delete"
                     disabled={!fullyAvailable || isPending}
                     onClick={() => {
                       if (window.confirm(t("deletePurchaseConfirm"))) removePurchase.mutate(holding.id);
@@ -537,7 +595,7 @@ export function GoldTrading() {
                 </div>
                 {sellingPurchaseId === holding.id && (
                   <form
-                    className="mt-3 space-y-3 rounded-xl border border-border bg-surface p-3"
+                    className="gold-sell-form mt-3 space-y-3 rounded-xl border border-border bg-surface p-3"
                     onSubmit={(event) => {
                       event.preventDefault();
                       setNotice("");
@@ -594,16 +652,23 @@ export function GoldTrading() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="gold-list-card gold-report-card">
         <CardHeader>
-          <CardTitle>{t("report")}</CardTitle>
-          <CardDescription>{t("fifoDescription")}</CardDescription>
+          <div className="gold-card-heading">
+            <span className="gold-card-heading-icon gold-heading-violet" aria-hidden="true">
+              <ChartNoAxesCombined size={17} />
+            </span>
+            <span>
+              <CardTitle>{t("report")}</CardTitle>
+              <CardDescription>{t("fifoDescription")}</CardDescription>
+            </span>
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-medium">{t("transactionHistory")}</p>
+            <p className="gold-subsection-title text-sm font-medium">{t("transactionHistory")}</p>
             <select
-              className="h-10 rounded-xl border border-border bg-surface-strong px-2 text-xs text-foreground"
+              className="gold-sort-select h-10 rounded-xl border border-border bg-surface-strong px-2 text-xs text-foreground"
               value={`${sortBy}:${order}`}
               onChange={(event) => {
                 const [nextSort, nextOrder] = event.target.value.split(":");
@@ -619,19 +684,25 @@ export function GoldTrading() {
             </select>
           </div>
           {!overview?.transactions.length && (
-            <p className="text-sm text-muted">{t("historyEmpty")}</p>
+            <p className="gold-empty-state text-sm text-muted">{t("historyEmpty")}</p>
           )}
           {overview?.transactions.map((transaction) => (
-            <div key={transaction.id} className="flex items-center justify-between gap-3 border-t border-border pt-3">
-              <div>
-                <p className="text-sm font-medium">
-                  {transaction.type === "BUY" ? t("bought") : t("sold")} {transaction.quantity} {t(transaction.unit === "damlung" ? "damlungUnit" : transaction.unit === "chi" ? "chiUnit" : "hunUnit")}
+            <div key={transaction.id} className="gold-transaction-row flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
+                  <span className="gold-transaction-type" data-type={transaction.type}>
+                    {transaction.type === "BUY" ? t("bought") : t("sold")}
+                  </span>
+                  {transaction.quantity} {t(transaction.unit === "damlung" ? "damlungUnit" : transaction.unit === "chi" ? "chiUnit" : "hunUnit")}
                 </p>
                 <p className="mt-1 text-xs text-muted">
                   {formatDate(transaction.created_on, locale)} · {formatUsd(pricePerUnit(transaction.unit_price_per_damlung, transaction.unit), locale)} / {t(transaction.unit === "damlung" ? "damlungUnit" : transaction.unit === "chi" ? "chiUnit" : "hunUnit")}
                 </p>
               </div>
-              <p className={`shrink-0 text-sm font-semibold ${profitClass(transaction.profit_loss)}`}>
+              <p
+                className={`gold-transaction-result shrink-0 text-sm font-semibold ${profitClass(transaction.profit_loss)}`}
+                data-result={transaction.profit_loss === null ? "neutral" : Number(transaction.profit_loss) < 0 ? "loss" : "profit"}
+              >
                 {formatUsd(transaction.profit_loss, locale)}
               </p>
             </div>
@@ -639,31 +710,39 @@ export function GoldTrading() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="gold-list-card gold-alerts-card">
         <CardHeader>
-          <CardTitle>{t("priceAlerts")}</CardTitle>
-          <CardDescription>{t("alertsDescription")}</CardDescription>
+          <div className="gold-card-heading">
+            <span className="gold-card-heading-icon gold-heading-gold" aria-hidden="true"><Bell size={17} /></span>
+            <span>
+              <CardTitle>{t("priceAlerts")}</CardTitle>
+              <CardDescription>{t("alertsDescription")}</CardDescription>
+            </span>
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
           <form
-            className="flex flex-wrap gap-2"
+            className="gold-alert-form flex flex-wrap gap-2"
             onSubmit={(event) => {
               event.preventDefault();
               saveAlert.mutate();
             }}
           >
-            <Input
-              required
-              min="0.000001"
-              step="any"
-              type="number"
-              aria-label={t("alertTarget")}
-              placeholder={t("usdDamlungPlaceholder")}
-              value={alertTarget}
-              onChange={(event) => setAlertTarget(event.target.value)}
-            />
+            <span className="gold-alert-target">
+              <span className="gold-field-icon gold-field-icon-cyan" aria-hidden="true"><Coins size={17} /></span>
+              <Input
+                required
+                min="0.000001"
+                step="any"
+                type="number"
+                aria-label={t("alertTarget")}
+                placeholder={t("usdDamlungPlaceholder")}
+                value={alertTarget}
+                onChange={(event) => setAlertTarget(event.target.value)}
+              />
+            </span>
             <select
-              className="h-12 rounded-xl border border-border bg-surface-strong px-3 text-sm text-foreground"
+              className="gold-alert-direction h-12 rounded-xl border border-border bg-surface-strong px-3 text-sm text-foreground"
               value={alertDirection}
               onChange={(event) => setAlertDirection(event.target.value as GoldDirection)}
               aria-label={t("alertDirection")}
@@ -671,12 +750,12 @@ export function GoldTrading() {
               <option value="ABOVE">{t("atOrAbove")}</option>
               <option value="BELOW">{t("atOrBelow")}</option>
             </select>
-            <Button disabled={isPending} type="submit">
+            <Button className="gold-alert-submit" disabled={isPending} type="submit">
               <Bell aria-hidden="true" size={15} /> {t("setAlert")}
             </Button>
           </form>
           {alertsQuery.data?.map((alert) => (
-            <div key={alert.id} className="flex items-center justify-between gap-3 border-t border-border pt-3">
+            <div key={alert.id} className="gold-alert-row flex items-center justify-between gap-3" data-status={alert.triggered_on ? "triggered" : "waiting"}>
               <div>
                 <p className="text-sm font-medium">
                   {alert.direction === "ABOVE" ? t("atOrAbove") : t("atOrBelow")} {formatUsd(alert.target_price_per_damlung, locale)}
@@ -689,6 +768,7 @@ export function GoldTrading() {
               </div>
               <Button
                 aria-label={t("deleteAlert")}
+                className="gold-action-delete"
                 disabled={isPending}
                 onClick={() => removeAlert.mutate(alert.id)}
                 size="icon"

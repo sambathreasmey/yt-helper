@@ -29,7 +29,7 @@ export default function AdminPage() {
 
   return (
     <main className="mx-auto w-full max-w-[920px] space-y-4 p-2 sm:space-y-5 sm:p-4">
-      <header className="admin-toolbar flex items-center justify-between gap-3 rounded-[28px] border border-border px-4 py-3 shadow-glass sm:px-5">
+      <header className="admin-toolbar relative z-[60] flex items-center justify-between gap-3 rounded-[28px] border border-border px-4 py-3 shadow-glass sm:px-5">
         <div>
           <h1 className="text-base font-semibold tracking-tight sm:text-lg">Telegram users</h1>
           <p className="mt-0.5 text-[11px] text-muted sm:text-xs">Admin dashboard</p>

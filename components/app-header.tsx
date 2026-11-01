@@ -19,23 +19,28 @@ export function AppHeader({
   profile = null,
   title,
   subtitle,
+  brandIcon,
+  brandVariant = "youtube",
 }: {
   profile?: TelegramProfile | null;
   title?: string;
   subtitle?: string;
+  brandIcon?: LucideIcon;
+  brandVariant?: "youtube" | "gold";
 }) {
   const { appearance } = useTheme();
   const { t } = useLanguage();
-  const AppIcon = appIconComponents[appearance.appIcon] || CirclePlay;
+  const AppIcon = brandIcon || appIconComponents[appearance.appIcon] || CirclePlay;
+  const brandClass = brandVariant === "gold" ? "gold-brand-mark" : "youtube-brand-mark";
 
   return (
-    <header className="mb-5 flex min-h-14 items-center gap-3" data-layout-slot="header">
-      <span className="app-brand-icon grid size-12 shrink-0 place-items-center rounded-2xl border border-border bg-accent-soft text-accent shadow-glass">
-        <AppIcon aria-hidden="true" size={23} strokeWidth={1.8} />
+    <header className="youtube-header mb-5 flex min-h-14 items-center gap-3" data-layout-slot="header">
+      <span className={`${brandClass} app-brand-icon grid size-14 shrink-0 place-items-center rounded-full border border-border bg-accent-soft text-accent shadow-glass`}>
+        <AppIcon aria-hidden="true" size={28} strokeWidth={1.8} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-base font-semibold tracking-tight">{title || t("youtubeTitle")}</span>
-        <span className="mt-0.5 block text-xs text-muted">{subtitle || t("youtubeSubtitle")}</span>
+        <span className="youtube-header-title block text-lg font-bold tracking-tight">{title || t("youtubeTitle")}</span>
+        <span className="youtube-header-subtitle mt-1 block text-xs leading-relaxed text-muted">{subtitle || t("youtubeSubtitle")}</span>
       </span>
       <TelegramUserBadge profile={profile} />
       <ThemePicker />

@@ -32,6 +32,15 @@ function resolveTheme(
     : "dark";
 }
 
+function rgbChannels(hex: string): string {
+  const value = hex.replace("#", "");
+  const normalized = value.length === 3
+    ? value.split("").map((part) => `${part}${part}`).join("")
+    : value;
+  const number = Number.parseInt(normalized, 16);
+  return `${(number >> 16) & 255} ${(number >> 8) & 255} ${number & 255}`;
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [appearance, setAppearance] = useState<Appearance>(DEFAULT_APPEARANCE);
   const [ready, setReady] = useState(false);
@@ -97,6 +106,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.dataset.layout = appearance.layout;
       root.dataset.motion = appearance.motion ? "on" : "off";
       root.style.setProperty("--accent", accentColor);
+      root.style.setProperty("--accent-rgb", rgbChannels(accentColor));
       root.style.setProperty("--glass-blur", `${appearance.blur * 0.32}px`);
 
       const background = theme === "light" ? "#f3f3f3" : "#101112";

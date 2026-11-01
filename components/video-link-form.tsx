@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Play } from "lucide-react";
+import { Link2, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -30,15 +30,18 @@ export function VideoLinkForm({ onPlay }: VideoLinkFormProps) {
   }
 
   return (
-    <Card className="mb-3" data-layout-slot="form">
-      <CardHeader className="pb-3">
-        <CardTitle>{t("playVideo")}</CardTitle>
+    <Card className="youtube-link-card mb-3" data-layout-slot="form">
+      <CardHeader className="youtube-link-heading pb-3">
+        <span className="youtube-link-icon"><Link2 aria-hidden="true" size={18} /></span>
+        <span className="min-w-0">
+          <CardTitle>{t("playVideo")}</CardTitle>
         <CardDescription className="mt-1">
           {t("pasteYouTube")}
         </CardDescription>
+        </span>
       </CardHeader>
       <CardContent className="pt-0">
-        <form className="flex gap-2" onSubmit={submit} noValidate>
+        <form className="youtube-link-form flex gap-2" onSubmit={submit} noValidate>
           <Input
             aria-label={t("pasteYouTube")}
             aria-invalid={Boolean(error)}
@@ -53,7 +56,7 @@ export function VideoLinkForm({ onPlay }: VideoLinkFormProps) {
             placeholder={t("pasteYouTubePlaceholder")}
             value={value}
           />
-          <Button aria-label={t("play")} className="min-w-[82px]" type="submit" variant="primary">
+          <Button aria-label={t("play")} className="youtube-link-submit min-w-[82px]" type="submit" variant="primary">
             <Play aria-hidden="true" className="fill-current" size={16} />
             {t("play")}
           </Button>
