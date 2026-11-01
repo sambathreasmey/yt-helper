@@ -11,7 +11,7 @@ function BlockedScreen() {
     <main className="mx-auto flex min-h-screen w-full max-w-[520px] flex-col items-center justify-center gap-4 p-6 text-center">
       <h1 className="text-lg font-semibold">Account blocked</h1>
       <p className="text-sm text-muted">
-        Your access to YouTube Helper has been blocked. Please contact support if you think this is a mistake.
+        Your access to this Mini App has been blocked. Please contact support if you think this is a mistake.
       </p>
     </main>
   );
@@ -22,7 +22,7 @@ function TelegramOnlyScreen() {
     <main className="mx-auto flex min-h-screen w-full max-w-[520px] flex-col items-center justify-center gap-4 p-6 text-center">
       <h1 className="text-lg font-semibold">Open in Telegram</h1>
       <p className="text-sm text-muted">
-        YouTube Helper is only available as a Telegram Mini App.
+        This app is only available as a Telegram Mini App.
       </p>
       {BOT_LINK && (
         <a

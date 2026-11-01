@@ -5,8 +5,8 @@ import "./globals.css";
 import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
-  title: "YouTube Helper",
-  description: "A lightweight YouTube helper for Telegram.",
+  title: "Helper Mini App",
+  description: "YouTube tools and gold trading management for Telegram.",
 };
 
 export const viewport: Viewport = {

@@ -7,6 +7,7 @@ import { ThemePicker } from "@/components/theme-picker";
 import { AdminLogin, SummaryCards, useAdminSummary, isLoggedIn, logout } from "@/components/admin/admin-auth-summary";
 import { UserList } from "@/components/admin/user-list";
 import { UserDetailPanel } from "@/components/admin/user-detail-panel";
+import { GoldPriceForm } from "@/components/admin/gold-price-form";
 
 export default function AdminPage() {
   const queryClient = useQueryClient();
@@ -41,6 +42,8 @@ export default function AdminPage() {
       </header>
 
       {error && <p className="text-xs text-red-400">{error}</p>}
+
+      <GoldPriceForm />
 
       {selectedChatId ? (
         <UserDetailPanel chatId={selectedChatId} onBack={() => setSelectedChatId(null)} />

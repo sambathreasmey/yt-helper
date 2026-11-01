@@ -14,7 +14,15 @@ const appIconComponents: Record<string, LucideIcon> = {
   headphones: Headphones,
 };
 
-export function AppHeader({ profile = null }: { profile?: TelegramProfile | null }) {
+export function AppHeader({
+  profile = null,
+  title = "YouTube Helper",
+  subtitle = "Your videos, one tap away",
+}: {
+  profile?: TelegramProfile | null;
+  title?: string;
+  subtitle?: string;
+}) {
   const { appearance } = useTheme();
   const AppIcon = appIconComponents[appearance.appIcon] || CirclePlay;
 
@@ -24,8 +32,8 @@ export function AppHeader({ profile = null }: { profile?: TelegramProfile | null
         <AppIcon aria-hidden="true" size={23} strokeWidth={1.8} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-base font-semibold tracking-tight">YouTube Helper</span>
-        <span className="mt-0.5 block text-xs text-muted">Your videos, one tap away</span>
+        <span className="block text-base font-semibold tracking-tight">{title}</span>
+        <span className="mt-0.5 block text-xs text-muted">{subtitle}</span>
       </span>
       <TelegramUserBadge profile={profile} />
       <ThemePicker />

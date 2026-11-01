@@ -15,6 +15,21 @@ the app opens YouTube after three seconds; interacting with the page cancels
 the countdown. Favorites and recent videos are saved locally and use Telegram
 Cloud Storage when the app is opened as a Telegram Mini App.
 
+The **Gold trading** feature records gold purchases and sales in damlung, chi,
+or hun (1 damlung = 10 chi = 100 hun), tracks portfolio value and realized /
+unrealized profit or loss in USD, and supports Telegram transaction and target
+price alerts. Gold data is stored by the Flask backend; Telegram Mini App
+`initData` is verified server-side for user-scoped operations.
+
+Before deploying the backend, apply
+`helper_flask_app/sql/gold_trade_tables.sql` to the configured MySQL database.
+The shared price is read from `GET /api/gold/price`
+and can be updated by an administrator with a JWT via `POST /api/gold/price`
+using `{"price_per_damlung": 2400, "source": "manual"}`. Partner price
+integrations can use the same endpoint with a source label. Price alert
+messages are sent when a subsequent price update crosses a user's target.
+The existing `/admin` page also provides an administrator-only manual price form.
+
 Use **Customize** in the header to select System, Light, or Dark, pick from six
 accent colors, choose the app icon and one of 12 backgrounds, adjust Glass card
 blur from 0–100%, change card surfaces and corner shapes, select an animation
@@ -41,6 +56,7 @@ user/organization Pages repositories at the root path.
 - `components/ui/` contains reusable buttons, cards, badges, and inputs.
 - `components/` contains shared page-level UI.
 - `features/youtube-helper/` composes the YouTube Helper feature.
+- `features/gold-trading/` manages user purchases, sales, reports, and price alerts.
 - `hooks/` contains stateful React integrations for Telegram, storage, and playback.
 - `services/` contains YouTube, Telegram, and library-storage adapters. Add future
   API clients here so components do not depend on transport details.

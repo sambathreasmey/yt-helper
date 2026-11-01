@@ -1,10 +1,10 @@
 import { TelegramOnlyGate } from "@/components/telegram-only-gate";
-import { YouTubeHelper } from "@/features/youtube-helper/youtube-helper";
+import { AppFeatureShell } from "@/components/app-feature-shell";
 
 export default function Page() {
   return (
     <TelegramOnlyGate>
-      <YouTubeHelper />
+      <AppFeatureShell />
     </TelegramOnlyGate>
   );
 }

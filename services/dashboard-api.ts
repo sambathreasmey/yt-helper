@@ -76,6 +76,18 @@ export type SettingInput = {
   description?: string;
 };
 
+export type AdminGoldPrice = {
+  price_per_damlung: string;
+  source: string;
+  updated_on: string;
+};
+
+export type GoldPriceUpdateResult = {
+  price: AdminGoldPrice;
+  triggered_alerts: number;
+  notification_failures: number;
+};
+
 export const adminLogin = (
   username: string,
   password: string,
@@ -84,6 +96,17 @@ export const adminLogin = (
     method: "POST",
     body: { username, password },
     retry: false,
+  });
+
+export const getAdminGoldPrice = (): Promise<ApiResult<AdminGoldPrice>> =>
+  apiRequest("/api/gold/price/admin");
+
+export const updateAdminGoldPrice = (
+  pricePerDamlung: string,
+): Promise<ApiResult<GoldPriceUpdateResult>> =>
+  apiRequest("/api/gold/price", {
+    method: "POST",
+    body: { price_per_damlung: pricePerDamlung, source: "manual" },
   });
 
 export const getSummary = (): Promise<ApiResult<DashboardSummary>> =>
