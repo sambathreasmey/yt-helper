@@ -141,11 +141,15 @@ export const updateGoldPurchase = (
 export const deleteGoldPurchase = (initData: string, id: number): Promise<{ id: number }> =>
   request(initData, `/purchases/${id}`, { method: "DELETE" });
 
-export const createGoldSale = (
+export const sellGoldPurchase = (
   initData: string,
-  input: GoldTradeInput,
+  id: number,
+  unitPrice: string,
 ): Promise<{ realized_profit_loss: string; telegram_alert_sent: boolean }> =>
-  request(initData, "/sales", { method: "POST", body: input });
+  request(initData, `/purchases/${id}/sell`, {
+    method: "POST",
+    body: { unit_price: unitPrice },
+  });
 
 export const createGoldPriceAlert = (
   initData: string,

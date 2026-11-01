@@ -12,11 +12,11 @@ import { useLanguage } from "@/providers/language-provider";
 import {
   createGoldPriceAlert,
   createGoldPurchase,
-  createGoldSale,
   deleteGoldPriceAlert,
   deleteGoldPurchase,
   getGoldAlerts,
   getGoldOverview,
+  sellGoldPurchase,
   updateGoldPurchase,
   type GoldDirection,
   type GoldTradeInput,
@@ -179,10 +179,8 @@ export function GoldTrading() {
   const [purchasePrice, setPurchasePrice] = useState("");
   const [purchaseNote, setPurchaseNote] = useState("");
   const [editingPurchaseId, setEditingPurchaseId] = useState<number | null>(null);
-  const [saleUnit, setSaleUnit] = useState<GoldUnit>("chi");
-  const [saleQuantity, setSaleQuantity] = useState("");
-  const [salePrice, setSalePrice] = useState("");
-  const [saleNote, setSaleNote] = useState("");
+  const [sellingPurchaseId, setSellingPurchaseId] = useState<number | null>(null);
+  const [sellPrice, setSellPrice] = useState("");
   const [alertTarget, setAlertTarget] = useState("");
   const [alertDirection, setAlertDirection] = useState<GoldDirection>("ABOVE");
   const [notice, setNotice] = useState("");
@@ -226,17 +224,17 @@ export function GoldTrading() {
       await invalidateGoldData();
     },
   });
-  const saveSale = useMutation({
-    mutationFn: (input: GoldTradeInput) => createGoldSale(initData, input),
+  const sellPurchase = useMutation({
+    mutationFn: ({ id, unitPrice }: { id: number; unitPrice: string }) =>
+      sellGoldPurchase(initData, id, unitPrice),
     onSuccess: async (result) => {
       setNotice(
         result.telegram_alert_sent
           ? t("saleRecorded", { amount: formatUsd(result.realized_profit_loss, locale) })
           : t("saleRecordedNoAlert", { amount: formatUsd(result.realized_profit_loss, locale) }),
       );
-      setSaleQuantity("");
-      setSalePrice("");
-      setSaleNote("");
+      setSellingPurchaseId(null);
+      setSellPrice("");
       await invalidateGoldData();
     },
   });
@@ -267,17 +265,6 @@ export function GoldTrading() {
     });
   }
 
-  function onSaveSale(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setNotice("");
-    saveSale.mutate({
-      unit: saleUnit,
-      quantity: saleQuantity,
-      unit_price: salePrice,
-      note: saleNote,
-    });
-  }
-
   function editPurchase(holding: NonNullable<typeof overviewQuery.data>["holdings"][number]) {
     if (!holding.can_edit) {
       setNotice(t("partiallySoldCannotEdit"));
@@ -294,8 +281,8 @@ export function GoldTrading() {
   const overview = overviewQuery.data;
   const summary = overview?.summary;
   const isPending = savePurchase.isPending || removePurchase.isPending ||
-    saveSale.isPending || saveAlert.isPending || removeAlert.isPending;
-  const mutationError = savePurchase.error || removePurchase.error || saveSale.error ||
+    sellPurchase.isPending || saveAlert.isPending || removeAlert.isPending;
+  const mutationError = savePurchase.error || removePurchase.error || sellPurchase.error ||
     saveAlert.error || removeAlert.error;
 
   return (
@@ -380,31 +367,6 @@ export function GoldTrading() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("recordSale")}</CardTitle>
-          <CardDescription>{t("saleDescription")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-3" onSubmit={onSaveSale}>
-            <TradeFields
-              unit={saleUnit}
-              setUnit={setSaleUnit}
-              quantity={saleQuantity}
-              setQuantity={setSaleQuantity}
-              price={salePrice}
-              setPrice={setSalePrice}
-              note={saleNote}
-              setNote={setSaleNote}
-            />
-            <Button className="w-full" disabled={isPending} type="submit" variant="primary">
-              <ArrowUpFromLine aria-hidden="true" size={16} />
-              {t("submitSale")}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
       {notice && <p className="rounded-xl bg-accent-soft px-4 py-3 text-sm">{notice}</p>}
       {mutationError && (
         <p role="alert" className="rounded-xl border border-rose-400/40 bg-rose-400/10 px-4 py-3 text-sm text-rose-300">
@@ -465,6 +427,13 @@ export function GoldTrading() {
                 : Number(holding.profit_loss) < 0
                   ? t("loss")
                   : t("breakEven");
+            const holdingUnitLabel = t(
+              holding.unit === "damlung" ? "damlungUnit" : holding.unit === "chi" ? "chiUnit" : "hunUnit",
+            );
+            const sellButtonLabel = t("sellPurchase");
+            const suggestedSellPrice = overview.current_price
+              ? pricePerUnit(overview.current_price.price_per_damlung, holding.unit)
+              : null;
             return (
               <article key={holding.id} className="rounded-2xl border border-border bg-surface-strong p-3.5">
                 <div className="flex items-start justify-between gap-3 border-b border-border pb-3">
@@ -509,6 +478,27 @@ export function GoldTrading() {
                 </div>
                 {holding.note && <p className="mt-2 text-xs text-muted">{holding.note}</p>}
                 <div className="mt-3 flex justify-end gap-2">
+                  {Number(holding.remaining_hun) > 0 && (
+                    <Button
+                      aria-label={sellButtonLabel}
+                      disabled={isPending}
+                      onClick={() => {
+                        setNotice("");
+                        setSellingPurchaseId(holding.id);
+                        setSellPrice(
+                          overview.current_price
+                            ? pricePerUnit(overview.current_price.price_per_damlung, holding.unit)
+                            : "",
+                        );
+                      }}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      <ArrowUpFromLine aria-hidden="true" size={14} />
+                      {t("sell")}
+                    </Button>
+                  )}
                   <Button
                     aria-label={t("editPurchase")}
                     disabled={!fullyAvailable || isPending}
@@ -532,6 +522,59 @@ export function GoldTrading() {
                     <Trash2 aria-hidden="true" size={14} /> {t("delete")}
                   </Button>
                 </div>
+                {sellingPurchaseId === holding.id && (
+                  <form
+                    className="mt-3 space-y-3 rounded-xl border border-border bg-surface p-3"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      setNotice("");
+                      sellPurchase.mutate({ id: holding.id, unitPrice: sellPrice });
+                    }}
+                  >
+                    <p className="text-sm font-medium">
+                      {t("sellRemaining", { quantity: remainingQuantity })}
+                    </p>
+                    <p className="text-xs text-muted">
+                      {t("sellPriceHint", {
+                        price: suggestedSellPrice
+                          ? `${formatUsd(suggestedSellPrice, locale)} / ${holdingUnitLabel}`
+                          : t("priceUnavailable"),
+                      })}
+                    </p>
+                    <label className="block space-y-1.5 text-xs text-muted">
+                      {t("salePricePerUnit", {
+                        unit: holdingUnitLabel,
+                      })}
+                      <Input
+                        required
+                        type="number"
+                        min="0.000001"
+                        step="any"
+                        value={sellPrice}
+                        onChange={(event) => setSellPrice(event.target.value)}
+                        placeholder={t("unitPricePlaceholder", {
+                          unit: holdingUnitLabel,
+                        })}
+                      />
+                    </label>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        disabled={sellPurchase.isPending}
+                        onClick={() => {
+                          setSellingPurchaseId(null);
+                          setSellPrice("");
+                        }}
+                        type="button"
+                        variant="outline"
+                      >
+                        {t("cancel")}
+                      </Button>
+                      <Button disabled={sellPurchase.isPending} type="submit" variant="primary">
+                        {t("confirmSale")}
+                      </Button>
+                    </div>
+                  </form>
+                )}
               </article>
             );
           })}

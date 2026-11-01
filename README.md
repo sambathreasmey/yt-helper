@@ -27,6 +27,9 @@ The portfolio summary shows one combined profit/loss figure (realized sales
 plus unrealized value of remaining gold). Purchase records show their original
 investment, remaining cost and quantity, current value, and total per-record
 profit/loss, and can be sorted by performance.
+Use **Sell** on a purchase record to sell its remaining quantity. The sale
+price is prefilled from the current market price, but can be changed to the
+actual price received; the sale is attributed directly to that purchase lot.
 The interface language can be selected as KH (Khmer), EN (English), or CN
 (Chinese) from the top language selector or the appearance settings. Khmer is
 the default; the selection is saved on the user's device.
