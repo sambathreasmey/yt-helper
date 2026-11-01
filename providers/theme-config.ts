@@ -26,8 +26,8 @@ export const STORAGE_KEY = "yt-helper-appearance";
 export const LEGACY_STORAGE_KEY = "yt-helper-theme";
 
 export const DEFAULT_APPEARANCE: Appearance = {
-  mode: "system",
-  accent: "neutral",
+  mode: "dark",
+  accent: "mint",
   surface: "glass",
   corners: "soft",
   blur: 70,

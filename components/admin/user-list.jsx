@@ -70,7 +70,7 @@ export function UserList({ onSelect }) {
             key={user.id}
             type="button"
             onClick={() => onSelect(user.chat_id)}
-            className="flex w-full items-center justify-between gap-3 py-3 text-left hover:bg-surface"
+            className="flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-3 text-left transition-colors hover:bg-surface-strong"
           >
             <span className="min-w-0">
               <span className="block truncate text-sm font-semibold">{formatUserName(user)}</span>

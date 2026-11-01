@@ -4,53 +4,58 @@
 
 :root {
   color-scheme: dark;
-  --bg: #101112;
-  --surface: rgb(255 255 255 / 4%);
-  --surface-strong: rgb(255 255 255 / 7%);
-  --line: rgb(255 255 255 / 9%);
-  --mut: #a1a1aa;
-  --tx: #f4f4f5;
-  --accent: #d4d4d8;
-  --accent-bright: #f4f4f5;
-  --accent-soft: rgb(228 228 231 / 12%);
+  --bg: #0c1712;
+  --surface: rgb(193 229 204 / 7%);
+  --surface-strong: rgb(198 231 208 / 11%);
+  --line: rgb(220 255 230 / 13%);
+  --mut: #a3b6a9;
+  --tx: #f2f7f3;
+  --accent: #7ed8ba;
+  --accent-bright: #edfff4;
+  --accent-soft: rgb(126 216 186 / 15%);
   --glass-blur: 22.4px;
-  --shadow: 0 18px 54px rgb(0 0 0 / 24%);
-  --radius-card: 1.125rem;
+  --shadow: 0 24px 64px rgb(0 0 0 / 27%), 0 8px 26px rgb(30 94 58 / 13%);
+  --glass-sheen: linear-gradient(145deg, rgb(255 255 255 / 10%), rgb(255 255 255 / 3%) 48%, rgb(77 143 96 / 12%));
+  --radius-card: 1.5rem;
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --bg: #f3f3f3;
-  --surface: rgb(255 255 255 / 68%);
-  --surface-strong: rgb(255 255 255 / 84%);
-  --line: rgb(0 0 0 / 9%);
-  --mut: #66666d;
-  --tx: #19191b;
-  --accent: #252528;
-  --accent-bright: #414145;
-  --accent-soft: rgb(39 39 42 / 9%);
-  --shadow: 0 18px 54px rgb(0 0 0 / 8%);
+  --bg: #e8f1eb;
+  --surface: rgb(255 255 255 / 57%);
+  --surface-strong: rgb(255 255 255 / 73%);
+  --line: rgb(255 255 255 / 72%);
+  --mut: #607167;
+  --tx: #17241c;
+  --accent: #26836b;
+  --accent-bright: #163f32;
+  --accent-soft: rgb(38 131 107 / 11%);
+  --shadow: 0 24px 64px rgb(28 59 39 / 12%), 0 8px 26px rgb(28 81 48 / 7%);
+  --glass-sheen: linear-gradient(145deg, rgb(255 255 255 / 78%), rgb(255 255 255 / 35%) 48%, rgb(138 190 153 / 14%));
 }
 
+:root[data-accent="neutral"] { --accent-soft: rgb(228 228 231 / 12%); }
 :root[data-accent="rose"] { --accent-soft: rgb(242 154 176 / 14%); }
 :root[data-accent="lavender"] { --accent-soft: rgb(197 166 255 / 14%); }
 :root[data-accent="mint"] { --accent-soft: rgb(126 216 186 / 14%); }
 :root[data-accent="ocean"] { --accent-soft: rgb(142 199 255 / 14%); }
 :root[data-accent="peach"] { --accent-soft: rgb(255 180 137 / 14%); }
 :root[data-theme="light"][data-accent="rose"] { --accent-soft: rgb(190 82 108 / 10%); }
+:root[data-theme="light"][data-accent="neutral"] { --accent-soft: rgb(39 39 42 / 9%); }
 :root[data-theme="light"][data-accent="lavender"] { --accent-soft: rgb(118 87 183 / 10%); }
 :root[data-theme="light"][data-accent="mint"] { --accent-soft: rgb(38 131 107 / 10%); }
 :root[data-theme="light"][data-accent="ocean"] { --accent-soft: rgb(57 117 173 / 10%); }
 :root[data-theme="light"][data-accent="peach"] { --accent-soft: rgb(184 107 67 / 10%); }
 
 :root[data-surface="solid"] {
-  --surface: #1b1c1e;
-  --surface-strong: #242527;
+  --surface: #19271f;
+  --surface-strong: #22352a;
+  --glass-sheen: none;
 }
 
 :root[data-theme="light"][data-surface="solid"] {
   --surface: #fff;
-  --surface-strong: #e9e9eb;
+  --surface-strong: #eaf2ed;
 }
 
 :root[data-corners="rounded"] {
@@ -69,21 +74,21 @@
   html,
   body {
     @apply m-0 min-h-full bg-background text-foreground;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI Variable", "Segoe UI", Roboto, sans-serif;
     touch-action: manipulation;
     -webkit-text-size-adjust: 100%;
   }
 
   html:lang(km) body {
-    font-family: "Battambang", "Noto Sans Khmer", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI Variable", "Segoe UI", "Battambang", "Noto Sans Khmer", sans-serif;
   }
 
   html:lang(en) body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI Variable", "Segoe UI", Roboto, Arial, sans-serif;
   }
 
   html:lang(zh-CN) body {
-    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
   }
 
   body {
@@ -98,11 +103,12 @@
     z-index: -1;
     inset: -18%;
     background:
-      radial-gradient(ellipse at 18% 24%, var(--accent-soft), transparent 38%),
-      radial-gradient(ellipse at 84% 64%, var(--accent-soft), transparent 36%),
-      radial-gradient(ellipse at 56% 4%, var(--accent-soft), transparent 42%);
+      radial-gradient(ellipse at 12% 18%, rgb(90 173 113 / 28%), transparent 37%),
+      radial-gradient(ellipse at 90% 64%, rgb(38 125 89 / 27%), transparent 39%),
+      radial-gradient(ellipse at 56% 0%, rgb(190 230 195 / 12%), transparent 43%),
+      radial-gradient(ellipse at 50% 80%, var(--accent-soft), transparent 48%);
     content: "";
-    opacity: 0.9;
+    opacity: 1;
     pointer-events: none;
     transform: translate3d(0, 0, 0);
   }
@@ -113,7 +119,9 @@
   }
 
   button,
-  input {
+  input,
+  select,
+  textarea {
     font: inherit;
   }
 
@@ -122,7 +130,9 @@
   }
 
   button:focus-visible,
-  input:focus-visible {
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
     @apply outline outline-2 outline-offset-2 outline-muted;
   }
 }
@@ -130,6 +140,14 @@
 @layer utilities {
   .glass {
     @apply border border-border bg-surface shadow-glass;
+    background-image: var(--glass-sheen);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    box-shadow: var(--shadow), inset 0 1px 0 rgb(255 255 255 / 10%);
+  }
+
+  .admin-toolbar {
+    background-image: var(--glass-sheen);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
   }
@@ -238,6 +256,7 @@
 :root[data-surface="solid"] .glass {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+  box-shadow: var(--shadow);
 }
 
 :root[data-corners="rounded"] .rounded-card,

@@ -13,7 +13,7 @@ export function AppFeatureShell() {
 
   return (
     <div className="mx-auto w-full max-w-[520px]">
-      <nav className="mb-4 flex items-center gap-2 rounded-2xl border border-border bg-surface p-1.5" aria-label={t("featureNavigation")}>
+      <nav className="glass mb-4 flex items-center gap-2 rounded-[24px] p-1.5" aria-label={t("featureNavigation")}>
         <button
           className={`min-h-10 flex-1 rounded-xl px-3 text-sm font-semibold transition-colors ${
             feature === "youtube" ? "bg-accent-soft text-foreground" : "text-muted"

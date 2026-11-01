@@ -4,11 +4,11 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 export const selectClass =
-  "h-11 rounded-xl border border-border bg-surface-strong px-3 text-sm text-foreground";
+  "h-11 rounded-2xl border border-border bg-surface-strong px-3 text-sm text-foreground shadow-inner shadow-black/[0.03]";
 
 export function Section({ title, children, className }) {
   return (
-    <Card className={cn("space-y-2 p-4", className)}>
+    <Card className={cn("space-y-3 p-4 sm:p-5", className)}>
       <p className="text-xs font-semibold uppercase tracking-[0.09em] text-muted">{title}</p>
       {children}
     </Card>

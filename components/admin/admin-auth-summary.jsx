@@ -29,7 +29,7 @@ export function AdminLogin({ onLoggedIn }) {
   }
 
   return (
-    <Card className="mx-auto mt-16 max-w-sm p-6">
+    <Card className="mx-auto mt-16 max-w-sm p-6 sm:p-7">
       <CardHeader className="p-0">
         <CardTitle>Admin sign in</CardTitle>
         <CardDescription>Dashboard access for Telegram user management.</CardDescription>
@@ -64,7 +64,7 @@ export function SummaryCards({ summary }) {
   return (
     <div className="grid grid-cols-2 gap-2">
       {items.map(([label, value]) => (
-        <Card key={label} className="p-3">
+        <Card key={label} className="rounded-3xl p-4">
           <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-muted">{label}</p>
           <p className="mt-1 text-lg font-semibold">{value ?? 0}</p>
         </Card>
