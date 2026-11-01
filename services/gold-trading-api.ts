@@ -66,7 +66,7 @@ export type GoldPriceAlert = {
 export type GoldTradeInput = {
   unit: GoldUnit;
   quantity: string;
-  unit_price_per_damlung: string;
+  unit_price: string;
   note: string;
 };
 

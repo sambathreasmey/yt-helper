@@ -24,6 +24,15 @@ import {
 } from "@/services/gold-trading-api";
 
 const units: GoldUnit[] = ["damlung", "chi", "hun"];
+const hunPerDamlung: Record<GoldUnit, number> = {
+  damlung: 100,
+  chi: 10,
+  hun: 1,
+};
+
+function pricePerUnit(pricePerDamlung: string, unit: GoldUnit): string {
+  return (Number(pricePerDamlung) * hunPerDamlung[unit] / hunPerDamlung.damlung).toFixed(6);
+}
 
 function formatUsd(value: string | null | undefined, locale: string): string {
   if (value === null || value === undefined) return "—";
@@ -115,7 +124,10 @@ function TradeFields({
           <select
             className="h-12 rounded-xl border border-border bg-surface-strong px-3 text-sm text-foreground"
             value={unit}
-            onChange={(event) => setUnit(event.target.value as GoldUnit)}
+            onChange={(event) => {
+              setUnit(event.target.value as GoldUnit);
+              setPrice("");
+            }}
             aria-label={t("quantityUnit")}
           >
             {units.map((goldUnit) => (
@@ -127,7 +139,9 @@ function TradeFields({
         </div>
       </label>
       <label className="block space-y-1.5 text-xs text-muted">
-        {t("pricePerDamlung")}
+        {t("pricePerUnit", {
+          unit: t(unit === "damlung" ? "damlungUnit" : unit === "chi" ? "chiUnit" : "hunUnit"),
+        })}
         <Input
           required
           type="number"
@@ -135,7 +149,9 @@ function TradeFields({
           step="any"
           value={price}
           onChange={(event) => setPrice(event.target.value)}
-          placeholder={t("usdDamlungPlaceholder")}
+          placeholder={t("unitPricePlaceholder", {
+            unit: t(unit === "damlung" ? "damlungUnit" : unit === "chi" ? "chiUnit" : "hunUnit"),
+          })}
         />
       </label>
       <label className="block space-y-1.5 text-xs text-muted">
@@ -246,7 +262,7 @@ export function GoldTrading() {
     savePurchase.mutate({
       unit: purchaseUnit,
       quantity: purchaseQuantity,
-      unit_price_per_damlung: purchasePrice,
+      unit_price: purchasePrice,
       note: purchaseNote,
     });
   }
@@ -257,7 +273,7 @@ export function GoldTrading() {
     saveSale.mutate({
       unit: saleUnit,
       quantity: saleQuantity,
-      unit_price_per_damlung: salePrice,
+      unit_price: salePrice,
       note: saleNote,
     });
   }
@@ -270,7 +286,7 @@ export function GoldTrading() {
     setEditingPurchaseId(holding.id);
     setPurchaseUnit(holding.unit);
     setPurchaseQuantity(holding.quantity);
-    setPurchasePrice(holding.unit_price_per_damlung);
+    setPurchasePrice(pricePerUnit(holding.unit_price_per_damlung, holding.unit));
     setPurchaseNote(holding.note);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -489,7 +505,7 @@ export function GoldTrading() {
                 </div>
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface px-3 py-2 text-xs">
                   <span className="text-muted">{t("boughtQuantity", { quantity: purchasedQuantity })}</span>
-                  <span className="font-medium">{t("buyRate")} {formatUsd(holding.unit_price_per_damlung, locale)} / {t("damlungUnit")}</span>
+                  <span className="font-medium">{t("buyRate")} {formatUsd(pricePerUnit(holding.unit_price_per_damlung, holding.unit), locale)} / {t(holding.unit === "damlung" ? "damlungUnit" : holding.unit === "chi" ? "chiUnit" : "hunUnit")}</span>
                 </div>
                 {holding.note && <p className="mt-2 text-xs text-muted">{holding.note}</p>}
                 <div className="mt-3 flex justify-end gap-2">
@@ -556,7 +572,7 @@ export function GoldTrading() {
                   {transaction.type === "BUY" ? t("bought") : t("sold")} {transaction.quantity} {t(transaction.unit === "damlung" ? "damlungUnit" : transaction.unit === "chi" ? "chiUnit" : "hunUnit")}
                 </p>
                 <p className="mt-1 text-xs text-muted">
-                  {formatDate(transaction.created_on, locale)} · {formatUsd(transaction.unit_price_per_damlung, locale)} / {t("damlungUnit")}
+                  {formatDate(transaction.created_on, locale)} · {formatUsd(pricePerUnit(transaction.unit_price_per_damlung, transaction.unit), locale)} / {t(transaction.unit === "damlung" ? "damlungUnit" : transaction.unit === "chi" ? "chiUnit" : "hunUnit")}
                 </p>
               </div>
               <p className={`shrink-0 text-sm font-semibold ${profitClass(transaction.profit_loss)}`}>

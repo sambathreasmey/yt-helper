@@ -20,6 +20,9 @@ or hun (1 damlung = 10 chi = 100 hun), tracks portfolio value and realized /
 unrealized profit or loss in USD, and supports Telegram transaction and target
 price alerts. Gold data is stored by the Flask backend; Telegram Mini App
 `initData` is verified server-side for user-scoped operations.
+Buy and sell prices are entered in the selected quantity unit (for example,
+USD per chi); the backend normalizes trade rates and the shared market price to
+USD per damlung for consistent valuation.
 The portfolio summary shows one combined profit/loss figure (realized sales
 plus unrealized value of remaining gold). Purchase records show their original
 investment, remaining cost and quantity, current value, and total per-record
