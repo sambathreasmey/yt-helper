@@ -20,12 +20,12 @@ export function TelegramUserNotification() {
         search,
         status: "ACTIVE",
         page: 1,
-        page_size: 20,
+        page_size: 100,
       });
       if (!response.ok || !response.data) {
         throw new Error(response.message || "Unable to search active users");
       }
-      return response.data.items;
+      return response.data;
     },
     retry: false,
   });
@@ -38,7 +38,7 @@ export function TelegramUserNotification() {
       return response.data;
     },
   });
-  const users = usersQuery.data ?? [];
+  const users = usersQuery.data?.items ?? [];
   const selectedUser = users.find((user) => String(user.chat_id) === chatId);
   const valid = Boolean(selectedUser && message.trim() && message.trim().length <= 4096);
 
@@ -67,19 +67,7 @@ export function TelegramUserNotification() {
       <CardContent>
         <form className="admin-user-notification-form" onSubmit={submit}>
           <label className="admin-ad-field">
-            <span>Find active user</span>
-            <Input
-              autoComplete="off"
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setChatId("");
-              }}
-              placeholder="Search name, username, or chat ID"
-              value={search}
-            />
-          </label>
-          <label className="admin-ad-field">
-            <span>Telegram user</span>
+            <span>Choose recipient from the user list</span>
             <select
               className={selectClass}
               disabled={usersQuery.isPending || users.length === 0}
@@ -96,6 +84,18 @@ export function TelegramUserNotification() {
             </select>
           </label>
           <label className="admin-ad-field">
+            <span>Filter the dropdown <small>(optional)</small></span>
+            <Input
+              autoComplete="off"
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setChatId("");
+              }}
+              placeholder="Search name, username, or chat ID"
+              value={search}
+            />
+          </label>
+          <label className="admin-ad-field">
             <span>Message <small>(up to 4096 characters)</small></span>
             <textarea
               className="admin-ad-message"
@@ -108,6 +108,13 @@ export function TelegramUserNotification() {
           </label>
           {usersQuery.isPending && <p className="text-xs text-muted">Searching active users…</p>}
           {usersQuery.error && <p className="admin-ad-error" role="alert">{usersQuery.error.message}</p>}
+          {usersQuery.data && users.length > 0 && (
+            <p className="text-xs text-muted">
+              {users.length === 100 && usersQuery.data.total > 100
+                ? `Showing 100 of ${usersQuery.data.total} active users. Filter the dropdown to find others.`
+                : `${usersQuery.data.total} active users available.`}
+            </p>
+          )}
           {usersQuery.data && users.length === 0 && <p className="text-xs text-muted">No active users found.</p>}
           <div className="admin-ad-footer">
             <p className="text-xs text-muted">The recipient must have started the Telegram bot and remain active.</p>

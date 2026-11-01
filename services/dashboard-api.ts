@@ -10,6 +10,19 @@ export type AdminLoginResponse = {
 export type DashboardSummary = {
   users?: Record<string, number>;
   sessions?: Record<string, number>;
+  recent_sessions?: RecentDashboardSession[];
+};
+
+export type RecentDashboardSession = {
+  id: string | number;
+  chat_id: string | number;
+  first_name?: string | null;
+  last_name?: string | null;
+  username?: string | null;
+  platform?: string | null;
+  session_start?: string | null;
+  session_end?: string | null;
+  duration_seconds: number;
 };
 
 export type DashboardUser = {

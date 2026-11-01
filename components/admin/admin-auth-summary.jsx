@@ -5,7 +5,9 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
   Crown,
+  Clock3,
   Radio,
+  Smartphone,
   UserCheck,
   UserPlus,
   Users,
@@ -16,6 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { adminLogin, getSummary } from "@/services/dashboard-api";
 import { storeTokens, getStoredTokens, clearTokens } from "@/lib/api-client";
+import { formatUtcTimestamp } from "@/lib/date-format";
 
 export function AdminLogin({ onLoggedIn }) {
   const [username, setUsername] = useState("");
@@ -77,6 +80,17 @@ export function SummaryCards({ summary }) {
     ["Blocked users", users.blocked_users, "rose"],
     ["Active in 24h", users.active_last_24h, "blue"],
   ];
+  const recentSessions = summary.recent_sessions || [];
+  const formatDuration = (value) => {
+    const seconds = Math.max(Number(value) || 0, 0);
+    if (seconds < 60) return `${seconds}s`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m`;
+    return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+  };
+  const formatSessionUser = (session) =>
+    [session.first_name, session.last_name].filter(Boolean).join(" ") ||
+    (session.username ? `@${session.username}` : String(session.chat_id));
 
   return (
     <section className="admin-overview space-y-3" aria-label="Admin overview">
@@ -117,6 +131,40 @@ export function SummaryCards({ summary }) {
             );
           })}
         </div>
+      </Card>
+      <Card className="admin-recent-sessions-card p-4 sm:p-5">
+        <div className="admin-section-heading mb-3">
+          <span className="admin-heading-icon admin-heading-cyan" aria-hidden="true"><Clock3 size={18} /></span>
+          <div>
+            <h2 className="text-sm font-bold">Latest 5 user sessions</h2>
+            <p className="mt-0.5 text-xs text-muted">Most recent Mini App activity</p>
+          </div>
+          <span className="admin-chart-total ml-auto">{recentSessions.length} sessions</span>
+        </div>
+        {recentSessions.length > 0 ? (
+          <ol className="admin-recent-session-list">
+            {recentSessions.map((session) => (
+              <li className="admin-recent-session-row" key={session.id}>
+                <span className="admin-session-platform-icon" aria-hidden="true"><Smartphone size={17} /></span>
+                <span className="admin-session-user">
+                  <strong>{formatSessionUser(session)}</strong>
+                  <small>
+                    {session.platform || "Platform not reported"}
+                    {session.username ? ` · @${session.username}` : ""}
+                  </small>
+                </span>
+                <span className="admin-session-time">
+                  <time dateTime={session.session_start || undefined}>
+                    {session.session_start ? formatUtcTimestamp(session.session_start) : "Time unavailable"}
+                  </time>
+                  <small>{session.session_end ? formatDuration(session.duration_seconds) : "In progress"}</small>
+                </span>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p className="admin-recent-sessions-empty">No user sessions have been recorded yet.</p>
+        )}
       </Card>
     </section>
   );

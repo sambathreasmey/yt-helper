@@ -54,8 +54,6 @@ export function YouTubeHelper() {
     setCountdown(null);
     setVideo({ id: videoId, title: videoId });
     setView("player");
-    impactTelegram(telegram, "light");
-
     const videoRecord: LibraryVideo = { id: videoId, t: videoId };
     library.addToHistory(videoRecord);
     fetchVideoTitle(videoId).then((title) => {
@@ -80,21 +78,24 @@ export function YouTubeHelper() {
 
   useEffect(() => {
     if (countdown === null || countdown === 0) return undefined;
+    impactTelegram(telegram, "light");
     const timer = window.setInterval(() => {
       setCountdown((remaining) => (remaining === null ? null : Math.max(remaining - 1, 0)));
     }, 1000);
     return () => window.clearInterval(timer);
-  }, [countdown]);
+  }, [countdown, telegram]);
 
   const navigateToYouTube = useCallback((url = "https://m.youtube.com") => {
     setCountdown(null);
-    impactTelegram(telegram);
     openTelegramLink(telegram, url);
   }, [telegram]);
 
   useEffect(() => {
-    if (countdown === 0) navigateToYouTube();
-  }, [countdown, navigateToYouTube]);
+    if (countdown === 0) {
+      impactTelegram(telegram, "medium");
+      navigateToYouTube();
+    }
+  }, [countdown, navigateToYouTube, telegram]);
 
   useEffect(() => {
     if (countdown === null) return undefined;
@@ -131,7 +132,6 @@ export function YouTubeHelper() {
   }, [returnHome, telegram, view]);
 
   function addToHomeScreen() {
-    impactTelegram(telegram);
     try { telegram?.addToHomeScreen?.(); } catch {
       // Home screen installation is only available in supported Telegram clients.
     }
@@ -189,7 +189,6 @@ export function YouTubeHelper() {
             onOpenYouTube={() => navigateToYouTube(`https://youtu.be/${video.id}`)}
             onShare={shareVideo}
             onToggleFavorite={() => {
-              impactTelegram(telegram, "medium");
               library.toggleFavorite({ id: video.id, t: video.title });
             }}
             video={video}

@@ -2,6 +2,7 @@ import Script from "next/script";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { LanguageProvider } from "@/providers/language-provider";
 import { QueryProvider } from "@/providers/query-provider";
+import { TelegramHapticFeedback } from "@/components/telegram-haptic-feedback";
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           strategy="beforeInteractive"
         />
         <QueryProvider>
+          <TelegramHapticFeedback />
           <LanguageProvider>
             <ThemeProvider>{children}</ThemeProvider>
           </LanguageProvider>
