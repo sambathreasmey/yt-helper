@@ -10,6 +10,7 @@ const translations = {
   KH: {
     language: "ភាសា",
     featureNavigation: "មុខងារ Mini App",
+    adminMenu: "អ្នកគ្រប់គ្រង",
     seconds: "វិនាទី",
     accentColor: "ពណ៌សង្កត់",
     appIcon: "រូបតំណាងកម្មវិធី",
@@ -179,6 +180,7 @@ const translations = {
   EN: {
     language: "Language",
     featureNavigation: "Mini App features",
+    adminMenu: "Admin",
     seconds: "seconds",
     accentColor: "Accent color",
     appIcon: "App icon",
@@ -348,6 +350,7 @@ const translations = {
   CN: {
     language: "语言",
     featureNavigation: "Mini App 功能",
+    adminMenu: "管理",
     seconds: "秒",
     accentColor: "强调色",
     appIcon: "应用图标",

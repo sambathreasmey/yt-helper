@@ -58,21 +58,21 @@ export function YouTubePlayer({
   }
 
   return (
-    <section className="view-enter mx-auto w-full max-w-2xl">
-      <Button onClick={onBack}><ArrowLeft aria-hidden="true" size={17} />{t("back")}</Button>
-      <div className="glass mt-4 aspect-video overflow-hidden rounded-2xl bg-black">
+    <section className="youtube-player-page view-enter mx-auto w-full max-w-2xl">
+      <Button className="youtube-player-back" onClick={onBack}><ArrowLeft aria-hidden="true" size={17} />{t("back")}</Button>
+      <div className="youtube-player-frame glass mt-4 aspect-video overflow-hidden rounded-2xl bg-black">
         <div className="size-full" id="youtube-player" ref={hostRef} />
       </div>
-      <h1 className="mt-4 text-base font-semibold leading-6">{video.title || video.id}</h1>
-      {error && <p className="mt-2 text-sm text-muted">{t("videoCannotPlay")}</p>}
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Button aria-label={t("backTenSeconds")} onClick={() => seekBy(-10)}><RotateCcw size={17} />10s</Button>
-        <Button aria-label={t("forwardTenSeconds")} onClick={() => seekBy(10)}>10s<RotateCw size={17} /></Button>
-        <Button aria-label={t("playbackSpeed")} onClick={changeSpeed}>{speed}x</Button>
-        <Button aria-label={t("toggleLoop")} aria-pressed={loop} onClick={() => setLoop((value) => !value)} variant={loop ? "primary" : "secondary"}><Repeat2 size={17} /></Button>
-        <Button aria-label={isFavorite ? t("removeFavorite") : t("addFavorite")} aria-pressed={isFavorite} onClick={onToggleFavorite} variant={isFavorite ? "primary" : "secondary"}><Star className={isFavorite ? "fill-current" : ""} size={17} /></Button>
-        <Button aria-label={t("shareVideo")} onClick={onShare}><Send size={17} /></Button>
-        <Button aria-label={t("openOnYouTube")} onClick={onOpenYouTube}><ExternalLink size={17} /></Button>
+      <h1 className="youtube-player-title mt-4 text-base font-semibold leading-6">{video.title || video.id}</h1>
+      {error && <p className="youtube-player-error mt-2 text-sm text-muted">{t("videoCannotPlay")}</p>}
+      <div className="youtube-player-controls mt-4 flex flex-wrap gap-2">
+        <Button className="youtube-player-control" aria-label={t("backTenSeconds")} onClick={() => seekBy(-10)}><RotateCcw size={17} />10s</Button>
+        <Button className="youtube-player-control" aria-label={t("forwardTenSeconds")} onClick={() => seekBy(10)}>10s<RotateCw size={17} /></Button>
+        <Button className="youtube-player-control" aria-label={t("playbackSpeed")} onClick={changeSpeed}>{speed}x</Button>
+        <Button className={`youtube-player-control ${loop ? "is-selected" : ""}`} aria-label={t("toggleLoop")} aria-pressed={loop} onClick={() => setLoop((value) => !value)} variant={loop ? "primary" : "secondary"}><Repeat2 size={17} /></Button>
+        <Button className={`youtube-player-control youtube-player-favorite ${isFavorite ? "is-selected" : ""}`} aria-label={isFavorite ? t("removeFavorite") : t("addFavorite")} aria-pressed={isFavorite} onClick={onToggleFavorite} variant={isFavorite ? "primary" : "secondary"}><Star className={isFavorite ? "fill-current" : ""} size={17} /></Button>
+        <Button className="youtube-player-control" aria-label={t("shareVideo")} onClick={onShare}><Send size={17} /></Button>
+        <Button className="youtube-player-control" aria-label={t("openOnYouTube")} onClick={onOpenYouTube}><ExternalLink size={17} /></Button>
       </div>
     </section>
   );

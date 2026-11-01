@@ -313,7 +313,7 @@ export function GoldTrading() {
 
   return (
     <main className="gold-dashboard mx-auto w-full max-w-[520px] space-y-4">
-      <AppHeader profile={profile} title={t("goldTrading")} subtitle={t("goldSubtitle")} brandIcon={Coins} brandVariant="gold" />
+      <AppHeader profile={profile} title={t("goldTrading")} subtitle={t("goldSubtitle")} brandIcon={ChartNoAxesCombined} brandVariant="gold" />
 
       <Card className="gold-price-hero">
         <CardContent className="gold-price-content">

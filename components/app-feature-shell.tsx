@@ -1,18 +1,39 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { CirclePlay, Coins } from "lucide-react";
-import { GoldTrading } from "@/features/gold-trading/gold-trading";
+import Link from "next/link";
+import { CirclePlay, Coins, ShieldCheck } from "lucide-react";
 import { YouTubeHelper } from "@/features/youtube-helper/youtube-helper";
+import { useTelegram } from "@/hooks/use-telegram";
 import { useLanguage } from "@/providers/language-provider";
 
 type AppFeature = "youtube" | "gold";
+
+function GoldTradingLoading() {
+  const { t } = useLanguage();
+
+  return (
+    <div className="mx-auto w-full max-w-[520px]" aria-busy="true">
+      <div className="glass rounded-card p-5 text-center">
+        <p className="text-sm text-muted" role="status">{t("loadingPortfolio")}</p>
+      </div>
+    </div>
+  );
+}
+
+const GoldTrading = dynamic(
+  () => import("@/features/gold-trading/gold-trading").then((module) => module.GoldTrading),
+  { loading: GoldTradingLoading },
+);
 
 export function AppFeatureShell() {
   const [feature, setFeature] = useState<AppFeature>("youtube");
   const [switchDirection, setSwitchDirection] = useState<AppFeature | null>(null);
   const [navVisible, setNavVisible] = useState(true);
+  const { telegram } = useTelegram();
   const { t } = useLanguage();
+  const isAdmin = telegram?.initDataUnsafe?.user?.id === 762808963;
 
   useEffect(() => {
     let previousScrollY = window.scrollY;
@@ -59,11 +80,13 @@ export function AppFeatureShell() {
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
+    window.visualViewport?.addEventListener("scroll", handleScroll, { passive: true });
     document.addEventListener("focusin", handleFocusIn);
     document.addEventListener("focusout", handleFocusOut);
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.visualViewport?.removeEventListener("scroll", handleScroll);
       document.removeEventListener("focusin", handleFocusIn);
       document.removeEventListener("focusout", handleFocusOut);
       if (scrollFrame) window.cancelAnimationFrame(scrollFrame);
@@ -95,6 +118,7 @@ export function AppFeatureShell() {
         aria-label={t("featureNavigation")}
         data-switch-direction={switchDirection ?? undefined}
         data-hidden={!navVisible ? "true" : undefined}
+        data-item-count={isAdmin ? "3" : "2"}
         aria-hidden={!navVisible}
         inert={!navVisible}
       >
@@ -123,6 +147,15 @@ export function AppFeatureShell() {
           <Coins aria-hidden="true" size={22} strokeWidth={2.2} />
           <span>{t("goldTrading")}</span>
         </button>
+        {isAdmin && (
+          <Link
+            className={`${featureButtonClass} text-muted hover:text-foreground`}
+            href="/admin"
+          >
+            <ShieldCheck aria-hidden="true" size={22} strokeWidth={2.2} />
+            <span>{t("adminMenu")}</span>
+          </Link>
+        )}
       </nav>
     </>
   );
