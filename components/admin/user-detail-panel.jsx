@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,45 +15,58 @@ import { ErrorText, Field, Notice, Section, formatUserName, selectClass } from "
 const PLANS = ["PREMIUM_MONTHLY", "PREMIUM_YEARLY", "PREMIUM_LIFETIME"];
 const STATUSES = ["ACTIVE", "INACTIVE", "BLOCKED"];
 
-export function UserDetailPanel({ chatId, onChanged, onBack }) {
-  const [detail, setDetail] = useState(null);
-  const [events, setEvents] = useState([]);
-  const [loadError, setLoadError] = useState("");
+export function UserDetailPanel({ chatId, onBack }) {
+  const queryClient = useQueryClient();
   const [plan, setPlan] = useState(PLANS[0]);
   const [days, setDays] = useState("30");
   const [trialDays, setTrialDays] = useState("7");
   const [settingKey, setSettingKey] = useState("");
   const [settingValue, setSettingValue] = useState("");
 
-  const load = useCallback(async () => {
-    const [detailRes, eventsRes] = await Promise.all([
-      getUserDetail(chatId),
-      getUserEvents(chatId, { limit: 20 }),
-    ]);
-    if (detailRes.ok) {
-      setDetail(detailRes.data);
-      setLoadError("");
-    } else {
-      setLoadError(detailRes.message);
-    }
-    if (eventsRes.ok) setEvents(eventsRes.data || []);
-  }, [chatId]);
+  const detailQuery = useQuery({
+    queryKey: ["admin", "user", chatId],
+    queryFn: async () => {
+      const response = await getUserDetail(chatId);
+      if (!response.ok || !response.data) {
+        throw new Error(response.message || "Unable to load user");
+      }
+      return response.data;
+    },
+    enabled: Boolean(chatId),
+  });
+  const eventsQuery = useQuery({
+    queryKey: ["admin", "user-events", chatId, 20],
+    queryFn: async () => {
+      const response = await getUserEvents(chatId, { limit: 20 });
+      if (!response.ok) {
+        throw new Error(response.message || "Unable to load recent activity");
+      }
+      return response.data || [];
+    },
+    enabled: Boolean(chatId),
+  });
+  const detail = detailQuery.data;
+  const events = eventsQuery.data || [];
+  const loadError = detailQuery.error?.message || eventsQuery.error?.message || "";
 
-  // Reload after every successful action, then tell the parent so the list refreshes.
-  const onActionSuccess = useCallback(async () => {
-    await load();
-    onChanged?.();
-  }, [load, onChanged]);
+  const onActionSuccess = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["admin", "user", chatId] }),
+      queryClient.invalidateQueries({ queryKey: ["admin", "user-events", chatId] }),
+      queryClient.invalidateQueries({ queryKey: ["admin", "users"] }),
+      queryClient.invalidateQueries({ queryKey: ["admin", "summary"] }),
+    ]);
+  };
 
   const { busy, message, run } = useAdminAction(onActionSuccess);
-
-  useEffect(() => { load(); }, [load]);
 
   if (!detail) {
     return (
       <Card className="p-4">
         <Button size="sm" onClick={onBack}>Back</Button>
-        <p className="mt-3 text-sm text-muted">{loadError || "Loading..."}</p>
+        <p className="mt-3 text-sm text-muted">
+          {loadError || (detailQuery.isPending ? "Loading..." : "")}
+        </p>
       </Card>
     );
   }
@@ -148,6 +162,7 @@ export function UserDetailPanel({ chatId, onChanged, onBack }) {
       </Section>
 
       <Section title="Recent activity">
+        {eventsQuery.error && <ErrorText>{eventsQuery.error.message}</ErrorText>}
         {events.length === 0 && <Notice>No events yet.</Notice>}
         {events.map((e) => (
           <div key={e.id} className="flex justify-between gap-2 py-1 text-xs">

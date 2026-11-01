@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -72,21 +73,23 @@ export function SummaryCards({ summary }) {
   );
 }
 
-export function useAdminSummary() {
-  const [summary, setSummary] = useState(null);
-  const [error, setError] = useState("");
+export function useAdminSummary(enabled) {
+  const query = useQuery({
+    queryKey: ["admin", "summary"],
+    queryFn: async () => {
+      const response = await getSummary();
+      if (!response.ok || !response.data) {
+        throw new Error(response.message || "Unable to load dashboard summary");
+      }
+      return response.data;
+    },
+    enabled,
+  });
 
-  async function load() {
-    const response = await getSummary();
-    if (response.ok) {
-      setSummary(response.data);
-      setError("");
-    } else {
-      setError(response.message);
-    }
-  }
-
-  return { summary, error, load };
+  return {
+    summary: query.data || null,
+    error: query.error?.message || "",
+  };
 }
 
 export function isLoggedIn() {

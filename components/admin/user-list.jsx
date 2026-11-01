@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,28 +21,27 @@ const PLAN_OPTIONS = [
   { value: "false", label: "Non-premium" },
 ];
 
-export function UserList({ onSelect, refreshKey }) {
+export function UserList({ onSelect }) {
   const [filters, setFilters] = useState({ search: "", status: "", is_premium: "" });
   const [page, setPage] = useState(1);
-  const [data, setData] = useState(null);
-  const [error, setError] = useState("");
+
+  const usersQuery = useQuery({
+    queryKey: ["admin", "users", filters, page, PAGE_SIZE],
+    queryFn: async () => {
+      const response = await listUsers({ ...filters, page, page_size: PAGE_SIZE });
+      if (!response.ok || !response.data) {
+        throw new Error(response.message || "Unable to load users");
+      }
+      return response.data;
+    },
+  });
+  const data = usersQuery.data;
 
   // Any filter change goes back to page 1.
   function updateFilter(key, value) {
     setFilters((current) => ({ ...current, [key]: value }));
     setPage(1);
   }
-
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      const response = await listUsers({ ...filters, page, page_size: PAGE_SIZE });
-      if (!active) return;
-      setData(response.ok ? response.data : null);
-      setError(response.ok ? "" : response.message);
-    })();
-    return () => { active = false; };
-  }, [filters, page, refreshKey]);
 
   const totalPages = data ? Math.max(Math.ceil(data.total / PAGE_SIZE), 1) : 1;
 
@@ -61,9 +61,10 @@ export function UserList({ onSelect, refreshKey }) {
         </select>
       </div>
 
-      <ErrorText>{error}</ErrorText>
+      <ErrorText>{usersQuery.error?.message}</ErrorText>
 
       <div className="divide-y divide-border">
+        {usersQuery.isPending && <p className="py-6 text-center text-sm text-muted">Loading users...</p>}
         {(data?.items || []).map((user) => (
           <button
             key={user.id}

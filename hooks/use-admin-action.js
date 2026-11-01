@@ -1,24 +1,34 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 
 /**
  * Runs one dashboard action and tracks busy/message state.
  * `onSuccess` runs after a successful action (for example, to reload data).
  */
 export function useAdminAction(onSuccess) {
-  const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
-  const run = useCallback(async (action, successText) => {
-    setBusy(true);
-    setMessage("");
-    const response = await action();
-    setBusy(false);
-    setMessage(response.ok ? successText : response.message);
-    if (response.ok) await onSuccess?.();
-    return response;
-  }, [onSuccess]);
+  const mutation = useMutation({
+    mutationFn: async ({ action, successText }) => {
+      const response = await action();
+      if (!response.ok) throw new Error(response.message);
+      return successText;
+    },
+    onSuccess: async (successText) => {
+      setMessage(successText);
+      await onSuccess?.();
+    },
+    onError: (error) => {
+      setMessage(error instanceof Error ? error.message : "Action failed");
+    },
+  });
 
-  return { busy, message, run, setMessage };
+  function run(action, successText) {
+    setMessage("");
+    mutation.mutate({ action, successText });
+  }
+
+  return { busy: mutation.isPending, message, run, setMessage };
 }
