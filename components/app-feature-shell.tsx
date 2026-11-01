@@ -4,12 +4,13 @@ import { useState } from "react";
 import { GoldTrading } from "@/features/gold-trading/gold-trading";
 import { YouTubeHelper } from "@/features/youtube-helper/youtube-helper";
 import { useLanguage } from "@/providers/language-provider";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 type AppFeature = "youtube" | "gold";
 
 export function AppFeatureShell() {
   const [feature, setFeature] = useState<AppFeature>("youtube");
-  const { language, setLanguage, t } = useLanguage();
+  const { t } = useLanguage();
 
   return (
     <div className="mx-auto w-full max-w-[520px]">
@@ -34,16 +35,7 @@ export function AppFeatureShell() {
         >
           {t("goldTrading")}
         </button>
-        <select
-          className="h-10 shrink-0 rounded-xl border border-border bg-surface-strong px-2 text-xs font-semibold text-foreground"
-          value={language}
-          onChange={(event) => setLanguage(event.target.value as typeof language)}
-          aria-label={t("language")}
-        >
-          <option value="KH">KH</option>
-          <option value="EN">EN</option>
-          <option value="CN">CN</option>
-        </select>
+        <LanguageSwitcher />
       </nav>
       {feature === "gold" ? <GoldTrading /> : <YouTubeHelper />}
     </div>

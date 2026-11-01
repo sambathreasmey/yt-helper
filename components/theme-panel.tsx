@@ -5,6 +5,7 @@ import { Check, RotateCcw, Sparkles, WandSparkles, type LucideProps } from "luci
 import { useTheme } from "@/providers/theme-provider";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/providers/language-provider";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import {
   accents,
   animationStyles,
@@ -19,7 +20,7 @@ const sectionLabel = "mb-2 text-[11px] font-semibold uppercase tracking-wider te
 
 export function ThemePanel({ activeModeIcon: ActiveModeIcon }: { activeModeIcon: ComponentType<LucideProps> }) {
   const { appearance, setPreference, resetAppearance } = useTheme();
-  const { language, setLanguage, t } = useLanguage();
+  const { t } = useLanguage();
   const modeLabels = {
     system: t("systemMode"),
     light: t("lightMode"),
@@ -66,22 +67,7 @@ export function ThemePanel({ activeModeIcon: ActiveModeIcon }: { activeModeIcon:
 
       <fieldset className="mb-4">
         <legend className={sectionLabel}>{t("language")}</legend>
-        <div className="grid grid-cols-3 gap-1 rounded-2xl bg-surface p-1">
-          {(["KH", "EN", "CN"] as const).map((value) => (
-            <button
-              aria-pressed={language === value}
-              className={cn(
-                "min-h-10 rounded-xl px-2 text-xs font-medium text-muted transition-colors hover:text-foreground",
-                language === value && "bg-surface-strong text-foreground shadow-sm",
-              )}
-              key={value}
-              onClick={() => setLanguage(value)}
-              type="button"
-            >
-              {value === "KH" ? t("languageKhmer") : value === "EN" ? t("languageEnglish") : t("languageChinese")}
-            </button>
-          ))}
-        </div>
+        <LanguageSwitcher fullWidth />
       </fieldset>
 
       <fieldset>

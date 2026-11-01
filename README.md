@@ -23,6 +23,7 @@ price alerts. Gold data is stored by the Flask backend; Telegram Mini App
 The interface language can be selected as KH (Khmer), EN (English), or CN
 (Chinese) from the top language selector or the appearance settings. Khmer is
 the default; the selection is saved on the user's device.
+Khmer text uses the Battambang font with a system Khmer fallback.
 
 Before deploying the backend, apply
 `helper_flask_app/sql/gold_trade_tables.sql` to the configured MySQL database.
