@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useGlobalAppSettings } from "@/hooks/use-global-app-settings";
 
 export type AppLanguage = "KH" | "EN" | "CN";
 
@@ -11,6 +12,16 @@ const translations = {
     language: "ភាសា",
     featureNavigation: "មុខងារ Mini App",
     adminMenu: "អ្នកគ្រប់គ្រង",
+    autoRedirectSettingUnavailable: "មិនអាចផ្ទុកការកំណត់បញ្ជូនបន្តបានទេ។ នឹងប្រើ {seconds} វិនាទីតាមលំនាំដើម។",
+    advertisement: "ការផ្សាយពាណិជ្ជកម្ម",
+    advertisementUnavailable: "មិនអាចផ្ទុកការផ្សាយពាណិជ្ជកម្មបានទេ។",
+    learnMore: "ស្វែងយល់បន្ថែម",
+    announcement: "សេចក្តីជូនដំណឹង",
+    globalSettingsUnavailable: "មិនអាចផ្ទុកការកំណត់សកលបានទេ។",
+    maintenanceTitle: "កម្មវិធីកំពុងថែទាំ",
+    featuresUnavailable: "មុខងារមិនអាចប្រើបានបច្ចុប្បន្នទេ។",
+    contactSupport: "ទាក់ទងជំនួយ",
+    support: "ជំនួយ",
     seconds: "វិនាទី",
     accentColor: "ពណ៌សង្កត់",
     appIcon: "រូបតំណាងកម្មវិធី",
@@ -181,6 +192,16 @@ const translations = {
     language: "Language",
     featureNavigation: "Mini App features",
     adminMenu: "Admin",
+    autoRedirectSettingUnavailable: "Could not load the redirect setting. Using the default of {seconds} seconds.",
+    advertisement: "Advertisement",
+    advertisementUnavailable: "The advertisement could not be loaded.",
+    learnMore: "Learn more",
+    announcement: "Announcement",
+    globalSettingsUnavailable: "Global app settings could not be loaded.",
+    maintenanceTitle: "App maintenance",
+    featuresUnavailable: "Features are currently unavailable.",
+    contactSupport: "Contact support",
+    support: "Support",
     seconds: "seconds",
     accentColor: "Accent color",
     appIcon: "App icon",
@@ -351,6 +372,16 @@ const translations = {
     language: "语言",
     featureNavigation: "Mini App 功能",
     adminMenu: "管理",
+    autoRedirectSettingUnavailable: "无法加载跳转设置，将使用默认的 {seconds} 秒。",
+    advertisement: "广告",
+    advertisementUnavailable: "无法加载广告。",
+    learnMore: "了解更多",
+    announcement: "公告",
+    globalSettingsUnavailable: "无法加载全局应用设置。",
+    maintenanceTitle: "应用维护中",
+    featuresUnavailable: "功能暂时不可用。",
+    contactSupport: "联系支持",
+    support: "支持",
     seconds: "秒",
     accentColor: "强调色",
     appIcon: "应用图标",
@@ -537,11 +568,17 @@ function isAppLanguage(value: string | null): value is AppLanguage {
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<AppLanguage>("KH");
   const [ready, setReady] = useState(false);
+  const hasSavedLanguage = useRef(false);
+  const userSelectedLanguage = useRef(false);
+  const globalSettingsQuery = useGlobalAppSettings();
 
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (isAppLanguage(saved)) setLanguageState(saved);
+      if (isAppLanguage(saved)) {
+        hasSavedLanguage.current = true;
+        setLanguageState(saved);
+      }
     } catch {
       // The default language remains available for this session.
     }
@@ -549,11 +586,17 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (!ready || hasSavedLanguage.current || userSelectedLanguage.current || !globalSettingsQuery.data) return;
+    setLanguageState(globalSettingsQuery.data.default_language);
+  }, [globalSettingsQuery.data, ready]);
+
+  useEffect(() => {
     if (!ready) return;
     document.documentElement.lang = language === "KH" ? "km" : language === "CN" ? "zh-CN" : "en";
   }, [language, ready]);
 
   const setLanguage = useCallback((nextLanguage: AppLanguage) => {
+    userSelectedLanguage.current = true;
     setLanguageState(nextLanguage);
     try {
       window.localStorage.setItem(STORAGE_KEY, nextLanguage);

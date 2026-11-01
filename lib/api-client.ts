@@ -17,6 +17,7 @@ export type ApiRequestOptions<TBody = unknown> = {
   body?: TBody;
   query?: Record<string, string | number | boolean | null | undefined>;
   retry?: boolean;
+  useAuth?: boolean;
 };
 
 type TokenResponse = {
@@ -73,7 +74,7 @@ async function refreshAccessToken(): Promise<string | null> {
  */
 export async function apiRequest<T = unknown, TBody = unknown>(
   path: string,
-  { method = "GET", body, query, retry = true }: ApiRequestOptions<TBody> = {},
+  { method = "GET", body, query, retry = true, useAuth = true }: ApiRequestOptions<TBody> = {},
 ): Promise<ApiResult<T>> {
   const url = new URL(`${API_BASE_URL}${path}`);
   if (query) {
@@ -84,7 +85,7 @@ export async function apiRequest<T = unknown, TBody = unknown>(
     });
   }
 
-  const { access } = getStoredTokens();
+  const { access } = useAuth ? getStoredTokens() : { access: null };
   let response: Response;
   try {
     response = await fetch(url.toString(), {
@@ -99,7 +100,7 @@ export async function apiRequest<T = unknown, TBody = unknown>(
     return { ok: false, status: 0, data: null, message: "Network error" };
   }
 
-  if (response.status === 401 && retry) {
+  if (response.status === 401 && retry && useAuth) {
     let fresh: string | null;
     try {
       fresh = await refreshAccessToken();
@@ -111,7 +112,13 @@ export async function apiRequest<T = unknown, TBody = unknown>(
         message: "Network error while refreshing session",
       };
     }
-    if (fresh) return apiRequest<T, TBody>(path, { method, body, query, retry: false });
+    if (fresh) return apiRequest<T, TBody>(path, {
+      method,
+      body,
+      query,
+      retry: false,
+      useAuth,
+    });
     clearTokens();
     return {
       ok: false,

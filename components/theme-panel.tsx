@@ -5,6 +5,7 @@ import { Check, RotateCcw, Sparkles, WandSparkles, type LucideProps } from "luci
 import { useTheme } from "@/providers/theme-provider";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/providers/language-provider";
+import { useGlobalAppSettings } from "@/hooks/use-global-app-settings";
 import { ForceDeleteGoldPurchase } from "@/components/force-delete-gold-purchase";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import {
@@ -22,6 +23,7 @@ const sectionLabel = "mb-2 text-[11px] font-semibold uppercase tracking-wider te
 export function ThemePanel({ activeModeIcon: ActiveModeIcon }: { activeModeIcon: ComponentType<LucideProps> }) {
   const { appearance, setPreference, resetAppearance } = useTheme();
   const { t } = useLanguage();
+  const globalSettingsQuery = useGlobalAppSettings();
   const modeLabels = {
     system: t("systemMode"),
     light: t("lightMode"),
@@ -70,6 +72,17 @@ export function ThemePanel({ activeModeIcon: ActiveModeIcon }: { activeModeIcon:
         <legend className={sectionLabel}>{t("language")}</legend>
         <LanguageSwitcher fullWidth />
       </fieldset>
+
+      {globalSettingsQuery.data?.support_url && (
+        <a
+          className="theme-support-link"
+          href={globalSettingsQuery.data.support_url}
+          rel="noreferrer"
+          target="_blank"
+        >
+          {t("support")}
+        </a>
+      )}
 
       <ForceDeleteGoldPurchase />
 

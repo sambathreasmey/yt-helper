@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { ChevronRight, Search, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -46,13 +47,23 @@ export function UserList({ onSelect }) {
   const totalPages = data ? Math.max(Math.ceil(data.total / PAGE_SIZE), 1) : 1;
 
   return (
-    <Card className="space-y-3 p-4">
+    <Card className="admin-users-card space-y-3 p-4 sm:p-5">
+      <div className="admin-section-heading">
+        <span className="admin-heading-icon admin-heading-violet" aria-hidden="true"><Users size={18} /></span>
+        <div>
+          <h2 className="text-sm font-bold">Telegram users</h2>
+          <p className="mt-0.5 text-xs text-muted">Search and manage accounts</p>
+        </div>
+      </div>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-        <Input
-          placeholder="Search name, username, chat ID"
-          value={filters.search}
-          onChange={(e) => updateFilter("search", e.target.value)}
-        />
+        <span className="admin-search-field">
+          <Search aria-hidden="true" size={17} />
+          <Input
+            placeholder="Search name, username, chat ID"
+            value={filters.search}
+            onChange={(e) => updateFilter("search", e.target.value)}
+          />
+        </span>
         <select className={selectClass} value={filters.status} onChange={(e) => updateFilter("status", e.target.value)}>
           {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
@@ -70,7 +81,7 @@ export function UserList({ onSelect }) {
             key={user.id}
             type="button"
             onClick={() => onSelect(user.chat_id)}
-            className="flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-3 text-left transition-colors hover:bg-surface-strong"
+            className="admin-user-row flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-3 text-left transition-colors hover:bg-surface-strong"
           >
             <span className="min-w-0">
               <span className="block truncate text-sm font-semibold">{formatUserName(user)}</span>
@@ -78,9 +89,12 @@ export function UserList({ onSelect }) {
                 {user.username ? `@${user.username}` : user.chat_id} · {user.plan_type || "FREE"}
               </span>
             </span>
-            <span className="shrink-0 text-right text-[11px] text-muted">
-              <span className="block">{user.status}</span>
+            <span className="flex shrink-0 items-center gap-2 text-right text-[11px] text-muted">
+              <span className="min-w-0">
+                <span className="admin-user-status block" data-status={String(user.status).toLowerCase()}>{user.status}</span>
               <span className="block">{user.total_sessions} sessions</span>
+              </span>
+              <ChevronRight aria-hidden="true" className="text-muted" size={16} />
             </span>
           </button>
         ))}

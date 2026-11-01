@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AppHeader } from "@/components/app-header";
 import { HomeHero } from "@/components/home-hero";
 import { ProfileCard } from "@/components/profile-card";
@@ -8,9 +9,12 @@ import { QuickActions } from "@/components/quick-actions";
 import { VideoLinkForm } from "@/components/video-link-form";
 import { VideoLibrary } from "@/components/video-library";
 import { YouTubePlayer } from "@/features/youtube-helper/video-player";
+import { YouTubeAdvertisement } from "@/features/youtube-helper/youtube-advertisement";
 import { useTheme } from "@/providers/theme-provider";
+import { useLanguage } from "@/providers/language-provider";
 import { useTelegram } from "@/hooks/use-telegram";
 import { useVideoLibrary } from "@/hooks/use-video-library";
+import { getAutoRedirectSetting } from "@/services/dashboard-api";
 import { fetchVideoTitle, parseYouTubeVideoId } from "@/services/youtube";
 import { impactTelegram, openTelegramLink } from "@/services/telegram-client";
 import type { LibraryVideo } from "@/services/library-storage";
@@ -22,10 +26,25 @@ interface CurrentVideo {
   title: string;
 }
 
+const DEFAULT_AUTO_REDIRECT_SECONDS = 3;
+
 export function YouTubeHelper() {
   const { appearance } = useTheme();
+  const { t } = useLanguage();
   const { telegram, profile } = useTelegram();
   const library = useVideoLibrary(telegram);
+  const autoRedirectQuery = useQuery({
+    queryKey: ["app-settings", "auto-redirect"],
+    queryFn: async () => {
+      const response = await getAutoRedirectSetting();
+      if (!response.ok || !response.data) {
+        throw new Error(response.message || "Unable to load auto-redirect setting");
+      }
+      return response.data.seconds;
+    },
+    retry: false,
+    staleTime: 60_000,
+  });
   const [view, setView] = useState<View>("home");
   const [video, setVideo] = useState<CurrentVideo | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
@@ -47,14 +66,17 @@ export function YouTubeHelper() {
   }, [library.addToHistory, library.updateLibraryTitle, telegram]);
 
   useEffect(() => {
-    if (!library.ready || didInitialize.current) return;
+    if (!library.ready || autoRedirectQuery.isPending || didInitialize.current) return;
     didInitialize.current = true;
 
     const deepLink = parseYouTubeVideoId(new URLSearchParams(window.location.search).get("v")) ||
       parseYouTubeVideoId(telegram?.initDataUnsafe?.start_param);
     if (deepLink) playVideo(deepLink);
-    else setCountdown(3);
-  }, [library.ready, playVideo, telegram]);
+    else {
+      const delay = autoRedirectQuery.data ?? DEFAULT_AUTO_REDIRECT_SECONDS;
+      setCountdown(delay > 0 ? delay : null);
+    }
+  }, [autoRedirectQuery.data, autoRedirectQuery.isPending, library.ready, playVideo, telegram]);
 
   useEffect(() => {
     if (countdown === null || countdown === 0) return undefined;
@@ -136,8 +158,18 @@ export function YouTubeHelper() {
     <main className="layout-main mx-auto w-full max-w-[520px]">
       {view === "home" ? (
         <section className="layout-shell view-enter" data-layout={appearance.layout}>
-          <AppHeader profile={profile} />
-          <HomeHero countdown={countdown} onOpenYouTube={() => navigateToYouTube()} />
+          <AppHeader />
+          {autoRedirectQuery.error && (
+            <p className="auto-redirect-error" role="status">
+              {t("autoRedirectSettingUnavailable", { seconds: DEFAULT_AUTO_REDIRECT_SECONDS })}
+            </p>
+          )}
+          <YouTubeAdvertisement />
+          <HomeHero
+            countdown={countdown}
+            countdownDurationSeconds={autoRedirectQuery.data ?? DEFAULT_AUTO_REDIRECT_SECONDS}
+            onOpenYouTube={() => navigateToYouTube()}
+          />
           <ProfileCard profile={profile} />
           {appearance.layout === "dashboard"
             ? <>{quickActions}{videoLinkForm}</>
@@ -150,7 +182,7 @@ export function YouTubeHelper() {
         </section>
       ) : video ? (
         <>
-          <AppHeader profile={profile} />
+          <AppHeader />
           <YouTubePlayer
             favorite={isFavorite}
             onBack={returnHome}

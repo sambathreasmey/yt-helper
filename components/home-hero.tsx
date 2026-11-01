@@ -4,10 +4,11 @@ import { useLanguage } from "@/providers/language-provider";
 
 interface HomeHeroProps {
   countdown: number | null;
+  countdownDurationSeconds: number;
   onOpenYouTube: () => void;
 }
 
-export function HomeHero({ countdown, onOpenYouTube }: HomeHeroProps) {
+export function HomeHero({ countdown, countdownDurationSeconds, onOpenYouTube }: HomeHeroProps) {
   const { t } = useLanguage();
   const subtitle = countdown === null
     ? t("browseYouTube")
@@ -27,7 +28,7 @@ export function HomeHero({ countdown, onOpenYouTube }: HomeHeroProps) {
         <span
           className="countdown-progress absolute inset-y-0 left-0 z-0"
           key="countdown-progress"
-          style={{ animation: "countdown-fill 3s linear forwards" }}
+          style={{ animation: `countdown-fill ${countdownDurationSeconds}s linear forwards` }}
         />
       )}
       {countdown !== null && (

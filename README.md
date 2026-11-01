@@ -11,9 +11,11 @@ npm run dev
 ```
 
 Paste a YouTube video URL or ID to play it. When opened without a video link,
-the app opens YouTube after three seconds; interacting with the page cancels
-the countdown. Favorites and recent videos are saved locally and use Telegram
-Cloud Storage when the app is opened as a Telegram Mini App.
+the app opens YouTube after the delay set in **Helper Management**; interacting
+with the page cancels the countdown. Set the delay to 0 to disable the automatic
+redirect. The default delay is three seconds. Favorites and recent videos are
+saved locally and use Telegram Cloud Storage when the app is opened as a
+Telegram Mini App.
 
 The **Gold trading** feature records gold purchases and sales in damlung, chi,
 or hun (1 damlung = 10 chi = 100 hun), tracks portfolio value and realized /
@@ -37,6 +39,11 @@ Khmer text uses the Battambang font with a system Khmer fallback.
 
 Before deploying the backend, apply
 `helper_flask_app/sql/gold_trade_tables.sql` to the configured MySQL database.
+Apply `helper_flask_app/sql/telegram_user_tables.sql` to create the global app
+settings table used by YouTube auto-redirect, the optional YouTube-home
+advertisement (banner title, message, image, and destination link), and other
+global app controls. Reapply the script to expand the settings value column for
+global settings JSON.
 Reapply this idempotent schema script when deploying the force-delete feature
 to create its deletion-reason audit table. Sold purchase records can then be
 force-deleted from **Customize settings** by providing a reason and confirming
@@ -47,6 +54,13 @@ using `{"price_per_damlung": 2400, "source": "manual"}`. Partner price
 integrations can use the same endpoint with a source label. Price alert
 messages are sent when a subsequent price update crosses a user's target.
 The existing `/admin` page also provides an administrator-only manual price form.
+In **Helper Management**, administrators can also manage a YouTube-home ad,
+app-wide announcement, maintenance notice, YouTube and Gold Trade availability,
+support link, and default language. A user's saved language always overrides
+the app default. Separate, confirmed Telegram actions send saved maintenance or
+announcement messages to active users, or a private message to one selected
+active user; saving a setting alone never sends a Telegram message. These
+notifications use the backend's configured `telegram.polling_bot` token.
 
 Use **Customize** in the header to select System, Light, or Dark, pick from six
 accent colors, choose the app icon and one of 12 backgrounds, adjust Glass card

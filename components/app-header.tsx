@@ -1,11 +1,9 @@
 "use client";
 
 import { CirclePlay, Clapperboard, Film, Headphones, Play, type LucideIcon } from "lucide-react";
-import { TelegramUserBadge } from "@/components/telegram-user-badge";
 import { ThemePicker } from "@/components/theme-picker";
 import { useTheme } from "@/providers/theme-provider";
 import { useLanguage } from "@/providers/language-provider";
-import type { TelegramProfile } from "@/services/telegram-client";
 
 const appIconComponents: Record<string, LucideIcon> = {
   "circle-play": CirclePlay,
@@ -16,13 +14,11 @@ const appIconComponents: Record<string, LucideIcon> = {
 };
 
 export function AppHeader({
-  profile = null,
   title,
   subtitle,
   brandIcon,
   brandVariant = "youtube",
 }: {
-  profile?: TelegramProfile | null;
   title?: string;
   subtitle?: string;
   brandIcon?: LucideIcon;
@@ -42,7 +38,6 @@ export function AppHeader({
         <span className="youtube-header-title block text-lg font-bold tracking-tight">{title || t("youtubeTitle")}</span>
         <span className="youtube-header-subtitle mt-1 block text-xs leading-relaxed text-muted">{subtitle || t("youtubeSubtitle")}</span>
       </span>
-      <TelegramUserBadge profile={profile} />
       <ThemePicker />
     </header>
   );

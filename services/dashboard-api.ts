@@ -88,6 +88,105 @@ export type GoldPriceUpdateResult = {
   notification_failures: number;
 };
 
+export type AutoRedirectSetting = {
+  seconds: number;
+};
+
+export type AdvertisementSetting = {
+  enabled: boolean;
+  title: string;
+  message: string;
+  image_url: string;
+  link_url: string;
+};
+
+export type AppDefaultLanguage = "KH" | "EN" | "CN";
+
+export type GlobalAppSettings = {
+  maintenance_mode: boolean;
+  maintenance_message: string;
+  announcement_enabled: boolean;
+  announcement_title: string;
+  announcement_message: string;
+  announcement_link_url: string;
+  youtube_enabled: boolean;
+  gold_trade_enabled: boolean;
+  support_url: string;
+  default_language: AppDefaultLanguage;
+};
+
+export type TelegramBroadcastKind = "maintenance" | "announcement";
+
+export type TelegramBroadcastResult = {
+  total: number;
+  sent: number;
+  failed: number;
+};
+
+export const GLOBAL_APP_SETTINGS_QUERY_KEY = ["app-settings", "global"] as const;
+export const DEFAULT_GLOBAL_APP_SETTINGS: GlobalAppSettings = {
+  maintenance_mode: false,
+  maintenance_message: "We are performing maintenance. Please check back soon.",
+  announcement_enabled: false,
+  announcement_title: "",
+  announcement_message: "",
+  announcement_link_url: "",
+  youtube_enabled: true,
+  gold_trade_enabled: true,
+  support_url: "",
+  default_language: "KH",
+};
+
+export const getAutoRedirectSetting = (): Promise<ApiResult<AutoRedirectSetting>> =>
+  apiRequest(`${BASE}/auto-redirect`, { useAuth: false });
+
+export const updateAutoRedirectSetting = (
+  seconds: number,
+): Promise<ApiResult<AutoRedirectSetting>> =>
+  apiRequest(`${BASE}/auto-redirect`, {
+    method: "PUT",
+    body: { seconds },
+  });
+
+export const getAdvertisementSetting = (): Promise<ApiResult<AdvertisementSetting>> =>
+  apiRequest(`${BASE}/advertisement`, { useAuth: false });
+
+export const updateAdvertisementSetting = (
+  setting: AdvertisementSetting,
+): Promise<ApiResult<AdvertisementSetting>> =>
+  apiRequest(`${BASE}/advertisement`, {
+    method: "PUT",
+    body: setting,
+  });
+
+export const getGlobalAppSettings = (): Promise<ApiResult<GlobalAppSettings>> =>
+  apiRequest(`${BASE}/global-settings`, { useAuth: false });
+
+export const updateGlobalAppSettings = (
+  settings: GlobalAppSettings,
+): Promise<ApiResult<GlobalAppSettings>> =>
+  apiRequest(`${BASE}/global-settings`, {
+    method: "PUT",
+    body: settings,
+  });
+
+export const sendGlobalTelegramNotification = (
+  kind: TelegramBroadcastKind,
+): Promise<ApiResult<TelegramBroadcastResult>> =>
+  apiRequest(`${BASE}/notifications/broadcast`, {
+    method: "POST",
+    body: { kind },
+  });
+
+export const sendUserTelegramNotification = (
+  chatId: string | number,
+  message: string,
+): Promise<ApiResult<{ sent: boolean }>> =>
+  apiRequest(`${BASE}/notifications/user`, {
+    method: "POST",
+    body: { chat_id: chatId, message },
+  });
+
 export const adminLogin = (
   username: string,
   password: string,

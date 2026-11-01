@@ -75,7 +75,7 @@ export function UserDetailPanel({ chatId, onBack }) {
   const sub = subscription || {};
 
   return (
-    <div className="space-y-3">
+    <div className="admin-detail-panel space-y-3">
       <Button size="sm" onClick={onBack}>Back to users</Button>
 
       <Card className="p-4">
