@@ -30,7 +30,6 @@ export function YouTubeHelper() {
   const [video, setVideo] = useState<CurrentVideo | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
   const didInitialize = useRef(false);
-  const language = telegram?.initDataUnsafe?.user?.language_code || "en";
 
   const playVideo = useCallback((videoId: string) => {
     setCountdown(null);
@@ -131,14 +130,14 @@ export function YouTubeHelper() {
       showAddToHome={Boolean(telegram?.addToHomeScreen)}
     />
   );
-  const videoLinkForm = <VideoLinkForm language={language} onPlay={playVideo} />;
+  const videoLinkForm = <VideoLinkForm onPlay={playVideo} />;
 
   return (
     <main className="layout-main mx-auto w-full max-w-[520px]">
       {view === "home" ? (
         <section className="layout-shell view-enter" data-layout={appearance.layout}>
           <AppHeader profile={profile} />
-          <HomeHero countdown={countdown} language={language} onOpenYouTube={() => navigateToYouTube()} />
+          <HomeHero countdown={countdown} onOpenYouTube={() => navigateToYouTube()} />
           <ProfileCard profile={profile} />
           {appearance.layout === "dashboard"
             ? <>{quickActions}{videoLinkForm}</>
@@ -146,7 +145,6 @@ export function YouTubeHelper() {
           <VideoLibrary
             favorites={library.favorites}
             history={library.history}
-            language={language}
             onPlay={playVideo}
           />
         </section>
@@ -155,7 +153,6 @@ export function YouTubeHelper() {
           <AppHeader profile={profile} />
           <YouTubePlayer
             favorite={isFavorite}
-            language={language}
             onBack={returnHome}
             onOpenYouTube={() => navigateToYouTube(`https://youtu.be/${video.id}`)}
             onShare={shareVideo}

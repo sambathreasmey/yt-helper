@@ -4,9 +4,11 @@ import { useState } from "react";
 import { UserRound } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import type { TelegramProfile } from "@/services/telegram-client";
+import { useLanguage } from "@/providers/language-provider";
 
 export function ProfileCard({ profile }: { profile: TelegramProfile | null }) {
   const [imageFailed, setImageFailed] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <Card className="mb-3 flex min-h-[76px] items-center gap-3 p-3.5" data-layout-slot="profile">
@@ -28,13 +30,13 @@ export function ProfileCard({ profile }: { profile: TelegramProfile | null }) {
       </span>
       <span className="min-w-0 flex-1">
         <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.09em] text-muted">
-          {profile ? "Telegram profile" : "Local profile"}
+          {profile ? t("telegramProfile") : t("localProfile")}
         </span>
         <span className="block truncate text-sm font-semibold">
-          {profile?.name || "Your library"}
+          {profile?.name || t("yourLibrary")}
         </span>
         <span className="mt-0.5 block truncate text-xs text-muted">
-          {profile?.handle || "Saved on this device"}
+          {profile?.handle || t("savedOnDevice")}
         </span>
       </span>
       <span className="size-1.5 shrink-0 rounded-full bg-muted/70" aria-hidden="true" />

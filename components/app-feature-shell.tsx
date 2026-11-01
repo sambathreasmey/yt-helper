@@ -3,35 +3,47 @@
 import { useState } from "react";
 import { GoldTrading } from "@/features/gold-trading/gold-trading";
 import { YouTubeHelper } from "@/features/youtube-helper/youtube-helper";
+import { useLanguage } from "@/providers/language-provider";
 
 type AppFeature = "youtube" | "gold";
 
 export function AppFeatureShell() {
   const [feature, setFeature] = useState<AppFeature>("youtube");
+  const { language, setLanguage, t } = useLanguage();
 
   return (
     <div className="mx-auto w-full max-w-[520px]">
-      <nav className="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-border bg-surface p-1.5" aria-label="Mini App features">
+      <nav className="mb-4 flex items-center gap-2 rounded-2xl border border-border bg-surface p-1.5" aria-label={t("featureNavigation")}>
         <button
-          className={`min-h-10 rounded-xl px-3 text-sm font-semibold transition-colors ${
+          className={`min-h-10 flex-1 rounded-xl px-3 text-sm font-semibold transition-colors ${
             feature === "youtube" ? "bg-accent-soft text-foreground" : "text-muted"
           }`}
           onClick={() => setFeature("youtube")}
           type="button"
           aria-current={feature === "youtube" ? "page" : undefined}
         >
-          YouTube
+          {t("youtube")}
         </button>
         <button
-          className={`min-h-10 rounded-xl px-3 text-sm font-semibold transition-colors ${
+          className={`min-h-10 flex-1 rounded-xl px-3 text-sm font-semibold transition-colors ${
             feature === "gold" ? "bg-accent-soft text-foreground" : "text-muted"
           }`}
           onClick={() => setFeature("gold")}
           type="button"
           aria-current={feature === "gold" ? "page" : undefined}
         >
-          Gold trading
+          {t("goldTrading")}
         </button>
+        <select
+          className="h-10 shrink-0 rounded-xl border border-border bg-surface-strong px-2 text-xs font-semibold text-foreground"
+          value={language}
+          onChange={(event) => setLanguage(event.target.value as typeof language)}
+          aria-label={t("language")}
+        >
+          <option value="KH">KH</option>
+          <option value="EN">EN</option>
+          <option value="CN">CN</option>
+        </select>
       </nav>
       {feature === "gold" ? <GoldTrading /> : <YouTubeHelper />}
     </div>

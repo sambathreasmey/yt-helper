@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useTelegram } from "@/hooks/use-telegram";
+import { useLanguage } from "@/providers/language-provider";
 import {
   createGoldPriceAlert,
   createGoldPurchase,
@@ -24,17 +25,17 @@ import {
 
 const units: GoldUnit[] = ["damlung", "chi", "hun"];
 
-function formatUsd(value: string | null | undefined): string {
+function formatUsd(value: string | null | undefined, locale: string): string {
   if (value === null || value === undefined) return "—";
   const amount = Number(value);
   return Number.isFinite(amount)
-    ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount)
+    ? new Intl.NumberFormat(locale, { style: "currency", currency: "USD" }).format(amount)
     : "—";
 }
 
-function formatDate(value: string): string {
+function formatDate(value: string, locale: string): string {
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString(locale);
 }
 
 function profitClass(value: string | null): string {
@@ -82,10 +83,11 @@ function TradeFields({
   note: string;
   setNote: (value: string) => void;
 }) {
+  const { t } = useLanguage();
   return (
     <>
       <label className="block space-y-1.5 text-xs text-muted">
-        Quantity and Khmer unit
+        {t("quantityUnit")}
         <div className="flex gap-2">
           <Input
             required
@@ -94,20 +96,24 @@ function TradeFields({
             step="any"
             value={quantity}
             onChange={(event) => setQuantity(event.target.value)}
-            placeholder="Quantity"
+            placeholder={t("quantityPlaceholder")}
           />
           <select
             className="h-12 rounded-xl border border-border bg-surface-strong px-3 text-sm text-foreground"
             value={unit}
             onChange={(event) => setUnit(event.target.value as GoldUnit)}
-            aria-label="Gold unit"
+            aria-label={t("quantityUnit")}
           >
-            {units.map((goldUnit) => <option key={goldUnit} value={goldUnit}>{goldUnit}</option>)}
+            {units.map((goldUnit) => (
+              <option key={goldUnit} value={goldUnit}>
+                {t(goldUnit === "damlung" ? "damlungUnit" : goldUnit === "chi" ? "chiUnit" : "hunUnit")}
+              </option>
+            ))}
           </select>
         </div>
       </label>
       <label className="block space-y-1.5 text-xs text-muted">
-        Price per damlung (USD)
+        {t("pricePerDamlung")}
         <Input
           required
           type="number"
@@ -115,16 +121,16 @@ function TradeFields({
           step="any"
           value={price}
           onChange={(event) => setPrice(event.target.value)}
-          placeholder="USD / damlung"
+          placeholder={t("usdDamlungPlaceholder")}
         />
       </label>
       <label className="block space-y-1.5 text-xs text-muted">
-        Note (optional)
+        {t("noteOptional")}
         <Input
           maxLength={500}
           value={note}
           onChange={(event) => setNote(event.target.value)}
-          placeholder="Shop, receipt, or other details"
+          placeholder={t("notePlaceholder")}
         />
       </label>
     </>
@@ -133,6 +139,7 @@ function TradeFields({
 
 export function GoldTrading() {
   const { telegram, profile } = useTelegram();
+  const { t, locale } = useLanguage();
   const initData = telegram?.initData || "";
   const queryClient = useQueryClient();
   const [sortBy, setSortBy] = useState("profit_loss");
@@ -174,7 +181,7 @@ export function GoldTrading() {
       : createGoldPurchase(initData, input),
     onSuccess: async (result) => {
       const alerted = "telegram_alert_sent" in result ? result.telegram_alert_sent : true;
-      setNotice(alerted ? "Purchase saved." : "Purchase saved, but Telegram could not send the alert.");
+      setNotice(alerted ? t("purchaseSaved") : t("purchaseSavedNoAlert"));
       setEditingPurchaseId(null);
       setPurchaseQuantity("");
       setPurchasePrice("");
@@ -185,7 +192,7 @@ export function GoldTrading() {
   const removePurchase = useMutation({
     mutationFn: (id: number) => deleteGoldPurchase(initData, id),
     onSuccess: async () => {
-      setNotice("Purchase deleted.");
+      setNotice(t("purchaseDeleted"));
       await invalidateGoldData();
     },
   });
@@ -194,8 +201,8 @@ export function GoldTrading() {
     onSuccess: async (result) => {
       setNotice(
         result.telegram_alert_sent
-          ? `Sale recorded. Realized P/L: ${formatUsd(result.realized_profit_loss)}`
-          : `Sale recorded (${formatUsd(result.realized_profit_loss)} realized P/L), but Telegram could not send the alert.`,
+          ? t("saleRecorded", { amount: formatUsd(result.realized_profit_loss, locale) })
+          : t("saleRecordedNoAlert", { amount: formatUsd(result.realized_profit_loss, locale) }),
       );
       setSaleQuantity("");
       setSalePrice("");
@@ -207,14 +214,14 @@ export function GoldTrading() {
     mutationFn: () => createGoldPriceAlert(initData, alertTarget, alertDirection),
     onSuccess: async () => {
       setAlertTarget("");
-      setNotice("Price alert created.");
+      setNotice(t("alertCreated"));
       await invalidateGoldData();
     },
   });
   const removeAlert = useMutation({
     mutationFn: (id: number) => deleteGoldPriceAlert(initData, id),
     onSuccess: async () => {
-      setNotice("Price alert deleted.");
+      setNotice(t("alertDeleted"));
       await invalidateGoldData();
     },
   });
@@ -243,7 +250,7 @@ export function GoldTrading() {
 
   function editPurchase(holding: NonNullable<typeof overviewQuery.data>["holdings"][number]) {
     if (!holding.can_edit) {
-      setNotice("A purchase with a partial sale cannot be edited.");
+      setNotice(t("partiallySoldCannotEdit"));
       return;
     }
     setEditingPurchaseId(holding.id);
@@ -263,7 +270,7 @@ export function GoldTrading() {
 
   return (
     <main className="mx-auto w-full max-w-[520px] space-y-4">
-      <AppHeader profile={profile} title="Gold trading" subtitle="Manage your gold holdings" />
+      <AppHeader profile={profile} title={t("goldTrading")} subtitle={t("goldSubtitle")} />
 
       <Card>
         <CardContent className="flex items-center gap-3 p-4">
@@ -271,18 +278,18 @@ export function GoldTrading() {
             <Coins aria-hidden="true" size={24} />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs text-muted">Current gold price</p>
+            <p className="text-xs text-muted">{t("goldPrice")}</p>
             <p className="mt-1 text-xl font-bold">
               {overview?.current_price
-                ? `${formatUsd(overview.current_price.price_per_damlung)} / damlung`
-                : "Price not available"}
+                ? `${formatUsd(overview.current_price.price_per_damlung, locale)} / ${t("damlungUnit")}`
+                : t("priceUnavailable")}
             </p>
             {!overview?.current_price && (
-              <p className="mt-1 text-xs text-muted">An administrator must set the shared price.</p>
+              <p className="mt-1 text-xs text-muted">{t("adminMustSetPrice")}</p>
             )}
             {overview?.current_price && (
               <p className="mt-1 text-xs text-muted">
-                Updated {formatDate(overview.current_price.updated_on)}
+                {t("updated", { date: formatDate(overview.current_price.updated_on, locale) })}
               </p>
             )}
           </div>
@@ -291,24 +298,27 @@ export function GoldTrading() {
 
       {summary && (
         <section className="grid grid-cols-2 gap-3" aria-label="Gold portfolio summary">
-          <Metric label="Gold held" value={`${Number(summary.quantity_hun) / 100} damlung`} />
-          <Metric label="Cost basis" value={formatUsd(summary.cost_basis)} />
-          <Metric label="Current value" value={formatUsd(summary.market_value)} />
           <Metric
-            label="Total profit / loss"
-            value={formatUsd(summary.total_profit_loss)}
+            label={t("goldHeld")}
+            value={`${new Intl.NumberFormat(locale, { maximumFractionDigits: 8 }).format(Number(summary.quantity_hun) / 100)} ${t("damlungUnit")}`}
+          />
+          <Metric label={t("costBasis")} value={formatUsd(summary.cost_basis, locale)} />
+          <Metric label={t("currentValue")} value={formatUsd(summary.market_value, locale)} />
+          <Metric
+            label={t("totalProfitLoss")}
+            value={formatUsd(summary.total_profit_loss, locale)}
             emphasize
             amount={summary.total_profit_loss}
           />
           <Metric
-            label="Realized P/L"
-            value={formatUsd(summary.realized_profit_loss)}
+            label={t("realizedPL")}
+            value={formatUsd(summary.realized_profit_loss, locale)}
             emphasize
             amount={summary.realized_profit_loss}
           />
           <Metric
-            label="Unrealized P/L"
-            value={formatUsd(summary.unrealized_profit_loss)}
+            label={t("unrealizedPL")}
+            value={formatUsd(summary.unrealized_profit_loss, locale)}
             emphasize
             amount={summary.unrealized_profit_loss}
           />
@@ -317,9 +327,9 @@ export function GoldTrading() {
 
       <Card>
         <CardHeader>
-          <CardTitle>{editingPurchaseId ? "Edit gold purchase" : "Record gold purchase"}</CardTitle>
+          <CardTitle>{editingPurchaseId ? t("editPurchase") : t("recordPurchase")}</CardTitle>
           <CardDescription>
-            1 damlung = 10 chi = 100 hun. Trade prices are entered per damlung in USD.
+            {t("unitConversions")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -337,14 +347,14 @@ export function GoldTrading() {
             <div className="flex gap-2">
               <Button className="w-full" disabled={isPending} type="submit" variant="primary">
                 <ArrowDownToLine aria-hidden="true" size={16} />
-                {editingPurchaseId ? "Save changes" : "Add purchase"}
+                {editingPurchaseId ? t("saveChanges") : t("addPurchase")}
               </Button>
               {editingPurchaseId && (
                 <Button
                   onClick={() => setEditingPurchaseId(null)}
                   type="button"
                 >
-                  Cancel
+                  {t("cancel")}
                 </Button>
               )}
             </div>
@@ -354,8 +364,8 @@ export function GoldTrading() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Record a sale</CardTitle>
-          <CardDescription>Sale proceeds and realized P/L use FIFO purchase cost.</CardDescription>
+          <CardTitle>{t("recordSale")}</CardTitle>
+          <CardDescription>{t("saleDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form className="space-y-3" onSubmit={onSaveSale}>
@@ -371,7 +381,7 @@ export function GoldTrading() {
             />
             <Button className="w-full" disabled={isPending} type="submit" variant="primary">
               <ArrowUpFromLine aria-hidden="true" size={16} />
-              Record sale
+              {t("submitSale")}
             </Button>
           </form>
         </CardContent>
@@ -398,8 +408,8 @@ export function GoldTrading() {
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
             <div>
-              <CardTitle>Gold holdings</CardTitle>
-              <CardDescription>Open purchases with market value and unrealized P/L.</CardDescription>
+              <CardTitle>{t("holdings")}</CardTitle>
+              <CardDescription>{t("openPurchasesDescription")}</CardDescription>
             </div>
             <select
               className="h-10 max-w-36 rounded-xl border border-border bg-surface-strong px-2 text-xs text-foreground"
@@ -409,19 +419,19 @@ export function GoldTrading() {
                 setSortBy(nextSort);
                 setOrder(nextOrder);
               }}
-              aria-label="Sort holdings"
+              aria-label={t("sortHoldings")}
             >
-              <option value="profit_loss:desc">Best P/L</option>
-              <option value="profit_loss:asc">Worst P/L</option>
-              <option value="created_on:desc">Newest first</option>
-              <option value="created_on:asc">Oldest first</option>
+              <option value="profit_loss:desc">{t("bestPL")}</option>
+              <option value="profit_loss:asc">{t("worstPL")}</option>
+              <option value="created_on:desc">{t("newestFirst")}</option>
+              <option value="created_on:asc">{t("oldestFirst")}</option>
             </select>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {overviewQuery.isPending && <p className="text-sm text-muted">Loading portfolio…</p>}
+          {overviewQuery.isPending && <p className="text-sm text-muted">{t("loadingPortfolio")}</p>}
           {overview && overview.holdings.length === 0 && (
-            <p className="text-sm text-muted">No gold purchases yet. Record a purchase to start tracking.</p>
+            <p className="text-sm text-muted">{t("noPurchases")}</p>
           )}
           {overview?.holdings.map((holding) => {
             const fullyAvailable = holding.can_edit;
@@ -433,39 +443,39 @@ export function GoldTrading() {
                       {holding.remaining_quantity} {holding.unit}
                     </p>
                     <p className="mt-1 text-xs text-muted">
-                      Buy rate {formatUsd(holding.unit_price_per_damlung)} / damlung · {formatDate(holding.created_on)}
+                      {t("buyRate")} {formatUsd(holding.unit_price_per_damlung, locale)} / {t("damlungUnit")} · {formatDate(holding.created_on, locale)}
                     </p>
                     {holding.note && <p className="mt-1 text-xs text-muted">{holding.note}</p>}
                   </div>
                   <p className={`text-sm font-semibold ${profitClass(holding.profit_loss)}`}>
-                    {formatUsd(holding.profit_loss)}
+                    {formatUsd(holding.profit_loss, locale)}
                   </p>
                 </div>
                 <p className="mt-2 text-xs text-muted">
-                  Value {formatUsd(holding.market_value)} · Cost {formatUsd(holding.cost_basis)}
+                  {t("value")} {formatUsd(holding.market_value, locale)} · {t("cost")} {formatUsd(holding.cost_basis, locale)}
                 </p>
                 <div className="mt-3 flex justify-end gap-2">
                   <Button
-                    aria-label="Edit purchase"
+                    aria-label={t("editPurchase")}
                     disabled={!fullyAvailable || isPending}
                     onClick={() => editPurchase(holding)}
                     size="sm"
                     type="button"
                     variant="outline"
                   >
-                    <Pencil aria-hidden="true" size={14} /> Edit
+                    <Pencil aria-hidden="true" size={14} /> {t("edit")}
                   </Button>
                   <Button
-                    aria-label="Delete purchase"
+                    aria-label={t("delete")}
                     disabled={!fullyAvailable || isPending}
                     onClick={() => {
-                      if (window.confirm("Delete this purchase?")) removePurchase.mutate(holding.id);
+                      if (window.confirm(t("deletePurchaseConfirm"))) removePurchase.mutate(holding.id);
                     }}
                     size="sm"
                     type="button"
                     variant="outline"
                   >
-                    <Trash2 aria-hidden="true" size={14} /> Delete
+                    <Trash2 aria-hidden="true" size={14} /> {t("delete")}
                   </Button>
                 </div>
               </article>
@@ -476,12 +486,12 @@ export function GoldTrading() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Profit / loss report</CardTitle>
-          <CardDescription>Sales are matched to purchases in FIFO order.</CardDescription>
+          <CardTitle>{t("report")}</CardTitle>
+          <CardDescription>{t("fifoDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-medium">Transaction history</p>
+            <p className="text-sm font-medium">{t("transactionHistory")}</p>
             <select
               className="h-10 rounded-xl border border-border bg-surface-strong px-2 text-xs text-foreground"
               value={`${sortBy}:${order}`}
@@ -490,29 +500,29 @@ export function GoldTrading() {
                 setSortBy(nextSort);
                 setOrder(nextOrder);
               }}
-              aria-label="Sort transaction history"
+              aria-label={t("sortTransactions")}
             >
-              <option value="profit_loss:desc">Highest P/L</option>
-              <option value="profit_loss:asc">Lowest P/L</option>
-              <option value="created_on:desc">Newest first</option>
-              <option value="created_on:asc">Oldest first</option>
+              <option value="profit_loss:desc">{t("highestPL")}</option>
+              <option value="profit_loss:asc">{t("lowestPL")}</option>
+              <option value="created_on:desc">{t("newestFirst")}</option>
+              <option value="created_on:asc">{t("oldestFirst")}</option>
             </select>
           </div>
           {!overview?.transactions.length && (
-            <p className="text-sm text-muted">Your buy and sell records will appear here.</p>
+            <p className="text-sm text-muted">{t("historyEmpty")}</p>
           )}
           {overview?.transactions.map((transaction) => (
             <div key={transaction.id} className="flex items-center justify-between gap-3 border-t border-border pt-3">
               <div>
                 <p className="text-sm font-medium">
-                  {transaction.type === "BUY" ? "Bought" : "Sold"} {transaction.quantity} {transaction.unit}
+                  {transaction.type === "BUY" ? t("bought") : t("sold")} {transaction.quantity} {t(transaction.unit === "damlung" ? "damlungUnit" : transaction.unit === "chi" ? "chiUnit" : "hunUnit")}
                 </p>
                 <p className="mt-1 text-xs text-muted">
-                  {formatDate(transaction.created_on)} · {formatUsd(transaction.unit_price_per_damlung)} / damlung
+                  {formatDate(transaction.created_on, locale)} · {formatUsd(transaction.unit_price_per_damlung, locale)} / {t("damlungUnit")}
                 </p>
               </div>
               <p className={`shrink-0 text-sm font-semibold ${profitClass(transaction.profit_loss)}`}>
-                {formatUsd(transaction.profit_loss)}
+                {formatUsd(transaction.profit_loss, locale)}
               </p>
             </div>
           ))}
@@ -521,8 +531,8 @@ export function GoldTrading() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Telegram price alerts</CardTitle>
-          <CardDescription>Get a Telegram message when the stored price crosses your target.</CardDescription>
+          <CardTitle>{t("priceAlerts")}</CardTitle>
+          <CardDescription>{t("alertsDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <form
@@ -537,8 +547,8 @@ export function GoldTrading() {
               min="0.000001"
               step="any"
               type="number"
-              aria-label="Alert target USD per damlung"
-              placeholder="USD / damlung"
+              aria-label={t("alertTarget")}
+              placeholder={t("usdDamlungPlaceholder")}
               value={alertTarget}
               onChange={(event) => setAlertTarget(event.target.value)}
             />
@@ -546,27 +556,29 @@ export function GoldTrading() {
               className="h-12 rounded-xl border border-border bg-surface-strong px-3 text-sm text-foreground"
               value={alertDirection}
               onChange={(event) => setAlertDirection(event.target.value as GoldDirection)}
-              aria-label="Alert direction"
+              aria-label={t("alertDirection")}
             >
-              <option value="ABOVE">At or above</option>
-              <option value="BELOW">At or below</option>
+              <option value="ABOVE">{t("atOrAbove")}</option>
+              <option value="BELOW">{t("atOrBelow")}</option>
             </select>
             <Button disabled={isPending} type="submit">
-              <Bell aria-hidden="true" size={15} /> Set alert
+              <Bell aria-hidden="true" size={15} /> {t("setAlert")}
             </Button>
           </form>
           {alertsQuery.data?.map((alert) => (
             <div key={alert.id} className="flex items-center justify-between gap-3 border-t border-border pt-3">
               <div>
                 <p className="text-sm font-medium">
-                  {alert.direction === "ABOVE" ? "At or above" : "At or below"} {formatUsd(alert.target_price_per_damlung)}
+                  {alert.direction === "ABOVE" ? t("atOrAbove") : t("atOrBelow")} {formatUsd(alert.target_price_per_damlung, locale)}
                 </p>
                 <p className="text-xs text-muted">
-                  {alert.triggered_on ? `Triggered ${formatDate(alert.triggered_on)}` : "Waiting for price update"}
+                  {alert.triggered_on
+                    ? t("triggered", { date: formatDate(alert.triggered_on, locale) })
+                    : t("waitingForPrice")}
                 </p>
               </div>
               <Button
-                aria-label="Delete price alert"
+                aria-label={t("deleteAlert")}
                 disabled={isPending}
                 onClick={() => removeAlert.mutate(alert.id)}
                 size="icon"

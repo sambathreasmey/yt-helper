@@ -1,5 +1,6 @@
 import Script from "next/script";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { LanguageProvider } from "@/providers/language-provider";
 import { QueryProvider } from "@/providers/query-provider";
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
@@ -19,14 +20,16 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="dark">
+    <html lang="km" data-theme="dark">
       <body>
         <Script
           src="https://telegram.org/js/telegram-web-app.js"
           strategy="beforeInteractive"
         />
         <QueryProvider>
-          <ThemeProvider>{children}</ThemeProvider>
+          <LanguageProvider>
+            <ThemeProvider>{children}</ThemeProvider>
+          </LanguageProvider>
         </QueryProvider>
       </body>
     </html>

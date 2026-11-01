@@ -4,6 +4,7 @@ import type { ComponentType, CSSProperties } from "react";
 import { Check, RotateCcw, Sparkles, WandSparkles, type LucideProps } from "lucide-react";
 import { useTheme } from "@/providers/theme-provider";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/providers/language-provider";
 import {
   accents,
   animationStyles,
@@ -18,10 +19,35 @@ const sectionLabel = "mb-2 text-[11px] font-semibold uppercase tracking-wider te
 
 export function ThemePanel({ activeModeIcon: ActiveModeIcon }: { activeModeIcon: ComponentType<LucideProps> }) {
   const { appearance, setPreference, resetAppearance } = useTheme();
+  const { language, setLanguage, t } = useLanguage();
+  const modeLabels = {
+    system: t("systemMode"),
+    light: t("lightMode"),
+    dark: t("darkMode"),
+  };
+  const groupLabels = {
+    surface: t("cardStyle"),
+    corners: t("cornerShape"),
+  };
+  const optionLabels = {
+    glass: t("glassStyle"),
+    solid: t("solidStyle"),
+    soft: t("softCorners"),
+    rounded: t("roundCorners"),
+    sharp: t("sharpCorners"),
+  };
+  const optionLabelFor = (value: string): string => {
+    if (value === "glass") return optionLabels.glass;
+    if (value === "solid") return optionLabels.solid;
+    if (value === "soft") return optionLabels.soft;
+    if (value === "rounded") return optionLabels.rounded;
+    if (value === "sharp") return optionLabels.sharp;
+    return value;
+  };
 
   return (
     <section
-      aria-label="Appearance settings"
+      aria-label={t("customize")}
       className="appearance-panel glass absolute right-0 top-[calc(100%+10px)] z-50 max-h-[min(80vh,42rem)] w-[min(22rem,calc(100vw-2rem))] overflow-y-auto rounded-3xl p-4 shadow-2xl"
       role="dialog"
     >
@@ -31,15 +57,35 @@ export function ThemePanel({ activeModeIcon: ActiveModeIcon }: { activeModeIcon:
             <WandSparkles aria-hidden="true" size={17} />
           </span>
           <div>
-            <h2 className="text-sm font-semibold">Make it yours</h2>
-            <p className="mt-1 text-xs text-muted">Your look, saved on this device.</p>
+            <h2 className="text-sm font-semibold">{t("customizeTitle")}</h2>
+            <p className="mt-1 text-xs text-muted">{t("customizeDescription")}</p>
           </div>
         </div>
         <span className="mt-1 text-muted" aria-hidden="true"><ActiveModeIcon size={15} /></span>
       </div>
 
+      <fieldset className="mb-4">
+        <legend className={sectionLabel}>{t("language")}</legend>
+        <div className="grid grid-cols-3 gap-1 rounded-2xl bg-surface p-1">
+          {(["KH", "EN", "CN"] as const).map((value) => (
+            <button
+              aria-pressed={language === value}
+              className={cn(
+                "min-h-10 rounded-xl px-2 text-xs font-medium text-muted transition-colors hover:text-foreground",
+                language === value && "bg-surface-strong text-foreground shadow-sm",
+              )}
+              key={value}
+              onClick={() => setLanguage(value)}
+              type="button"
+            >
+              {value === "KH" ? t("languageKhmer") : value === "EN" ? t("languageEnglish") : t("languageChinese")}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+
       <fieldset>
-        <legend className={sectionLabel}>Accent color</legend>
+        <legend className={sectionLabel}>{t("accentColor")}</legend>
         <div className="grid grid-cols-6 gap-2">
           {accents.map((accent) => (
             <button
@@ -62,7 +108,7 @@ export function ThemePanel({ activeModeIcon: ActiveModeIcon }: { activeModeIcon:
       </fieldset>
 
       <fieldset className="mt-4">
-        <legend className={sectionLabel}>App icon</legend>
+        <legend className={sectionLabel}>{t("appIcon")}</legend>
         <div className="grid grid-cols-5 gap-2">
           {appIcons.map(({ value, label, icon: Icon }) => (
             <button
@@ -85,7 +131,7 @@ export function ThemePanel({ activeModeIcon: ActiveModeIcon }: { activeModeIcon:
       </fieldset>
 
       <fieldset className="mt-4">
-        <legend className={sectionLabel}>Background · 12 styles</legend>
+        <legend className={sectionLabel}>{t("backgroundStyles")}</legend>
         <div className="grid grid-cols-3 gap-2">
           {backgrounds.map(({ value, label, icon: Icon }) => (
             <button
@@ -107,7 +153,7 @@ export function ThemePanel({ activeModeIcon: ActiveModeIcon }: { activeModeIcon:
       </fieldset>
 
       <fieldset className="mt-4">
-        <legend className={sectionLabel}>Appearance</legend>
+        <legend className={sectionLabel}>{t("appearance")}</legend>
         <div className="grid grid-cols-3 gap-1 rounded-2xl bg-surface p-1">
           {themeModes.map(({ value, label, icon: Icon }) => (
             <button
@@ -120,7 +166,7 @@ export function ThemePanel({ activeModeIcon: ActiveModeIcon }: { activeModeIcon:
               onClick={() => setPreference("mode", value)}
               type="button"
             >
-              <Icon aria-hidden="true" size={14} />{label}
+              <Icon aria-hidden="true" size={14} />{modeLabels[value]}
             </button>
           ))}
         </div>
@@ -128,14 +174,14 @@ export function ThemePanel({ activeModeIcon: ActiveModeIcon }: { activeModeIcon:
 
       <fieldset className="mt-4">
         <legend className="mb-2 flex w-full items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-muted">
-          <span>Glass blur</span>
+          <span>{t("glassBlur")}</span>
           <output className="rounded-full bg-accent-soft px-2 py-1 text-[10px] normal-case tracking-normal text-accent" htmlFor="glass-blur">
             {appearance.blur}%
           </output>
         </legend>
         <input
-          aria-label="Glass blur amount"
-          aria-valuetext={`${appearance.blur}% blur`}
+          aria-label={t("glassBlur")}
+          aria-valuetext={`${appearance.blur}%`}
           className="appearance-slider h-2 w-full cursor-pointer rounded-full bg-surface-strong"
           disabled={appearance.surface === "solid"}
           id="glass-blur"
@@ -148,17 +194,17 @@ export function ThemePanel({ activeModeIcon: ActiveModeIcon }: { activeModeIcon:
           value={appearance.blur}
         />
         <p className="mt-1 text-[10px] text-muted">
-          {appearance.surface === "solid" ? "Choose Glass cards to adjust blur." : "Adjust how frosted the cards look."}
+          {appearance.surface === "solid" ? t("chooseGlass") : t("adjustGlass")}
         </p>
         <div className="mt-1 flex justify-between text-[10px] text-muted">
-          <span>Clear</span><span>Frosted</span>
+          <span>{t("clear")}</span><span>{t("frosted")}</span>
         </div>
       </fieldset>
 
       {optionGroups.map((group) => (
         <fieldset className="mt-4 flex items-center justify-between gap-3" key={group.key}>
-          <legend className="sr-only">{group.label}</legend>
-          <span className="text-xs font-medium">{group.label}</span>
+          <legend className="sr-only">{groupLabels[group.key]}</legend>
+          <span className="text-xs font-medium">{groupLabels[group.key]}</span>
           <div className="flex flex-wrap justify-end rounded-xl bg-surface p-1">
             {group.options.map((option) => (
               <button
@@ -171,7 +217,7 @@ export function ThemePanel({ activeModeIcon: ActiveModeIcon }: { activeModeIcon:
                 onClick={() => setPreference(group.key, option.value)}
                 type="button"
               >
-                {option.label}
+                {optionLabelFor(option.value) || option.label}
               </button>
             ))}
           </div>
@@ -179,7 +225,7 @@ export function ThemePanel({ activeModeIcon: ActiveModeIcon }: { activeModeIcon:
       ))}
 
       <fieldset className="mt-4">
-        <legend className={sectionLabel}>Animation style</legend>
+        <legend className={sectionLabel}>{t("animationStyle")}</legend>
         <div className="grid grid-cols-3 gap-1.5">
           {animationStyles.map(({ value, label, icon: Icon }) => (
             <button
@@ -199,7 +245,7 @@ export function ThemePanel({ activeModeIcon: ActiveModeIcon }: { activeModeIcon:
       </fieldset>
 
       <fieldset className="mt-4">
-        <legend className={sectionLabel}>Page layout</legend>
+        <legend className={sectionLabel}>{t("pageLayout")}</legend>
         <div className="grid grid-cols-2 gap-1.5">
           {layouts.map(({ value, label, icon: Icon }) => (
             <button
@@ -226,14 +272,14 @@ export function ThemePanel({ activeModeIcon: ActiveModeIcon }: { activeModeIcon:
             onChange={(event) => setPreference("motion", event.target.checked)}
             type="checkbox"
           />
-          <Sparkles aria-hidden="true" size={14} />Animations
+          <Sparkles aria-hidden="true" size={14} />{t("animations")}
         </label>
         <button
           className="inline-flex min-h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-muted transition-colors hover:bg-surface hover:text-foreground"
           onClick={resetAppearance}
           type="button"
         >
-          <RotateCcw aria-hidden="true" size={13} />Reset
+          <RotateCcw aria-hidden="true" size={13} />{t("reset")}
         </button>
       </div>
     </section>

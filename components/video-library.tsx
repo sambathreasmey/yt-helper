@@ -2,6 +2,7 @@ import { Clock3, Play, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { getVideoThumbnail } from "@/services/youtube";
 import type { LibraryVideo } from "@/services/library-storage";
+import { useLanguage } from "@/providers/language-provider";
 
 interface VideoSectionProps {
   icon: typeof Star;
@@ -62,15 +63,14 @@ interface VideoLibraryProps {
   favorites: LibraryVideo[];
   history: LibraryVideo[];
   onPlay: (videoId: string) => void;
-  language?: string;
 }
 
-export function VideoLibrary({ favorites, history, onPlay, language = "en" }: VideoLibraryProps) {
-  const isKhmer = language === "km";
+export function VideoLibrary({ favorites, history, onPlay }: VideoLibraryProps) {
+  const { t } = useLanguage();
   return (
     <div data-layout-slot="library">
-      <VideoSection icon={Star} title={isKhmer ? "ចូលចិត្ត" : "Favorites"} videos={favorites} onPlay={onPlay} />
-      <VideoSection icon={Clock3} title={isKhmer ? "ថ្មីៗ" : "Recent"} videos={history} onPlay={onPlay} />
+      <VideoSection icon={Star} title={t("favorites")} videos={favorites} onPlay={onPlay} />
+      <VideoSection icon={Clock3} title={t("recent")} videos={history} onPlay={onPlay} />
     </div>
   );
 }

@@ -6,22 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { parseYouTubeVideoId } from "@/services/youtube";
+import { useLanguage } from "@/providers/language-provider";
 
 interface VideoLinkFormProps {
   onPlay: (videoId: string) => void;
-  language?: string;
 }
 
-export function VideoLinkForm({ onPlay, language = "en" }: VideoLinkFormProps) {
+export function VideoLinkForm({ onPlay }: VideoLinkFormProps) {
+  const { t } = useLanguage();
   const [value, setValue] = useState("");
   const [error, setError] = useState("");
-  const isKhmer = language === "km";
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const videoId = parseYouTubeVideoId(value);
     if (!videoId) {
-      setError(isKhmer ? "សូមបញ្ចូលតំណ YouTube ត្រឹមត្រូវ។" : "Enter a valid YouTube link or video ID.");
+      setError(t("enterValidYouTube"));
       return;
     }
     setError("");
@@ -32,15 +32,15 @@ export function VideoLinkForm({ onPlay, language = "en" }: VideoLinkFormProps) {
   return (
     <Card className="mb-3" data-layout-slot="form">
       <CardHeader className="pb-3">
-        <CardTitle>{isKhmer ? "ចាក់វីដេអូ" : "Play a video"}</CardTitle>
+        <CardTitle>{t("playVideo")}</CardTitle>
         <CardDescription className="mt-1">
-          {isKhmer ? "បិទភ្ជាប់តំណ YouTube" : "Paste a YouTube link or video ID"}
+          {t("pasteYouTube")}
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-0">
         <form className="flex gap-2" onSubmit={submit} noValidate>
           <Input
-            aria-label="YouTube video link"
+            aria-label={t("pasteYouTube")}
             aria-invalid={Boolean(error)}
             aria-describedby={error ? "video-link-error" : undefined}
             autoComplete="url"
@@ -50,12 +50,12 @@ export function VideoLinkForm({ onPlay, language = "en" }: VideoLinkFormProps) {
               setValue(event.target.value);
               if (error) setError("");
             }}
-            placeholder={isKhmer ? "បិទភ្ជាប់តំណ YouTube" : "Paste a YouTube link"}
+            placeholder={t("pasteYouTubePlaceholder")}
             value={value}
           />
-          <Button aria-label={isKhmer ? "ចាក់" : "Play video"} className="min-w-[82px]" type="submit" variant="primary">
+          <Button aria-label={t("play")} className="min-w-[82px]" type="submit" variant="primary">
             <Play aria-hidden="true" className="fill-current" size={16} />
-            {isKhmer ? "លេង" : "Play"}
+            {t("play")}
           </Button>
         </form>
         {error && <p className="mt-2 px-1 text-xs text-muted" id="video-link-error" role="alert">{error}</p>}

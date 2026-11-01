@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ExternalLink, Repeat2, RotateCcw, RotateCw, Send, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useYouTubePlayer } from "@/hooks/use-youtube-player";
+import { useLanguage } from "@/providers/language-provider";
 
 interface YouTubePlayerProps {
   video: { id: string; title: string };
@@ -12,7 +13,6 @@ interface YouTubePlayerProps {
   onToggleFavorite: () => void;
   onShare: () => void;
   onOpenYouTube: () => void;
-  language?: string;
 }
 
 export function YouTubePlayer({
@@ -22,12 +22,11 @@ export function YouTubePlayer({
   onToggleFavorite,
   onShare,
   onOpenYouTube,
-  language = "en",
 }: YouTubePlayerProps) {
   const [loop, setLoop] = useState(false);
   const [speed, setSpeed] = useState(1);
   const { hostRef, playerRef, error } = useYouTubePlayer(video.id, loop);
-  const isKhmer = language === "km";
+  const { t } = useLanguage();
   const isFavorite = favorite;
   const speeds = [1, 1.25, 1.5, 2, 0.5];
   const speedIndex = useRef(0);
@@ -60,20 +59,20 @@ export function YouTubePlayer({
 
   return (
     <section className="view-enter mx-auto w-full max-w-2xl">
-      <Button onClick={onBack}><ArrowLeft aria-hidden="true" size={17} />{isKhmer ? "ត្រឡប់ក្រោយ" : "Back"}</Button>
+      <Button onClick={onBack}><ArrowLeft aria-hidden="true" size={17} />{t("back")}</Button>
       <div className="glass mt-4 aspect-video overflow-hidden rounded-2xl bg-black">
         <div className="size-full" id="youtube-player" ref={hostRef} />
       </div>
       <h1 className="mt-4 text-base font-semibold leading-6">{video.title || video.id}</h1>
-      {error && <p className="mt-2 text-sm text-muted">{isKhmer ? "មិនអាចចាក់វីដេអូនេះបានទេ។ សូមបើកក្នុង YouTube។" : "This video can't play here. Open it in YouTube."}</p>}
+      {error && <p className="mt-2 text-sm text-muted">{t("videoCannotPlay")}</p>}
       <div className="mt-4 flex flex-wrap gap-2">
-        <Button aria-label="Back 10 seconds" onClick={() => seekBy(-10)}><RotateCcw size={17} />10s</Button>
-        <Button aria-label="Forward 10 seconds" onClick={() => seekBy(10)}>10s<RotateCw size={17} /></Button>
-        <Button aria-label="Change playback speed" onClick={changeSpeed}>{speed}x</Button>
-        <Button aria-label="Toggle loop" aria-pressed={loop} onClick={() => setLoop((value) => !value)} variant={loop ? "primary" : "secondary"}><Repeat2 size={17} /></Button>
-        <Button aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"} aria-pressed={isFavorite} onClick={onToggleFavorite} variant={isFavorite ? "primary" : "secondary"}><Star className={isFavorite ? "fill-current" : ""} size={17} /></Button>
-        <Button aria-label="Share video" onClick={onShare}><Send size={17} /></Button>
-        <Button aria-label="Open on YouTube" onClick={onOpenYouTube}><ExternalLink size={17} /></Button>
+        <Button aria-label={t("backTenSeconds")} onClick={() => seekBy(-10)}><RotateCcw size={17} />10s</Button>
+        <Button aria-label={t("forwardTenSeconds")} onClick={() => seekBy(10)}>10s<RotateCw size={17} /></Button>
+        <Button aria-label={t("playbackSpeed")} onClick={changeSpeed}>{speed}x</Button>
+        <Button aria-label={t("toggleLoop")} aria-pressed={loop} onClick={() => setLoop((value) => !value)} variant={loop ? "primary" : "secondary"}><Repeat2 size={17} /></Button>
+        <Button aria-label={isFavorite ? t("removeFavorite") : t("addFavorite")} aria-pressed={isFavorite} onClick={onToggleFavorite} variant={isFavorite ? "primary" : "secondary"}><Star className={isFavorite ? "fill-current" : ""} size={17} /></Button>
+        <Button aria-label={t("shareVideo")} onClick={onShare}><Send size={17} /></Button>
+        <Button aria-label={t("openOnYouTube")} onClick={onOpenYouTube}><ExternalLink size={17} /></Button>
       </div>
     </section>
   );

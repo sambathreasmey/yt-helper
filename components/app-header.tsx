@@ -4,6 +4,7 @@ import { CirclePlay, Clapperboard, Film, Headphones, Play, type LucideIcon } fro
 import { TelegramUserBadge } from "@/components/telegram-user-badge";
 import { ThemePicker } from "@/components/theme-picker";
 import { useTheme } from "@/providers/theme-provider";
+import { useLanguage } from "@/providers/language-provider";
 import type { TelegramProfile } from "@/services/telegram-client";
 
 const appIconComponents: Record<string, LucideIcon> = {
@@ -16,14 +17,15 @@ const appIconComponents: Record<string, LucideIcon> = {
 
 export function AppHeader({
   profile = null,
-  title = "YouTube Helper",
-  subtitle = "Your videos, one tap away",
+  title,
+  subtitle,
 }: {
   profile?: TelegramProfile | null;
   title?: string;
   subtitle?: string;
 }) {
   const { appearance } = useTheme();
+  const { t } = useLanguage();
   const AppIcon = appIconComponents[appearance.appIcon] || CirclePlay;
 
   return (
@@ -32,8 +34,8 @@ export function AppHeader({
         <AppIcon aria-hidden="true" size={23} strokeWidth={1.8} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-base font-semibold tracking-tight">{title}</span>
-        <span className="mt-0.5 block text-xs text-muted">{subtitle}</span>
+        <span className="block text-base font-semibold tracking-tight">{title || t("youtubeTitle")}</span>
+        <span className="mt-0.5 block text-xs text-muted">{subtitle || t("youtubeSubtitle")}</span>
       </span>
       <TelegramUserBadge profile={profile} />
       <ThemePicker />
