@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { formatUtcTimestamp } from "@/lib/date-format";
 import { getAdminGoldPrice, updateAdminGoldPrice } from "@/services/dashboard-api";
 
 function formatPrice(value: string): string {
@@ -64,7 +65,7 @@ export function GoldPriceForm() {
           {priceQuery.isPending
             ? "Loading current price…"
             : priceQuery.data
-              ? `Current: ${formatPrice(priceQuery.data.price_per_damlung)} / damlung · updated ${new Date(priceQuery.data.updated_on).toLocaleString()}`
+              ? `Current: ${formatPrice(priceQuery.data.price_per_damlung)} / damlung · updated ${formatUtcTimestamp(priceQuery.data.updated_on)}`
               : "No gold price has been set."}
         </p>
         {priceQuery.error && (

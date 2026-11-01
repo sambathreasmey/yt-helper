@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useTelegram } from "@/hooks/use-telegram";
+import { formatUtcTimestamp } from "@/lib/date-format";
 import { useLanguage } from "@/providers/language-provider";
 import {
   createGoldPriceAlert,
@@ -306,7 +307,7 @@ export function GoldTrading() {
             )}
             {overview?.current_price && (
               <p className="mt-1 text-xs text-muted">
-                {t("updated", { date: formatDate(overview.current_price.updated_on, locale) })}
+                {t("updated", { date: formatUtcTimestamp(overview.current_price.updated_on, locale) })}
               </p>
             )}
           </div>
@@ -321,6 +322,18 @@ export function GoldTrading() {
           />
           <Metric label={t("costBasis")} value={formatUsd(summary.cost_basis, locale)} />
           <Metric label={t("currentValue")} value={formatUsd(summary.market_value, locale)} />
+          <Metric
+            label={t("realizedPL")}
+            value={formatProfit(summary.realized_profit_loss, locale)}
+            emphasize
+            amount={summary.realized_profit_loss}
+          />
+          <Metric
+            label={t("unrealizedPL")}
+            value={formatProfit(summary.unrealized_profit_loss, locale)}
+            emphasize
+            amount={summary.unrealized_profit_loss}
+          />
           <Metric
             label={t("totalProfitLoss")}
             value={formatProfit(summary.total_profit_loss, locale)}

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { GoldTrading } from "@/features/gold-trading/gold-trading";
 import { YouTubeHelper } from "@/features/youtube-helper/youtube-helper";
 import { useLanguage } from "@/providers/language-provider";
-import { LanguageSwitcher } from "@/components/language-switcher";
 
 type AppFeature = "youtube" | "gold";
 
@@ -35,7 +34,6 @@ export function AppFeatureShell() {
         >
           {t("goldTrading")}
         </button>
-        <LanguageSwitcher />
       </nav>
       {feature === "gold" ? <GoldTrading /> : <YouTubeHelper />}
     </div>

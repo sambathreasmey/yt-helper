@@ -23,20 +23,24 @@ price alerts. Gold data is stored by the Flask backend; Telegram Mini App
 Buy and sell prices are entered in the selected quantity unit (for example,
 USD per chi); the backend normalizes trade rates and the shared market price to
 USD per damlung for consistent valuation.
-The portfolio summary shows one combined profit/loss figure (realized sales
-plus unrealized value of remaining gold). Purchase records show their original
-investment, remaining cost and quantity, current value, and total per-record
-profit/loss, and can be sorted by performance.
+The portfolio summary separates realized profit/loss from sales, unrealized
+profit/loss on remaining gold, and the combined total. Purchase records show
+their original investment, remaining cost and quantity, current value, and
+total per-record profit/loss, and can be sorted by performance.
 Use **Sell** on a purchase record to sell its remaining quantity. The sale
 price is prefilled from the current market price, but can be changed to the
 actual price received; the sale is attributed directly to that purchase lot.
 The interface language can be selected as KH (Khmer), EN (English), or CN
-(Chinese) from the top language selector or the appearance settings. Khmer is
-the default; the selection is saved on the user's device.
+(Chinese) from the appearance settings. Khmer is the default; the selection is
+saved on the user's device.
 Khmer text uses the Battambang font with a system Khmer fallback.
 
 Before deploying the backend, apply
 `helper_flask_app/sql/gold_trade_tables.sql` to the configured MySQL database.
+Reapply this idempotent schema script when deploying the force-delete feature
+to create its deletion-reason audit table. Sold purchase records can then be
+force-deleted from **Customize settings** by providing a reason and confirming
+that linked sale history, reports, and summaries will change.
 The shared price is read from `GET /api/gold/price`
 and can be updated by an administrator with a JWT via `POST /api/gold/price`
 using `{"price_per_damlung": 2400, "source": "manual"}`. Partner price

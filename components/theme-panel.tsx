@@ -5,6 +5,7 @@ import { Check, RotateCcw, Sparkles, WandSparkles, type LucideProps } from "luci
 import { useTheme } from "@/providers/theme-provider";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/providers/language-provider";
+import { ForceDeleteGoldPurchase } from "@/components/force-delete-gold-purchase";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import {
   accents,
@@ -69,6 +70,8 @@ export function ThemePanel({ activeModeIcon: ActiveModeIcon }: { activeModeIcon:
         <legend className={sectionLabel}>{t("language")}</legend>
         <LanguageSwitcher fullWidth />
       </fieldset>
+
+      <ForceDeleteGoldPurchase />
 
       <fieldset>
         <legend className={sectionLabel}>{t("accentColor")}</legend>

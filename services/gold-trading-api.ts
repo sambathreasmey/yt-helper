@@ -141,6 +141,16 @@ export const updateGoldPurchase = (
 export const deleteGoldPurchase = (initData: string, id: number): Promise<{ id: number }> =>
   request(initData, `/purchases/${id}`, { method: "DELETE" });
 
+export const forceDeleteGoldPurchase = (
+  initData: string,
+  id: number,
+  reason: string,
+): Promise<{ id: number }> =>
+  request(initData, `/purchases/${id}/force-delete`, {
+    method: "POST",
+    body: { reason },
+  });
+
 export const sellGoldPurchase = (
   initData: string,
   id: number,
