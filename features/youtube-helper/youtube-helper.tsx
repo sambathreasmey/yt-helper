@@ -91,7 +91,10 @@ export function YouTubeHelper() {
   }, [telegram]);
 
   const startYouTubeCountdown = useCallback(() => {
-    if (countdown !== null) return;
+    if (countdown !== null) {
+      setCountdown(0);
+      return;
+    }
     const delay = autoRedirectQuery.data ?? DEFAULT_AUTO_REDIRECT_SECONDS;
     if (delay > 0) setCountdown(delay);
     else navigateToYouTube();
