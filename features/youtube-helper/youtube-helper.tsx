@@ -27,6 +27,7 @@ interface CurrentVideo {
 }
 
 const DEFAULT_AUTO_REDIRECT_SECONDS = 3;
+const TAP_REDIRECT_DELAY_MS = 1000;
 
 export function YouTubeHelper() {
   const { appearance } = useTheme();
@@ -91,13 +92,15 @@ export function YouTubeHelper() {
   }, [telegram]);
 
   const startYouTubeCountdown = useCallback(() => {
+    // Redirect from a timer, not directly inside the tap, to match the countdown redirect.
     if (countdown !== null) {
-      setCountdown(0);
+      setCountdown(null);
+      window.setTimeout(() => navigateToYouTube(), TAP_REDIRECT_DELAY_MS);
       return;
     }
     const delay = autoRedirectQuery.data ?? DEFAULT_AUTO_REDIRECT_SECONDS;
     if (delay > 0) setCountdown(delay);
-    else navigateToYouTube();
+    else window.setTimeout(() => navigateToYouTube(), TAP_REDIRECT_DELAY_MS);
   }, [autoRedirectQuery.data, countdown, navigateToYouTube]);
 
   useEffect(() => {
