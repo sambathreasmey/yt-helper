@@ -48,12 +48,18 @@ Reapply this idempotent schema script when deploying the force-delete feature
 to create its deletion-reason audit table. Sold purchase records can then be
 force-deleted from **Customize settings** by providing a reason and confirming
 that linked sale history, reports, and summaries will change.
-The shared price is read from `GET /api/gold/price`
-and can be updated by an administrator with a JWT via `POST /api/gold/price`
-using `{"price_per_damlung": 2400, "source": "manual"}`. Partner price
-integrations can use the same endpoint with a source label. Price alert
-messages are sent when a subsequent price update crosses a user's target.
-The existing `/admin` page also provides an administrator-only manual price form.
+The shared price is read from `GET /api/gold/price`. The backend repository
+includes a GitHub Actions workflow that fetches XAUUSD every 30 minutes and
+updates the price through `POST /api/gold/price/github`. The endpoint accepts
+`{"price_per_damlung": 5600}` and requires the `X-Gold-Update-Key` header.
+Configure `GOLD_PRICE_UPDATE_API_KEY` in the backend environment and set a
+matching GitHub Actions repository secret with that name. In **Helper
+Management → Gold price feed**, enable
+scheduled GitHub Action updates. When disabled, scheduled/manual workflow runs
+skip changing the price. The Admin page displays the current price but no
+longer has a manual price-entry form. The existing JWT-protected
+`POST /api/gold/price` endpoint remains available to trusted integrations.
+Telegram price alerts are sent when a price update crosses a user's target.
 In **Helper Management**, administrators can also manage a YouTube-home ad,
 app-wide announcement, maintenance notice, YouTube and Gold Trade availability,
 support link, and default language. A user's saved language always overrides

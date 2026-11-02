@@ -126,6 +126,7 @@ export type GlobalAppSettings = {
   gold_trade_enabled: boolean;
   support_url: string;
   default_language: AppDefaultLanguage;
+  github_gold_price_updates_enabled: boolean;
 };
 
 export type TelegramBroadcastKind = "maintenance" | "announcement";
@@ -148,6 +149,7 @@ export const DEFAULT_GLOBAL_APP_SETTINGS: GlobalAppSettings = {
   gold_trade_enabled: true,
   support_url: "",
   default_language: "KH",
+  github_gold_price_updates_enabled: false,
 };
 
 export const getAutoRedirectSetting = (): Promise<ApiResult<AutoRedirectSetting>> =>

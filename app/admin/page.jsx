@@ -8,7 +8,7 @@ import { ThemePicker } from "@/components/theme-picker";
 import { AdminLogin, SummaryCards, useAdminSummary, isLoggedIn, logout } from "@/components/admin/admin-auth-summary";
 import { UserList } from "@/components/admin/user-list";
 import { UserDetailPanel } from "@/components/admin/user-detail-panel";
-import { GoldPriceForm } from "@/components/admin/gold-price-form";
+import { GoldPriceAutomation } from "@/components/admin/gold-price-automation";
 import { AutoRedirectSetting } from "@/components/admin/auto-redirect-setting";
 import { AdvertisementSetting } from "@/components/admin/advertisement-setting";
 import { GlobalAppSettings } from "@/components/admin/global-app-settings";
@@ -54,7 +54,7 @@ export default function AdminPage() {
 
       {error && <p className="admin-error text-xs text-red-400"><ShieldCheck aria-hidden="true" size={16} />{error}</p>}
 
-      <GoldPriceForm />
+      <GoldPriceAutomation />
       <AutoRedirectSetting />
       <AdvertisementSetting />
       <GlobalAppSettings />
