@@ -85,10 +85,17 @@ export function YouTubeHelper() {
     return () => window.clearInterval(timer);
   }, [countdown, telegram]);
 
-  const navigateToYouTube = useCallback((url = "https://m.youtube.com", options: { browser?: boolean } = {}) => {
+  const navigateToYouTube = useCallback((url = "https://m.youtube.com") => {
     setCountdown(null);
-    openTelegramLink(telegram, url, options);
+    openTelegramLink(telegram, url);
   }, [telegram]);
+
+  const startYouTubeCountdown = useCallback(() => {
+    if (countdown !== null) return;
+    const delay = autoRedirectQuery.data ?? DEFAULT_AUTO_REDIRECT_SECONDS;
+    if (delay > 0) setCountdown(delay);
+    else navigateToYouTube();
+  }, [autoRedirectQuery.data, countdown, navigateToYouTube]);
 
   useEffect(() => {
     if (countdown === 0) {
@@ -168,7 +175,7 @@ export function YouTubeHelper() {
           <HomeHero
             countdown={countdown}
             countdownDurationSeconds={autoRedirectQuery.data ?? DEFAULT_AUTO_REDIRECT_SECONDS}
-            onOpenYouTube={() => navigateToYouTube("https://m.youtube.com", { browser: true })}
+            onOpenYouTube={startYouTubeCountdown}
           />
           <ProfileCard profile={profile} />
           {appearance.layout === "dashboard"
