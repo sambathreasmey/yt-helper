@@ -85,9 +85,9 @@ export function YouTubeHelper() {
     return () => window.clearInterval(timer);
   }, [countdown, telegram]);
 
-  const navigateToYouTube = useCallback((url = "https://m.youtube.com") => {
+  const navigateToYouTube = useCallback((url = "https://m.youtube.com", options: { browser?: boolean } = {}) => {
     setCountdown(null);
-    openTelegramLink(telegram, url);
+    openTelegramLink(telegram, url, options);
   }, [telegram]);
 
   useEffect(() => {
@@ -168,7 +168,7 @@ export function YouTubeHelper() {
           <HomeHero
             countdown={countdown}
             countdownDurationSeconds={autoRedirectQuery.data ?? DEFAULT_AUTO_REDIRECT_SECONDS}
-            onOpenYouTube={() => navigateToYouTube()}
+            onOpenYouTube={() => navigateToYouTube("https://m.youtube.com", { browser: true })}
           />
           <ProfileCard profile={profile} />
           {appearance.layout === "dashboard"
