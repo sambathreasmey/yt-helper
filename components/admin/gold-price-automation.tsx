@@ -91,7 +91,7 @@ export function GoldPriceAutomation() {
             onChange={(event) => setEnabled(event.target.checked)}
             type="checkbox"
           />
-          <span>Allow GitHub Actions to update the gold price every 30 minutes</span>
+          <span>Allow GitHub Actions to update the gold price every 15 - 20 seconds</span>
         </label>
         <p className="text-xs text-muted">
           Turning this off makes scheduled runs skip price updates. Manual price entry is disabled in this dashboard.
