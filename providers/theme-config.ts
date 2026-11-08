@@ -42,7 +42,7 @@ export const ACCENTS: Record<Accent, { light: string; dark: string }> = {
   neutral: { light: "#27272a", dark: "#e4e4e7" },
   rose: { light: "#be526c", dark: "#f29ab0" },
   lavender: { light: "#7657b7", dark: "#c5a6ff" },
-  mint: { light: "#26836b", dark: "#7ed8ba" },
+  mint: { light: "#24775f", dark: "#80dfc0" },
   ocean: { light: "#3975ad", dark: "#8ec7ff" },
   peach: { light: "#b86b43", dark: "#ffb489" },
 };

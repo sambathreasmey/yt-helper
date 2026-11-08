@@ -109,7 +109,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.style.setProperty("--accent-rgb", rgbChannels(accentColor));
       root.style.setProperty("--glass-blur", `${appearance.blur * 0.32}px`);
 
-      const background = theme === "light" ? "#f3f3f3" : "#101112";
+      const background = theme === "light" ? "#f3f7fb" : "#0a1424";
       for (const method of ["setHeaderColor", "setBackgroundColor", "setBottomBarColor"] as const) {
         try {
           telegram?.[method]?.(background);
