@@ -1,5 +1,6 @@
 import { ChevronRight, Flame, Plus, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HomeScreenGuide } from "@/components/home-screen-guide";
 import { useLanguage } from "@/providers/language-provider";
 
 interface QuickActionsProps {
@@ -23,11 +24,14 @@ export function QuickActions({ onOpen, onAddToHome, showAddToHome }: QuickAction
         <ChevronRight aria-hidden="true" className="youtube-action-chevron" size={19} />
       </Button>
       {showAddToHome && (
-        <Button className="youtube-action-tile youtube-home-action" data-action="home" onClick={onAddToHome}>
-          <span className="youtube-action-icon"><Plus aria-hidden="true" size={21} /></span>
-          <span className="youtube-action-label">{t("homeScreen")}</span>
-          <ChevronRight aria-hidden="true" className="youtube-action-chevron" size={19} />
-        </Button>
+        <>
+          <Button className="youtube-action-tile youtube-home-action" data-action="home" onClick={onAddToHome}>
+            <span className="youtube-action-icon"><Plus aria-hidden="true" size={21} /></span>
+            <span className="youtube-action-label">{t("homeScreen")}</span>
+            <ChevronRight aria-hidden="true" className="youtube-action-chevron" size={19} />
+          </Button>
+          <HomeScreenGuide />
+        </>
       )}
     </div>
   );
