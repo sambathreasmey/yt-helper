@@ -13,7 +13,13 @@ function pickVariant(): Variant {
  * Khmer step-by-step video: "Add Helper to your Home Screen" (iPhone).
  * Files live in /public/demo/helper-home-screen-{mobile,desktop}.{mp4,webm,jpg}
  */
-export function HomeScreenDemo({ className = "" }: { className?: string }) {
+export function HomeScreenDemo({
+  ariaLabel,
+  className = "",
+}: {
+  ariaLabel: string;
+  className?: string;
+}) {
   const [variant] = useState<Variant>(pickVariant);
   const base = `/demo/helper-home-screen-${variant}`;
   const mobile = variant === "mobile";
@@ -27,12 +33,11 @@ export function HomeScreenDemo({ className = "" }: { className?: string }) {
         className="h-full w-full object-contain"
         autoPlay
         controls
-        loop
         muted
         playsInline
-        preload="metadata"
+        preload="none"
         poster={`${base}.jpg`}
-        aria-label="របៀបបន្ថែម Helper ទៅ Home Screen"
+        aria-label={ariaLabel}
       >
         <source src={`${base}.webm`} type='video/webm; codecs="vp9"' />
         <source src={`${base}.mp4`} type="video/mp4" />

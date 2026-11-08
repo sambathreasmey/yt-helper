@@ -7,7 +7,7 @@ import { HomeScreenDemo } from "@/components/home-screen-demo";
 import { useLanguage } from "@/providers/language-provider";
 import { cn } from "@/lib/utils";
 
-/** Collapsible how-to video shown under the "Home Screen" tile. The video loads only when opened. */
+/** Collapsible setup video available from the YouTube feature. */
 export function HomeScreenGuide() {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
@@ -30,7 +30,7 @@ export function HomeScreenGuide() {
       </Button>
       {open ? (
         <div className="mt-3" id="home-screen-demo">
-          <HomeScreenDemo />
+          <HomeScreenDemo ariaLabel={t("homeGuideHint")} />
         </div>
       ) : (
         <p className="mt-1.5 px-1 text-xs text-muted">{t("homeGuideHint")}</p>

@@ -7,8 +7,29 @@ import { isInsideTelegram, getTelegramClient } from "@/services/telegram-client"
 import { useTelegramUserQuery } from "@/hooks/use-telegram-user";
 import { useLanguage } from "@/providers/language-provider";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { WelcomeBannerDemo } from "@/components/welcome-banner-demo";
 
 const BOT_LINK = process.env.NEXT_PUBLIC_TELEGRAM_BOT_LINK || "https://t.me/homerestassistantbot?startapp";
+
+function TelegramCallToAction({ className }: { className: string }) {
+  const { t } = useLanguage();
+
+  return (
+    <div className={`welcome-cta-wrap ${className}`}>
+      <a
+        className="welcome-cta group relative flex min-h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-[#229ED9] px-5 text-base font-bold text-white shadow-[0_12px_30px_rgb(34_158_217/32%)] transition hover:-translate-y-0.5 hover:bg-[#168dcc] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#229ED9] active:translate-y-0 sm:min-h-16 sm:text-lg"
+        href={BOT_LINK}
+        rel="noreferrer"
+        target="_blank"
+      >
+        <Send aria-hidden="true" className="shrink-0" fill="currentColor" size={20} />
+        <span>{t("openInTelegram")}</span>
+        <ArrowRight aria-hidden="true" className="shrink-0 transition-transform group-hover:translate-x-1" size={19} />
+      </a>
+      <p className="mt-2 text-xs text-muted">{t("openTelegramHint")}</p>
+    </div>
+  );
+}
 
 function BlockedScreen() {
   const { t } = useLanguage();
@@ -25,8 +46,8 @@ function BlockedScreen() {
 function TelegramOnlyScreen() {
   const { t } = useLanguage();
   return (
-    <main className="welcome-page mx-auto w-full max-w-5xl py-3 sm:py-8">
-      <header className="welcome-header mb-5 flex items-center justify-between gap-3 sm:mb-7">
+    <main className="welcome-page mx-auto w-full max-w-5xl py-8 sm:py-12">
+      <header className="welcome-header mb-7 flex items-center justify-between gap-3 sm:mb-10">
         <div className="flex min-w-0 items-center gap-3">
           <Image
             alt="Helper Mini App"
@@ -47,25 +68,7 @@ function TelegramOnlyScreen() {
         <LanguageSwitcher />
       </header>
 
-      <section aria-label={t("welcomeTitle")} className="welcome-banner relative isolate overflow-hidden rounded-[1.75rem] border border-white/10 bg-surface shadow-glass sm:rounded-[2rem]">
-        <div className="relative aspect-[1.9/1] w-full">
-          <Image
-            alt=""
-            className="welcome-banner-image object-cover"
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 1024px"
-            src="/banner.png"
-          />
-          <div aria-hidden="true" className="welcome-banner-shade absolute inset-0 bg-gradient-to-t from-[#07142c]/40 via-transparent to-transparent" />
-          <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/35 px-3 py-1.5 text-[10px] font-semibold text-white/90 shadow-lg backdrop-blur-md sm:bottom-5 sm:right-5 sm:text-xs">
-            <Sparkles aria-hidden="true" size={13} />
-            {t("welcomeEyebrow")}
-          </span>
-        </div>
-      </section>
-
-      <section className="welcome-intro mx-auto max-w-3xl px-1 pb-5 pt-7 text-center sm:pb-7 sm:pt-9">
+      <section className="welcome-intro mx-auto mb-4 max-w-3xl px-4 pb-8 pt-7 text-center sm:mb-5 sm:px-8 sm:pb-10 sm:pt-9">
         <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.24em] text-accent sm:text-xs">
           {t("featurePreview")}
         </p>
@@ -76,24 +79,42 @@ function TelegramOnlyScreen() {
           {t("welcomeDescription")}
         </p>
         {BOT_LINK && (
-          <div className="welcome-cta-wrap mx-auto mt-5 max-w-sm">
-            <a
-              className="welcome-cta group relative flex min-h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-[#229ED9] px-5 text-base font-bold text-white shadow-[0_12px_30px_rgb(34_158_217/32%)] transition hover:-translate-y-0.5 hover:bg-[#168dcc] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#229ED9] active:translate-y-0 sm:min-h-16 sm:text-lg"
-              href={BOT_LINK}
-              rel="noreferrer"
-              target="_blank"
-            >
-              <Send aria-hidden="true" className="shrink-0" fill="currentColor" size={20} />
-              <span>{t("openInTelegram")}</span>
-              <ArrowRight aria-hidden="true" className="shrink-0 transition-transform group-hover:translate-x-1" size={19} />
-            </a>
-            <p className="mt-2 text-xs text-muted">{t("openTelegramHint")}</p>
-          </div>
+          <TelegramCallToAction className="mx-auto mt-7 max-w-sm" />
         )}
       </section>
 
-      <section aria-label={t("featurePreview")} className="welcome-features grid gap-3 sm:grid-cols-2 sm:gap-4">
-        <article className="welcome-feature-card glass flex min-h-36 items-start gap-4 rounded-3xl p-4 sm:p-5">
+      <div aria-hidden="true" className="welcome-card-separator">
+        <span />
+      </div>
+
+      <section
+        aria-label={t("welcomeTitle")}
+        className="welcome-banner relative isolate mb-6 overflow-hidden rounded-[1.75rem] border border-white/20 bg-surface shadow-glass sm:mb-8 sm:rounded-[2rem]"
+      >
+        <div className="relative aspect-[1.9/1] w-full">
+          <Image
+            alt=""
+            className="welcome-banner-image object-cover"
+            fill
+            priority
+            sizes="(max-width: 1024px) 100vw, 1024px"
+            src="/banner.png"
+          />
+          <div
+            aria-hidden="true"
+            className="welcome-banner-shade absolute inset-0 bg-gradient-to-t from-[#07142c]/40 via-transparent to-transparent"
+          />
+          <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/35 px-3 py-1.5 text-[10px] font-semibold text-white/90 shadow-lg backdrop-blur-md sm:bottom-5 sm:right-5 sm:text-xs">
+            <Sparkles aria-hidden="true" size={13} />
+            {t("welcomeEyebrow")}
+          </span>
+        </div>
+      </section>
+
+      <WelcomeBannerDemo />
+
+      <section aria-label={t("featurePreview")} className="welcome-features grid gap-4 sm:grid-cols-2 sm:gap-5">
+        <article className="welcome-feature-card glass flex min-h-40 items-start gap-4 rounded-3xl p-5 sm:p-6">
           <span className="grid size-12 shrink-0 place-items-center rounded-2xl border border-red-400/20 bg-red-500/10 text-red-300 shadow-inner sm:size-14">
             <CirclePlay aria-hidden="true" size={27} strokeWidth={1.8} />
           </span>
@@ -110,7 +131,7 @@ function TelegramOnlyScreen() {
           </div>
         </article>
 
-        <article className="welcome-feature-card glass flex min-h-36 items-start gap-4 rounded-3xl p-4 sm:p-5">
+        <article className="welcome-feature-card glass flex min-h-40 items-start gap-4 rounded-3xl p-5 sm:p-6">
           <span className="grid size-12 shrink-0 place-items-center rounded-2xl border border-amber-300/20 bg-amber-400/10 text-amber-300 shadow-inner sm:size-14">
             <Coins aria-hidden="true" size={27} strokeWidth={1.8} />
           </span>
@@ -128,8 +149,40 @@ function TelegramOnlyScreen() {
         </article>
       </section>
 
-      <footer className="mx-auto mt-5 flex max-w-xl justify-center text-center sm:mt-7">
-        <p className="text-xs leading-5 text-muted">{t("telegramOnly")}</p>
+      {BOT_LINK && (
+        <TelegramCallToAction className="mx-auto mt-8 max-w-sm text-center sm:mt-10" />
+      )}
+
+      <footer className="welcome-footer mx-auto mt-10 w-full max-w-3xl sm:mt-14">
+        <p className="mb-5 text-center text-xs leading-5 text-muted">{t("telegramOnly")}</p>
+        <div className="welcome-footer-card">
+          <div className="welcome-footer-copyright">
+            <span className="welcome-footer-mark" aria-hidden="true">H</span>
+            <div>
+              <p className="text-sm font-bold tracking-tight">Helper</p>
+              <p className="mt-1 text-xs text-muted">
+                {t("copyrightNotice", { year: new Date().getFullYear() })}
+              </p>
+            </div>
+          </div>
+          <div className="welcome-footer-owner">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
+              {t("ownerLabel")}
+            </span>
+            <span className="text-sm font-semibold">Sambath Reasmey</span>
+          </div>
+          <a
+            aria-label={t("contactOwner")}
+            className="welcome-footer-contact"
+            href="https://t.me/sambathreasmey"
+            rel="noreferrer"
+            target="_blank"
+          >
+            <Send aria-hidden="true" size={15} />
+            <span>@sambathreasmey</span>
+            <ArrowRight aria-hidden="true" className="welcome-footer-arrow" size={14} />
+          </a>
+        </div>
       </footer>
     </main>
   );

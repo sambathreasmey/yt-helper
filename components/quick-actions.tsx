@@ -24,15 +24,13 @@ export function QuickActions({ onOpen, onAddToHome, showAddToHome }: QuickAction
         <ChevronRight aria-hidden="true" className="youtube-action-chevron" size={19} />
       </Button>
       {showAddToHome && (
-        <>
-          <Button className="youtube-action-tile youtube-home-action" data-action="home" onClick={onAddToHome}>
-            <span className="youtube-action-icon"><Plus aria-hidden="true" size={21} /></span>
-            <span className="youtube-action-label">{t("homeScreen")}</span>
-            <ChevronRight aria-hidden="true" className="youtube-action-chevron" size={19} />
-          </Button>
-          <HomeScreenGuide />
-        </>
+        <Button className="youtube-action-tile youtube-home-action" data-action="home" onClick={onAddToHome}>
+          <span className="youtube-action-icon"><Plus aria-hidden="true" size={21} /></span>
+          <span className="youtube-action-label">{t("homeScreen")}</span>
+          <ChevronRight aria-hidden="true" className="youtube-action-chevron" size={19} />
+        </Button>
       )}
+      <HomeScreenGuide />
     </div>
   );
 }
