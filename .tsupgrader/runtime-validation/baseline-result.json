@@ -1,0 +1,138 @@
+{
+  "planHash": "6511d2ef818aee120cdba40b5cbe04542ae4efee0616859bd720e7e97ad0e82f",
+  "phase": "baseline",
+  "recordedAtUtc": "2026-11-08T08:05:53.1545459Z",
+  "retryCount": 0,
+  "resetBaseline": true,
+  "complete": true,
+  "result": {
+    "setupSucceeded": true,
+    "setupDurationMs": 8791,
+    "setupFailureOutput": null,
+    "assertions": [
+      {
+        "name": "typescript-no-emit",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "",
+        "durationMs": 3279
+      },
+      {
+        "name": "tests-pass",
+        "kind": "process",
+        "verificationMethod": "test-results",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\r\n\u003E yt-helper@1.0.0 test\r\n\u003E node --test\r\n\r\nTAP version 13\r\n# Subtest: TanStack Query stores and retrieves cached data\r\nok 1 - TanStack Query stores and retrieves cached data\r\n  ---\r\n  duration_ms: 1.3575\r\n  ...\r\n# Subtest: Lucide icons render through React server rendering\r\nok 2 - Lucide icons render through React server rendering\r\n  ---\r\n  duration_ms: 4.7887\r\n  ...\r\n1..2\r\n# tests 2\r\n# suites 0\r\n# pass 2\r\n# fail 0\r\n# cancelled 0\r\n# skipped 0\r\n# todo 0\r\n# duration_ms 211.6247\r\n",
+        "durationMs": 629,
+        "testResults": {
+          "testFramework": "unknown",
+          "runnerDetectedFrom": "none",
+          "testsTotal": 0,
+          "testsPassed": 0,
+          "testsFailed": 0,
+          "testsSkipped": 0,
+          "parseFailed": true
+        }
+      },
+      {
+        "name": "production-build",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\r\n\u003E yt-helper@1.0.0 build\r\n\u003E next build\r\n\r\n   \u25B2 Next.js 15.5.28\r\n\r\n   Creating an optimized production build ...\r\n \u2713 Compiled successfully in 3.7s\r\n   Linting and checking validity of types ...\r\n   Collecting page data ...\r\n   Generating static pages (0/5) ...\r\n   Generating static pages (1/5) \r\n   Generating static pages (2/5) \r\n   Generating static pages (3/5) \r\n \u2713 Generating static pages (5/5)\r\n   Finalizing page optimization ...\r\n   Collecting build traces ...\r\n   Exporting (0/2) ...\r\n \u2713 Exporting (2/2)\r\n\r\nRoute (app)                                 Size  First Load JS\r\n\u250C \u25CB /                                    20.2 kB         165 kB\r\n\u251C \u25CB /_not-found                            995 B         104 kB\r\n\u2514 \u25CB /admin                               10.3 kB         155 kB\r\n\u002B First Load JS shared by all             103 kB\r\n  \u251C chunks/255-1f92380adbc6ec99.js       46.7 kB\r\n  \u251C chunks/4bd1b696-c023c6e3521b1417.js  54.2 kB\r\n  \u2514 other shared chunks (total)          2.01 kB\r\n\r\n\r\n\u25CB  (Static)  prerendered as static content\r\n\r\n",
+        "durationMs": 16476
+      },
+      {
+        "name": "dev-server-serves-home",
+        "kind": "http-probe",
+        "verificationMethod": "http-status",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": null,
+        "outputSample": "HTTP 200\n\u003C!DOCTYPE html\u003E\u003Chtml lang=\u0022km\u0022 data-theme=\u0022dark\u0022\u003E\u003Chead\u003E\u003Cmeta charSet=\u0022utf-8\u0022/\u003E\u003Cmeta name=\u0022viewport\u0022 content=\u0022width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no\u0022/\u003E\u003Clink rel=\u0022stylesheet\u0022 href=\u0022/_next/static/css/app/layout.css?v=1794125152916\u0022 data-precedence=\u0022next_static/css/app/layout.css\u0022/\u003E\u003Clink rel=\u0022preload\u0022 as=\u0022script\u0022 fetchPriority=\u0022low\u0022 href=\u0022/_next/static/chunks/webpack.js?v=1794125152916\u0022/\u003E\u003Cscript src=\u0022/_next/static/chunks/main-app.js?v=1794125152916\u0022 async=\u0022\u0022\u003E\u003C/script\u003E\u003Cscript src=\u0022/_next/static/chunks/app-pages-internals.js\u0022 async=\u0022\u0022\u003E\u003C/script\u003E\u003Cscript src=\u0022/_next/static/chunks/app/layout.js\u0022 async=\u0022\u0022\u003E\u003C/script\u003E\u003Cscript src=\u0022/_next/static/chunks/app/page.js\u0022 async=\u0022\u0022\u003E\u003C/script\u003E\u003Clink rel=\u0022preload\u0022 href=\u0022https://telegram.org/js/telegram-web-app.js\u0022 as=\u0022script\u0022/\u003E\u003Clink rel=\u0022preconnect\u0022 href=\u0022https://fonts.googleapis.com\u0022/\u003E\u003Clink rel=\u0022preconnect\u0022 href=\u0022https://fonts.gstatic.com\u0022 crossorigin=\u0022anonymous\u0022/\u003E\u003Clink href=\u0022https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800\u0026amp;family=Noto\u002BSans\u002BKhmer:wght@400;500;600;700;800\u0026amp;family=Noto\u002BSans\u002BSC:wght@400;500;600;700;800\u0026amp;display=swap\u0022 rel=\u0022stylesheet\u0022/\u003E\u003Cscript src=\u0022/_next/static/chunks/polyfills.js\u0022 noModule=\u0022\u0022\u003E\u003C/script\u003E\u003C/head\u003E\u003Cbody\u003E\u003Cdiv hidden=\u0022\u0022\u003E\u003C!--$?--\u003E\u003Ctemplate id=\u0022B:0\u0022\u003E\u003C/template\u003E\u003C!--/$--\u003E\u003C/div\u003E\u003Cscript\u003E(self.__next_s=self.__next_s||[]).push([\u0022https://telegram.org/js/telegram-web-app.js\u0022,{}])\u003C/script\u003E\u003C!--$?--\u003E\u003Ctemplate id=\u0022B:1\u0022\u003E\u003C/template\u003E\u003C!--/$--\u003E\u003Cscript\u003ErequestAnimationFrame(function(){$RT=performance.now()});\u003C/script\u003E\u003Cscript src=\u0022/_next/static/chunks/webpack.js?v=1794125152916\u0022 id=\u0022_R_\u0022 async=\u0022\u0022\u003E\u003C/script\u003E\u003Cdiv hidden id=\u0022S:1\u0022\u003E\u003C/div\u003E\u003Cscript\u003E$RB=[];$RV=function(a){$RT=performance.now();for(var b=0;b\u003Ca.length;b\u002B=2){var c=a[b],e=a[b\u002B1];null!==e.parentNode\u0026\u0026e.parentNode.removeChild(e);var f=c.parentNode;if(f){var g=c.previousSibling,h=0;do{if(c\u0026\u00268===c.nodeType){var d=c.data;if(\u0022/$\u0022===d||\u0022/\u0026\u0022===d)if(0===h)break;else h--;else\u0022$\u0022!==d\u0026\u0026\u0022$?\u0022!==d\u0026\u0026\u0022$~\u0022!==d\u0026\u0026\u0022$!\u0022!==d\u0026\u0026\u0022\u0026\u0022!==d||h\u002B\u002B}d=c.nextSibling;f.removeChild(c);c=d}while(c);for(;e.firstChild;)f.insertBefore(e.firstChild,c);g.data=\u0022$\u0022;g._reactRetry\u0026\u0026requestAnimationFrame(g._reactRetry)}}a.length=0};\n$RC=function(a,b){if(b=document.getElementById(b))(a=document.getElementById(a))?(a.previousSibling.data=\u0022$~\u0022,$RB.push(a,b),2===$RB.length\u0026\u0026(\u0022number\u0022!==typeof $RT?requestAnimationFrame($RV.bind(null,$RB)):(a=performance.now(),setTimeout($RV.bind(null,$RB),2300\u003Ea\u0026\u00262E3\u003Ca?2300-a:$RT\u002B300-a)))):b.parentNode.removeChild(b)};$RC(\u0022B:1\u0022,\u0022S:1\u0022)\u003C/script\u003E\u003Ctitle\u003EHelper Mini App\u003C/title\u003E\u003Cmeta name=\u0022description\u0022 content=\u0022YouTube tools and gold trading management for Telegram.\u0022/\u003E\u003Cmeta name=\u0022application-name\u0022 content=\u0022Helper Mini App\u0022/\u003E\u003Cmeta property=\u0022og:title\u0022 content=\u0022Helper Mini App\u0022/\u003E\u003Cmeta property=\u0022og:description\u0022 content=\u0022YouTube tools and gold trading management for Telegram.\u0022/\u003E\u003Cmeta property=\u0022og:url\u0022 content=\u0022https://sambathreasmey.online/\u0022/\u003E\u003Cmeta property=\u0022og:site_name\u0022 content=\u0022Helper Mini App\u0022/\u003E\u003Cmeta property=\u0022og:image\u0022 content=\u0022https://sambathreasmey.online/banner.png\u0022/\u003E\u003Cmeta property=\u0022og:image:width\u0022 content=\u00221200\u0022/\u003E\u003Cmeta property=\u0022og:image:height\u0022 content=\u0022630\u0022/\u003E\u003Cmeta property=\u0022og:image:alt\u0022 content=\u0022Helper Mini App\u0022/\u003E\u003Cmeta property=\u0022og:type\u0022 content=\u0022website\u0022/\u003E\u003Cmeta name=\u0022twitter:card\u0022 content=\u0022summary_large_image\u0022/\u003E\u003Cmeta name=\u0022twitter:title\u0022 content=\u0022Helper Mini App\u0022/\u003E\u003Cmeta name=\u0022twitter:description\u0022 content=\u0022YouTube tools and gold trading management for Telegram.\u0022/\u003E\u003Cmeta name=\u0022twitter:image\u0022 content=\u0022https://sambathreasmey.online/banner.png\u0022/\u003E\u003Clink rel=\u0022icon\u0022 href=\u0022/favicon.ico\u0022 sizes=\u0022any\u0022/\u003E\u003Clink rel=\u0022icon\u0022 href=\u0022/favicon-32.png\u0022 type=\u0022image/png\u0022 sizes=\u002232x32\u0022/\u003E\u003Clink rel=\u0022icon\u0022 href=\u0022/icon-192.png\u0022 type=\u0022image/png\u0022 sizes=\u0022192x192\u0022/\u003E\u003Clink rel=\u0022apple-touch-icon\u0022 href=\u0022/apple-touch-icon.png\u0022 sizes=\u0022180x180\u0022/\u003E\u003Cscript\u003Edocument.querySelectorAll(\u0027body link[rel=\u0022icon\u0022], body link[rel=\u0022apple-touch-icon\u0022]\u0027).forEach(el =\u003E document.head.appendChild(el))\u003C/script\u003E\u003Cdiv hidden id=\u0022S:0\u0022\u003E\u003C/div\u003E\u003Cscript\u003E$RC(\u0022B:0\u0022,\u0022S:0\u0022)\u003C/script\u003E\u003Cscript\u003E(self.__next_f=self.__next_f||[]).push([0])\u003C/script\u003E\n\u2026[truncated]",
+        "durationMs": 4320
+      }
+    ],
+    "executions": [
+      {
+        "source": "setup[0]",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "ci",
+          "--legacy-peer-deps"
+        ],
+        "cwd": "D:\\Document\\Python\\ai-building\\yt-helper",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "typescript-no-emit",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npx.CMD",
+        "args": [
+          "tsc",
+          "--noEmit"
+        ],
+        "cwd": "D:\\Document\\Python\\ai-building\\yt-helper",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "tests-pass",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "test"
+        ],
+        "cwd": "D:\\Document\\Python\\ai-building\\yt-helper",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "production-build",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "run",
+          "build"
+        ],
+        "cwd": "D:\\Document\\Python\\ai-building\\yt-helper",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "dev-server-serves-home",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "run",
+          "dev",
+          "--",
+          "--hostname",
+          "127.0.0.1",
+          "--port",
+          "3000"
+        ],
+        "cwd": "D:\\Document\\Python\\ai-building\\yt-helper",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      }
+    ]
+  }
+}
