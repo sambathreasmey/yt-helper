@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { CirclePlay, Clapperboard, Film, Headphones, Play, type LucideIcon } from "lucide-react";
 import { ThemePicker } from "@/components/theme-picker";
 import { useTheme } from "@/providers/theme-provider";
@@ -13,7 +14,7 @@ const appIconComponents: Record<string, LucideIcon> = {
   headphones: Headphones,
 };
 
-export function AppHeader({
+function AppHeaderImpl({
   title,
   subtitle,
   brandIcon,
@@ -42,3 +43,5 @@ export function AppHeader({
     </header>
   );
 }
+
+export const AppHeader = memo(AppHeaderImpl);

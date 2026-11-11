@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import { UserRound } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { TelegramProfile } from "@/services/telegram-client";
 import { useLanguage } from "@/providers/language-provider";
 
-export function ProfileCard({ profile, loading = false }: { profile: TelegramProfile | null; loading?: boolean }) {
+function ProfileCardImpl({ profile, loading = false }: { profile: TelegramProfile | null; loading?: boolean }) {
   const [imageFailed, setImageFailed] = useState(false);
   const { t } = useLanguage();
 
@@ -58,3 +58,5 @@ export function ProfileCard({ profile, loading = false }: { profile: TelegramPro
     </Card>
   );
 }
+
+export const ProfileCard = memo(ProfileCardImpl);

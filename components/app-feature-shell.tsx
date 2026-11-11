@@ -13,8 +13,9 @@ import { DEFAULT_GLOBAL_APP_SETTINGS } from "@/services/dashboard-api";
 
 type AppFeature = "youtube" | "gold";
 
+const loadGoldTrading = () => import("@/features/gold-trading/gold-trading");
 const GoldTrading = dynamic(
-  () => import("@/features/gold-trading/gold-trading").then((module) => module.GoldTrading),
+  () => loadGoldTrading().then((module) => module.GoldTrading),
   { loading: GoldPageSkeleton },
 );
 
@@ -97,6 +98,16 @@ export function AppFeatureShell() {
     };
   }, []);
 
+  // Download the gold page in the background so switching tabs is instant.
+  useEffect(() => {
+    if (!goldEnabled || maintenanceMode) return undefined;
+    const idle = window.requestIdleCallback ?? ((callback: () => void) => window.setTimeout(callback, 2000));
+    const handle = idle(() => { void loadGoldTrading(); });
+    return () => {
+      if (window.cancelIdleCallback && typeof handle === "number") window.cancelIdleCallback(handle);
+    };
+  }, [goldEnabled, maintenanceMode]);
+
   useEffect(() => {
     if (maintenanceMode) return;
     if (feature === "youtube" && !youtubeEnabled && goldEnabled) setFeature("gold");
@@ -152,7 +163,7 @@ export function AppFeatureShell() {
             </aside>
           )}
           {youtubeEnabled || goldEnabled ? (
-            <div className="mx-auto w-full max-w-[520px] pb-24">
+            <div className="content-shell mx-auto w-full max-w-[520px] pb-24">
               <div className="feature-page-enter" key={visibleFeature}>
                 {visibleFeature === "gold" ? <GoldTrading /> : <YouTubeHelper />}
               </div>

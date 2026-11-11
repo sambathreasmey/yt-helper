@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ChevronRight, Flame, Plus, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HomeScreenGuide } from "@/components/home-screen-guide";
@@ -9,7 +10,7 @@ interface QuickActionsProps {
   showAddToHome: boolean;
 }
 
-export function QuickActions({ onOpen, onAddToHome, showAddToHome }: QuickActionsProps) {
+function QuickActionsImpl({ onOpen, onAddToHome, showAddToHome }: QuickActionsProps) {
   const { t } = useLanguage();
   return (
     <div className="youtube-quick-actions mb-6 grid grid-cols-2 gap-2.5" data-layout-slot="quick">
@@ -34,3 +35,5 @@ export function QuickActions({ onOpen, onAddToHome, showAddToHome }: QuickAction
     </div>
   );
 }
+
+export const QuickActions = memo(QuickActionsImpl);

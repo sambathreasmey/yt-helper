@@ -24,9 +24,14 @@ import {
   Waves,
   Wind,
   CircleOff,
+  Blend,
+  CircleDot,
+  Grid3X3,
+  Maximize2,
   type LucideProps,
 } from "lucide-react";
 import type { Appearance } from "@/providers/theme-config";
+import type { TranslationKey } from "@/providers/language-provider";
 
 export type IconComponent = ComponentType<LucideProps>;
 
@@ -71,6 +76,9 @@ export const backgrounds: IconOption<Appearance["background"]>[] = [
   { value: "hearts", label: "Hearts", icon: Heart },
   { value: "waves", label: "Waves", icon: Waves },
   { value: "galaxy", label: "Galaxy", icon: MoonStar },
+  { value: "mesh", label: "Mesh", icon: Blend },
+  { value: "grid", label: "Grid", icon: Grid3X3 },
+  { value: "dots", label: "Dots", icon: CircleDot },
   { value: "none", label: "None", icon: CircleOff },
 ];
 
@@ -88,6 +96,7 @@ export const layouts: IconOption<Appearance["layout"]>[] = [
   { value: "compact", label: "Compact", icon: PanelsTopLeft },
   { value: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { value: "gallery", label: "Gallery", icon: Grid2X2 },
+  { value: "focus", label: "Focus", icon: Maximize2 },
 ];
 
 export type OptionGroupKey = "surface" | "corners";
@@ -115,3 +124,44 @@ export const optionGroups: {
     ],
   },
 ];
+
+export interface SegmentOption<T extends string | number> {
+  value: T;
+  labelKey: TranslationKey;
+}
+
+export const animationSpeeds: SegmentOption<Appearance["animationSpeed"]>[] = [
+  { value: "slow", labelKey: "speedSlow" },
+  { value: "normal", labelKey: "speedNormal" },
+  { value: "fast", labelKey: "speedFast" },
+];
+
+export const contentWidths: SegmentOption<Appearance["contentWidth"]>[] = [
+  { value: "narrow", labelKey: "widthNarrow" },
+  { value: "normal", labelKey: "widthNormal" },
+  { value: "wide", labelKey: "widthWide" },
+];
+
+export const densities: SegmentOption<Appearance["density"]>[] = [
+  { value: "comfortable", labelKey: "densityComfortable" },
+  { value: "compact", labelKey: "densityCompact" },
+];
+
+export const textSizes: SegmentOption<Appearance["textSize"]>[] = [
+  { value: "small", labelKey: "textSmall" },
+  { value: "medium", labelKey: "textMedium" },
+  { value: "large", labelKey: "textLarge" },
+];
+
+export const performanceModes: SegmentOption<Appearance["performance"]>[] = [
+  { value: "auto", labelKey: "perfAuto" },
+  { value: "full", labelKey: "perfFull" },
+  { value: "lite", labelKey: "perfLite" },
+];
+
+export const presetLabelKeys = {
+  midnight: "presetMidnight",
+  blossom: "presetBlossom",
+  minimal: "presetMinimal",
+  speed: "presetSpeed",
+} as const satisfies Record<string, TranslationKey>;

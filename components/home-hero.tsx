@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ArrowRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,7 +11,7 @@ interface HomeHeroProps {
   onOpenYouTube: () => void;
 }
 
-export function HomeHero({ countdown, countdownDurationSeconds, loading = false, onOpenYouTube }: HomeHeroProps) {
+function HomeHeroImpl({ countdown, countdownDurationSeconds, loading = false, onOpenYouTube }: HomeHeroProps) {
   const { t } = useLanguage();
   const subtitle = countdown === null
     ? t("browseYouTube")
@@ -62,3 +63,5 @@ export function HomeHero({ countdown, countdownDurationSeconds, loading = false,
     </Button>
   );
 }
+
+export const HomeHero = memo(HomeHeroImpl);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -14,16 +14,20 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { AppHeader } from "@/components/app-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedNumber } from "@/components/animated-number";
+import { GoldLivePrice, usePriceHistory } from "@/components/gold-live-price";
 import { GoldHoldingsSkeleton, GoldMetricsSkeleton } from "@/components/gold-skeleton";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTelegram } from "@/hooks/use-telegram";
 import { formatUtcTimestamp } from "@/lib/date-format";
 import { useLanguage } from "@/providers/language-provider";
+import { useTheme } from "@/providers/theme-provider";
+import { impactTelegram } from "@/services/telegram-client";
 import {
   createGoldPriceAlert,
   createGoldPurchase,
@@ -80,6 +84,9 @@ function Metric({
   tone,
   emphasize = false,
   amount,
+  numeric,
+  format,
+  animate = true,
 }: {
   label: string;
   value: string;
@@ -87,6 +94,10 @@ function Metric({
   tone: "blue" | "violet" | "gold" | "green" | "accent";
   emphasize?: boolean;
   amount?: string | null;
+  /** When set with `format`, the value counts up/down and flashes as it changes. */
+  numeric?: number | null;
+  format?: (value: number) => string;
+  animate?: boolean;
 }) {
   return (
     <div className="gold-metric-card" data-tone={tone}>
@@ -96,7 +107,9 @@ function Metric({
       <span className="min-w-0">
         <span className="block text-xs leading-snug text-muted">{label}</span>
         <span className={`mt-1 block truncate ${emphasize ? "text-lg" : "text-base"} font-bold tabular-nums ${emphasize ? profitClass(amount ?? null) : ""}`}>
-          {value}
+          {numeric !== undefined && numeric !== null && format
+            ? <AnimatedNumber animate={animate} format={format} value={numeric} />
+            : value}
         </span>
       </span>
     </div>
@@ -213,11 +226,18 @@ export function GoldTrading() {
   const [alertDirection, setAlertDirection] = useState<GoldDirection>("ABOVE");
   const [notice, setNotice] = useState("");
 
+  const { appearance } = useTheme();
+  const refreshMs = appearance.refreshInterval * 1000;
   const overviewQuery = useQuery({
     queryKey: ["gold-overview", initData, sortBy, order],
     queryFn: () => getGoldOverview(initData, sortBy, order),
     enabled: Boolean(initData),
-    refetchInterval: 60_000,
+    // Keep the old numbers on screen while a new sort order loads, so the page never flashes empty.
+    placeholderData: keepPreviousData,
+    refetchInterval: refreshMs > 0 ? refreshMs : false,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
+    staleTime: 5_000,
   });
   const alertsQuery = useQuery({
     queryKey: ["gold-price-alerts", initData],
@@ -308,6 +328,26 @@ export function GoldTrading() {
 
   const overview = overviewQuery.data;
   const summary = overview?.summary;
+  const livePrice = overview?.current_price ? Number(overview.current_price.price_per_damlung) : null;
+  const priceHistory = usePriceHistory(livePrice, overviewQuery.dataUpdatedAt);
+  const animatePrice = appearance.priceAnimation && appearance.motion;
+  const formatMoney = useCallback((value: number) => formatUsd(String(value), locale), [locale]);
+  const formatPL = useCallback((value: number) => formatProfit(String(value), locale), [locale]);
+  const formatPerDamlung = useCallback(
+    (value: number) => `${formatUsd(String(value), locale)} / ${t("damlungUnit")}`,
+    [locale, t],
+  );
+  const formatGoldHeld = useCallback(
+    (value: number) => `${new Intl.NumberFormat(locale, { maximumFractionDigits: 8 }).format(value)} ${t("damlungUnit")}`,
+    [locale, t],
+  );
+  const lastPrice = useRef<number | null>(null);
+  const { haptics } = appearance;
+  useEffect(() => {
+    if (livePrice === null) return;
+    if (lastPrice.current !== null && lastPrice.current !== livePrice && haptics) impactTelegram(telegram, "soft");
+    lastPrice.current = livePrice;
+  }, [haptics, livePrice, telegram]);
   const isPending = savePurchase.isPending || removePurchase.isPending ||
     sellPurchase.isPending || saveAlert.isPending || removeAlert.isPending;
   const mutationError = savePurchase.error || removePurchase.error || sellPurchase.error ||
@@ -329,12 +369,20 @@ export function GoldTrading() {
                 <Skeleton className="h-7 w-48 rounded-full bg-white/15" />
                 <Skeleton className="h-2.5 w-32 rounded-full bg-white/15" />
               </div>
+            ) : livePrice !== null ? (
+              <GoldLivePrice
+                animate={animatePrice}
+                fetching={overviewQuery.isFetching}
+                formatDelta={formatMoney}
+                formatPrice={formatPerDamlung}
+                history={priceHistory}
+                intervalSeconds={appearance.refreshInterval}
+                onRefresh={() => { void overviewQuery.refetch(); }}
+                price={livePrice}
+                priceUpdatedAt={overviewQuery.dataUpdatedAt}
+              />
             ) : (
-              <p className="gold-price-amount">
-                {overview?.current_price
-                  ? `${formatUsd(overview.current_price.price_per_damlung, locale)} / ${t("damlungUnit")}`
-                  : t("priceUnavailable")}
-              </p>
+              <p className="gold-price-amount">{t("priceUnavailable")}</p>
             )}
             {!overviewQuery.isPending && !overview?.current_price && (
               <p className="mt-1 text-xs text-white/70">{t("adminMustSetPrice")}</p>
@@ -358,9 +406,28 @@ export function GoldTrading() {
             value={`${new Intl.NumberFormat(locale, { maximumFractionDigits: 8 }).format(Number(summary.quantity_hun) / 100)} ${t("damlungUnit")}`}
             icon={Wallet}
             tone="blue"
+            animate={animatePrice}
+            format={formatGoldHeld}
+            numeric={Number(summary.quantity_hun) / 100}
           />
-          <Metric label={t("costBasis")} value={formatUsd(summary.cost_basis, locale)} icon={Scale} tone="violet" />
-          <Metric label={t("currentValue")} value={formatUsd(summary.market_value, locale)} icon={Coins} tone="gold" />
+          <Metric
+            label={t("costBasis")}
+            value={formatUsd(summary.cost_basis, locale)}
+            icon={Scale}
+            tone="violet"
+            animate={animatePrice}
+            format={formatMoney}
+            numeric={Number(summary.cost_basis)}
+          />
+          <Metric
+            label={t("currentValue")}
+            value={formatUsd(summary.market_value, locale)}
+            icon={Coins}
+            tone="gold"
+            animate={animatePrice}
+            format={formatMoney}
+            numeric={summary.market_value === null ? null : Number(summary.market_value)}
+          />
           <Metric
             label={t("realizedPL")}
             value={formatProfit(summary.realized_profit_loss, locale)}
@@ -368,6 +435,9 @@ export function GoldTrading() {
             amount={summary.realized_profit_loss}
             icon={ArrowUpFromLine}
             tone="green"
+            animate={animatePrice}
+            format={formatPL}
+            numeric={Number(summary.realized_profit_loss)}
           />
           <Metric
             label={t("unrealizedPL")}
@@ -376,6 +446,9 @@ export function GoldTrading() {
             amount={summary.unrealized_profit_loss}
             icon={ChartNoAxesCombined}
             tone="accent"
+            animate={animatePrice}
+            format={formatPL}
+            numeric={summary.unrealized_profit_loss === null ? null : Number(summary.unrealized_profit_loss)}
           />
         </section>
         <Card className="gold-profit-hero">
@@ -386,7 +459,9 @@ export function GoldTrading() {
             <div className="min-w-0 flex-1">
               <p className="text-xs font-medium text-white/75">{t("totalProfitLoss")}</p>
               <p className={`gold-profit-amount ${Number(summary.total_profit_loss) < 0 ? "text-rose-200" : ""}`}>
-                {formatProfit(summary.total_profit_loss, locale)}
+                {summary.total_profit_loss === null
+                  ? formatProfit(summary.total_profit_loss, locale)
+                  : <AnimatedNumber animate={animatePrice} format={formatPL} value={Number(summary.total_profit_loss)} />}
               </p>
               <div className="gold-profit-breakdown">
                 <span>{t("realizedPL")}: {formatProfit(summary.realized_profit_loss, locale)}</span>

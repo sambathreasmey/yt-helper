@@ -1,13 +1,16 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/providers/theme-provider";
 import { cn } from "@/lib/utils";
-import { ThemePanel } from "@/components/theme-panel";
 import { themeModes } from "@/components/theme-picker-options";
 import { useLanguage } from "@/providers/language-provider";
+
+// The panel is large and only needed once opened, so it stays out of the first bundle.
+const ThemePanel = dynamic(() => import("@/components/theme-panel").then((module) => module.ThemePanel));
 
 export function ThemePicker() {
   const { appearance } = useTheme();

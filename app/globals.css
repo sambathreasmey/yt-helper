@@ -3332,3 +3332,320 @@
 }
 
 :root[data-motion="off"] .skeleton::after { display: none; }
+
+/* ==========================================================================
+   Refinement layer: new backgrounds, live price, user settings, performance
+   ========================================================================== */
+
+/* ---- New background styles ---- */
+:root[data-background="mesh"] body::before {
+  inset: -30%;
+  background:
+    radial-gradient(40% 40% at 20% 25%, rgb(var(--accent-rgb) / 38%), transparent 70%),
+    radial-gradient(35% 35% at 80% 20%, rgb(139 92 246 / 28%), transparent 70%),
+    radial-gradient(45% 45% at 70% 80%, rgb(56 189 248 / 26%), transparent 70%),
+    radial-gradient(35% 35% at 15% 85%, rgb(244 114 182 / 20%), transparent 70%);
+}
+
+:root[data-background="grid"] body::before {
+  inset: -8%;
+  background-image:
+    linear-gradient(rgb(var(--accent-rgb) / 11%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--accent-rgb) / 11%) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 0%, var(--accent-soft), transparent 55%);
+  background-size: 36px 36px, 36px 36px, auto;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 22%, #000 18%, transparent 78%);
+  mask-image: radial-gradient(ellipse at 50% 22%, #000 18%, transparent 78%);
+}
+
+:root[data-background="dots"] body::before {
+  inset: -8%;
+  background-image:
+    radial-gradient(rgb(var(--accent-rgb) / 26%) 1.2px, transparent 1.7px),
+    radial-gradient(ellipse at 80% 12%, var(--accent-soft), transparent 45%);
+  background-size: 22px 22px, auto;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 30%, #000 20%, transparent 80%);
+  mask-image: radial-gradient(ellipse at 50% 30%, #000 20%, transparent 80%);
+}
+
+.background-preview-mesh::before {
+  background:
+    radial-gradient(circle at 25% 30%, rgb(var(--accent-rgb) / 70%), transparent 55%),
+    radial-gradient(circle at 80% 25%, #8b5cf688, transparent 55%),
+    radial-gradient(circle at 60% 90%, #38bdf888, transparent 55%);
+}
+
+.background-preview-grid::before {
+  background-image:
+    linear-gradient(rgb(var(--accent-rgb) / 45%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--accent-rgb) / 45%) 1px, transparent 1px);
+  background-size: 12px 12px;
+}
+
+.background-preview-dots::before {
+  background-image: radial-gradient(rgb(var(--accent-rgb) / 80%) 1.4px, transparent 2px);
+  background-size: 10px 10px;
+}
+
+/* Dim only when the user lowered the slider, so the default path pays no filter cost. */
+:root[data-bg-dim="true"] body::before {
+  filter: opacity(var(--bg-opacity, 1));
+}
+
+/* Honour the user's animation speed for the ambient background. */
+:root[data-animation-style="float"] body::before { animation-duration: calc(18s * var(--speed, 1)); }
+:root[data-animation-style="breathe"] body::before { animation-duration: calc(7s * var(--speed, 1)); }
+:root[data-animation-style="twinkle"] body::before { animation-duration: calc(4s * var(--speed, 1)); }
+:root[data-animation-style="orbit"] body::before { animation-duration: calc(42s * var(--speed, 1)); }
+:root[data-animation-style="wave"] body::before { animation-duration: calc(12s * var(--speed, 1)); }
+
+/* ---- Staggered entrance (backwards fill so no transform lingers afterwards) ---- */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0) scale(0.985);
+  }
+}
+
+.layout-shell > [data-layout-slot],
+.gold-dashboard > *,
+.gold-metrics-grid > * {
+  animation: rise-in calc(460ms * var(--speed, 1)) cubic-bezier(0.2, 0.75, 0.25, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 55ms * var(--speed, 1));
+}
+
+.layout-shell > :nth-child(1), .gold-dashboard > :nth-child(1), .gold-metrics-grid > :nth-child(1) { --i: 0; }
+.layout-shell > :nth-child(2), .gold-dashboard > :nth-child(2), .gold-metrics-grid > :nth-child(2) { --i: 1; }
+.layout-shell > :nth-child(3), .gold-dashboard > :nth-child(3), .gold-metrics-grid > :nth-child(3) { --i: 2; }
+.layout-shell > :nth-child(4), .gold-dashboard > :nth-child(4), .gold-metrics-grid > :nth-child(4) { --i: 3; }
+.layout-shell > :nth-child(5), .gold-dashboard > :nth-child(5), .gold-metrics-grid > :nth-child(5) { --i: 4; }
+.layout-shell > :nth-child(6), .gold-dashboard > :nth-child(6) { --i: 5; }
+.layout-shell > :nth-child(n + 7), .gold-dashboard > :nth-child(n + 7) { --i: 6; }
+
+.view-enter { animation-duration: calc(360ms * var(--speed, 1)); }
+.feature-page-enter { animation-duration: calc(280ms * var(--speed, 1)); }
+
+/* ---- Live gold price ---- */
+.gold-live {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.gold-live-badge {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 999px;
+  background: rgb(0 0 0 / 22%);
+  padding: 0.2rem 0.6rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 92%);
+}
+
+.gold-live-status {
+  overflow: hidden;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+  color: rgb(255 255 255 / 72%);
+}
+
+.gold-live-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #9ca3af;
+}
+
+.gold-live-dot[data-active="true"] {
+  background: #4ade80;
+  box-shadow: 0 0 0 0 rgb(74 222 128 / 60%);
+  animation: live-pulse 1.8s ease-out infinite;
+}
+
+@keyframes live-pulse {
+  70% { box-shadow: 0 0 0 7px rgb(74 222 128 / 0%); }
+  100% { box-shadow: 0 0 0 0 rgb(74 222 128 / 0%); }
+}
+
+.gold-live-refresh {
+  display: grid;
+  width: 1.9rem;
+  height: 1.9rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 10%);
+  color: #fff;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.gold-live-refresh:hover:not(:disabled) { background: rgb(255 255 255 / 20%); }
+.gold-live-refresh:active:not(:disabled) { transform: scale(0.9); }
+.gold-live-refresh:disabled { opacity: 0.7; }
+
+.gold-trend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  margin-bottom: 0.25rem;
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  animation: chip-pop 420ms cubic-bezier(0.2, 1.3, 0.4, 1) backwards;
+}
+
+.gold-trend-chip[data-trend="up"] { background: rgb(74 222 128 / 22%); color: #bbf7d0; }
+.gold-trend-chip[data-trend="down"] { background: rgb(251 113 133 / 24%); color: #fecdd3; }
+
+@keyframes chip-pop {
+  from { opacity: 0; transform: translateY(6px) scale(0.85); }
+}
+
+.gold-refresh-track {
+  height: 2px;
+  margin-top: 0.7rem;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 14%);
+}
+
+.gold-refresh-bar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: rgb(255 255 255 / 70%);
+  transform-origin: left center;
+  animation: refresh-bar linear forwards;
+}
+
+@keyframes refresh-bar {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.gold-sparkline {
+  display: block;
+  width: 100%;
+  height: 2rem;
+  margin-top: 0.4rem;
+  color: rgb(255 255 255 / 85%);
+}
+
+/* Up/down flash when a number changes */
+.number-flash[data-flash="up"] { animation: number-flash-up 1.4s ease-out; }
+.number-flash[data-flash="down"] { animation: number-flash-down 1.4s ease-out; }
+
+@keyframes number-flash-up {
+  from { color: #4ade80; text-shadow: 0 0 16px rgb(74 222 128 / 65%); }
+}
+
+@keyframes number-flash-down {
+  from { color: #fb7185; text-shadow: 0 0 16px rgb(251 113 133 / 65%); }
+}
+
+/* ---- Press and hover polish ---- */
+.youtube-action-tile,
+.gold-metric-card,
+.gold-holding-card {
+  transition: transform 180ms ease, border-color 200ms ease, background 200ms ease, box-shadow 200ms ease;
+}
+
+.youtube-action-tile:active,
+.gold-metric-card:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) {
+  .glass:hover { border-color: rgb(var(--accent-rgb) / 28%); }
+  .gold-metric-card:hover { transform: translateY(-2px); }
+}
+
+/* ---- Layout settings ---- */
+:root[data-layout="focus"] .layout-shell > [data-layout-slot="profile"] { display: none; }
+:root[data-layout="focus"] .layout-shell [data-layout-slot="hero"] { min-height: 200px; }
+:root[data-layout="focus"] .layout-shell [data-layout-slot="header"] { margin-bottom: 0.75rem; }
+
+:root[data-width="narrow"] .content-shell,
+:root[data-width="narrow"] .gold-dashboard,
+:root[data-width="narrow"]:not([data-layout="dashboard"]):not([data-layout="gallery"]) .layout-main {
+  max-width: 440px;
+}
+
+:root[data-width="wide"] .content-shell,
+:root[data-width="wide"] .gold-dashboard,
+:root[data-width="wide"]:not([data-layout="dashboard"]):not([data-layout="gallery"]) .layout-main {
+  max-width: 640px;
+}
+
+:root[data-density="compact"] .gold-dashboard > * + * { margin-top: 0.625rem !important; }
+:root[data-density="compact"] .gold-metrics-grid { gap: 0.5rem; }
+:root[data-density="compact"] .gold-metric-card { min-height: 4.4rem; }
+:root[data-density="compact"] .layout-shell > [data-layout-slot] { margin-bottom: 0.5rem; }
+:root[data-density="compact"] .youtube-header { margin-bottom: 0.75rem; }
+:root[data-density="compact"] .youtube-action-tile { min-height: 4.75rem; }
+:root[data-density="compact"] .youtube-quick-actions { gap: 0.5rem; }
+
+/* ---- Rendering performance ---- */
+.gold-holding-card,
+.gold-transaction-row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 12rem;
+}
+
+[data-layout-slot="library"] > section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 14rem;
+}
+
+/* Lite mode: no blur, no ambient animation, no entrance choreography */
+:root[data-perf="lite"] *,
+:root[data-perf="lite"] *::before,
+:root[data-perf="lite"] *::after {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+:root[data-perf="lite"] body::before { animation: none !important; }
+:root[data-perf="lite"] .glass { background-color: var(--surface-strong); }
+:root[data-perf="lite"] .layout-shell > [data-layout-slot],
+:root[data-perf="lite"] .gold-dashboard > *,
+:root[data-perf="lite"] .gold-metrics-grid > * { animation: none; }
+:root[data-perf="lite"] .skeleton::after { display: none; }
+
+/* Stop ambient motion while the app is in the background */
+:root[data-paused="true"] body::before,
+:root[data-paused="true"] .gold-live-dot,
+:root[data-paused="true"] .skeleton::after {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layout-shell > [data-layout-slot],
+  .gold-dashboard > *,
+  .gold-metrics-grid > *,
+  .gold-trend-chip,
+  .gold-live-dot,
+  .gold-refresh-bar,
+  .number-flash { animation: none !important; }
+}
+
+:root[data-motion="off"] .layout-shell > [data-layout-slot],
+:root[data-motion="off"] .gold-dashboard > *,
+:root[data-motion="off"] .gold-metrics-grid > *,
+:root[data-motion="off"] .gold-trend-chip,
+:root[data-motion="off"] .gold-live-dot,
+:root[data-motion="off"] .gold-refresh-bar,
+:root[data-motion="off"] .number-flash { animation: none !important; }

@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AppHeader } from "@/components/app-header";
@@ -8,7 +9,6 @@ import { ProfileCard } from "@/components/profile-card";
 import { QuickActions } from "@/components/quick-actions";
 import { VideoLinkForm } from "@/components/video-link-form";
 import { VideoLibrary } from "@/components/video-library";
-import { YouTubePlayer } from "@/features/youtube-helper/video-player";
 import { YouTubeAdvertisement } from "@/features/youtube-helper/youtube-advertisement";
 import { useTheme } from "@/providers/theme-provider";
 import { useLanguage } from "@/providers/language-provider";
@@ -25,6 +25,12 @@ interface CurrentVideo {
   id: string;
   title: string;
 }
+
+// The player and its YouTube iframe logic are only needed after a video is chosen.
+const loadYouTubePlayer = () => import("@/features/youtube-helper/video-player");
+const YouTubePlayer = dynamic(() => loadYouTubePlayer().then((module) => module.YouTubePlayer), {
+  loading: () => <div aria-busy="true" className="skeleton aspect-video w-full rounded-3xl" />,
+});
 
 const DEFAULT_AUTO_REDIRECT_SECONDS = 3;
 const TAP_REDIRECT_DELAY_MS = 1000;
@@ -144,11 +150,20 @@ export function YouTubeHelper() {
     return () => backButton.offClick?.(onBack);
   }, [returnHome, telegram, view]);
 
-  function addToHomeScreen() {
+  const addToHomeScreen = useCallback(() => {
     try { telegram?.addToHomeScreen?.(); } catch {
       // Home screen installation is only available in supported Telegram clients.
     }
-  }
+  }, [telegram]);
+
+  // Warm the player chunk once the home screen is idle so the first play does not wait on it.
+  useEffect(() => {
+    const idle = window.requestIdleCallback ?? ((callback: () => void) => window.setTimeout(callback, 1500));
+    const handle = idle(() => { void loadYouTubePlayer(); });
+    return () => {
+      if (window.cancelIdleCallback && typeof handle === "number") window.cancelIdleCallback(handle);
+    };
+  }, []);
 
   function shareVideo() {
     if (!video) return;

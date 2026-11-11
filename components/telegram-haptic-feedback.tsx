@@ -24,6 +24,7 @@ export function TelegramHapticFeedback() {
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
       if (!(event.target instanceof Element)) return;
+      if (document.documentElement.dataset.haptics === "off") return;
       const target = event.target.closest(INTERACTIVE_SELECTOR);
       if (!target || target.closest("[data-haptic='off']")) return;
       if (target.matches(":disabled, [aria-disabled='true']")) return;

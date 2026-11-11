@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Clock3, Play, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -89,7 +90,7 @@ function VideoLibrarySkeleton() {
   );
 }
 
-export function VideoLibrary({ favorites, history, onPlay, loading = false }: VideoLibraryProps) {
+function VideoLibraryImpl({ favorites, history, onPlay, loading = false }: VideoLibraryProps) {
   const { t } = useLanguage();
   if (loading) return <div data-layout-slot="library"><VideoLibrarySkeleton /></div>;
   return (
@@ -99,3 +100,5 @@ export function VideoLibrary({ favorites, history, onPlay, loading = false }: Vi
     </div>
   );
 }
+
+export const VideoLibrary = memo(VideoLibraryImpl);
