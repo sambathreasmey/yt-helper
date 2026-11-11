@@ -2,6 +2,7 @@
 
 import { ExternalLink, Megaphone } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/providers/language-provider";
 import { getAdvertisementSetting } from "@/services/dashboard-api";
 
@@ -24,6 +25,15 @@ export function YouTubeAdvertisement() {
   });
   const advertisement = settingQuery.data;
 
+  if (settingQuery.isPending) {
+    return (
+      <div aria-busy="true" className="mb-3 space-y-2 rounded-3xl border border-border bg-surface p-4" data-layout-slot="advertisement">
+        <Skeleton className="h-3 w-20 rounded-full" />
+        <Skeleton className="h-4 w-3/5 rounded-full" />
+        <Skeleton className="h-3 w-4/5 rounded-full" />
+      </div>
+    );
+  }
   if (settingQuery.error) {
     return <p className="youtube-ad-error" role="status">{t("advertisementUnavailable")}</p>;
   }

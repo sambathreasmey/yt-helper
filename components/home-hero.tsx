@@ -1,14 +1,16 @@
 import { ArrowRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/providers/language-provider";
 
 interface HomeHeroProps {
   countdown: number | null;
   countdownDurationSeconds: number;
+  loading?: boolean;
   onOpenYouTube: () => void;
 }
 
-export function HomeHero({ countdown, countdownDurationSeconds, onOpenYouTube }: HomeHeroProps) {
+export function HomeHero({ countdown, countdownDurationSeconds, loading = false, onOpenYouTube }: HomeHeroProps) {
   const { t } = useLanguage();
   const subtitle = countdown === null
     ? t("browseYouTube")
@@ -45,7 +47,7 @@ export function HomeHero({ countdown, countdownDurationSeconds, onOpenYouTube }:
         <span className="min-w-0">
           <span className="block text-xl font-extrabold tracking-tight">{t("openYouTube")}</span>
           <span className={`mt-1 block min-h-4 text-xs font-medium leading-relaxed text-white/75 ${countdown !== null ? "pr-14" : ""}`}>
-            {subtitle}
+            {loading ? <Skeleton className="mt-0.5 h-3 w-40 rounded-full bg-white/15" /> : subtitle}
           </span>
         </span>
       </span>

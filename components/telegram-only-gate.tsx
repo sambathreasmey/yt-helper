@@ -195,9 +195,11 @@ function BlockedGate({ children }: { children: ReactNode }) {
     setInitData(getTelegramClient()?.initData || undefined);
   }, []);
 
-  const { data, error, isPending, isError } = useTelegramUserQuery(initData);
+  // Render the app right away; the register-user request runs in the background and
+  // only swaps in the blocked screen if the backend reports the account as blocked.
+  const { data, error, isError } = useTelegramUserQuery(initData);
 
-  if (initData === undefined || (initData && isPending)) return null;
+  if (initData === undefined) return null;
 
   if (isError && error?.name === "BlockedUserError") return <BlockedScreen />;
   if (data?.user?.status === "BLOCKED") return <BlockedScreen />;

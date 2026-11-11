@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, ArrowUpRight, CirclePlay, Coins, Megaphone, ShieldCheck } from "lucide-react";
+import { GoldPageSkeleton } from "@/components/gold-skeleton";
 import { YouTubeHelper } from "@/features/youtube-helper/youtube-helper";
 import { useTelegram } from "@/hooks/use-telegram";
 import { useGlobalAppSettings } from "@/hooks/use-global-app-settings";
@@ -12,21 +13,9 @@ import { DEFAULT_GLOBAL_APP_SETTINGS } from "@/services/dashboard-api";
 
 type AppFeature = "youtube" | "gold";
 
-function GoldTradingLoading() {
-  const { t } = useLanguage();
-
-  return (
-    <div className="mx-auto w-full max-w-[520px]" aria-busy="true">
-      <div className="glass rounded-card p-5 text-center">
-        <p className="text-sm text-muted" role="status">{t("loadingPortfolio")}</p>
-      </div>
-    </div>
-  );
-}
-
 const GoldTrading = dynamic(
   () => import("@/features/gold-trading/gold-trading").then((module) => module.GoldTrading),
-  { loading: GoldTradingLoading },
+  { loading: GoldPageSkeleton },
 );
 
 export function AppFeatureShell() {

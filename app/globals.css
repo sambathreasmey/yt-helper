@@ -3301,3 +3301,34 @@
 :root[data-animation-style="none"] .gold-dashboard::before {
   animation: none;
 }
+
+/* Skeleton (shimmer) loading placeholders */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background: var(--surface-strong);
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 14%), transparent);
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+:root[data-theme="light"] .skeleton::after {
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 75%), transparent);
+}
+
+@keyframes skeleton-shimmer {
+  100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after { display: none; }
+}
+
+:root[data-motion="off"] .skeleton::after { display: none; }

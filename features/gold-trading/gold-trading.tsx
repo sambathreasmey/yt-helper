@@ -18,7 +18,9 @@ import { useState, type FormEvent } from "react";
 import { AppHeader } from "@/components/app-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { GoldHoldingsSkeleton, GoldMetricsSkeleton } from "@/components/gold-skeleton";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useTelegram } from "@/hooks/use-telegram";
 import { formatUtcTimestamp } from "@/lib/date-format";
 import { useLanguage } from "@/providers/language-provider";
@@ -322,12 +324,19 @@ export function GoldTrading() {
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-medium text-white/75">{t("goldPrice")}</p>
-            <p className="gold-price-amount">
-              {overview?.current_price
-                ? `${formatUsd(overview.current_price.price_per_damlung, locale)} / ${t("damlungUnit")}`
-                : t("priceUnavailable")}
-            </p>
-            {!overview?.current_price && (
+            {overviewQuery.isPending ? (
+              <div className="mt-1.5 space-y-2">
+                <Skeleton className="h-7 w-48 rounded-full bg-white/15" />
+                <Skeleton className="h-2.5 w-32 rounded-full bg-white/15" />
+              </div>
+            ) : (
+              <p className="gold-price-amount">
+                {overview?.current_price
+                  ? `${formatUsd(overview.current_price.price_per_damlung, locale)} / ${t("damlungUnit")}`
+                  : t("priceUnavailable")}
+              </p>
+            )}
+            {!overviewQuery.isPending && !overview?.current_price && (
               <p className="mt-1 text-xs text-white/70">{t("adminMustSetPrice")}</p>
             )}
             {overview?.current_price && (
@@ -340,6 +349,7 @@ export function GoldTrading() {
         </CardContent>
       </Card>
 
+      {overviewQuery.isPending && <GoldMetricsSkeleton />}
       {summary && (
         <>
         <section className="gold-metrics-grid" aria-label="Gold portfolio summary">
@@ -474,7 +484,7 @@ export function GoldTrading() {
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {overviewQuery.isPending && <p className="gold-empty-state text-sm text-muted">{t("loadingPortfolio")}</p>}
+          {overviewQuery.isPending && <GoldHoldingsSkeleton />}
           {overview && overview.holdings.length === 0 && (
             <p className="gold-empty-state text-sm text-muted">{t("noPurchases")}</p>
           )}
@@ -754,6 +764,9 @@ export function GoldTrading() {
               <Bell aria-hidden="true" size={15} /> {t("setAlert")}
             </Button>
           </form>
+          {alertsQuery.isPending && alertsQuery.fetchStatus !== "idle" && (
+            <Skeleton className="h-14 w-full rounded-xl" />
+          )}
           {alertsQuery.data?.map((alert) => (
             <div key={alert.id} className="gold-alert-row flex items-center justify-between gap-3" data-status={alert.triggered_on ? "triggered" : "waiting"}>
               <div>

@@ -181,15 +181,17 @@ export function YouTubeHelper() {
           <HomeHero
             countdown={countdown}
             countdownDurationSeconds={autoRedirectQuery.data ?? DEFAULT_AUTO_REDIRECT_SECONDS}
+            loading={autoRedirectQuery.isPending}
             onOpenYouTube={startYouTubeCountdown}
           />
-          <ProfileCard profile={profile} />
+          <ProfileCard loading={telegram === undefined} profile={profile} />
           {appearance.layout === "dashboard"
             ? <>{quickActions}{videoLinkForm}</>
             : <>{videoLinkForm}{quickActions}</>}
           <VideoLibrary
             favorites={library.favorites}
             history={library.history}
+            loading={!library.ready}
             onPlay={playVideo}
           />
         </section>

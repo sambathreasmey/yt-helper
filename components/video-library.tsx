@@ -1,5 +1,6 @@
 import { Clock3, Play, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getVideoThumbnail } from "@/services/youtube";
 import type { LibraryVideo } from "@/services/library-storage";
 import { useLanguage } from "@/providers/language-provider";
@@ -63,10 +64,34 @@ interface VideoLibraryProps {
   favorites: LibraryVideo[];
   history: LibraryVideo[];
   onPlay: (videoId: string) => void;
+  loading?: boolean;
 }
 
-export function VideoLibrary({ favorites, history, onPlay }: VideoLibraryProps) {
+function VideoLibrarySkeleton() {
+  return (
+    <section aria-busy="true" className="mt-6">
+      <div className="mb-3 flex items-center gap-2.5">
+        <Skeleton className="size-8 rounded-xl" />
+        <Skeleton className="h-3.5 w-24 rounded-full" />
+      </div>
+      <div className="grid gap-2">
+        {[0, 1].map((item) => (
+          <Card key={item} className="flex items-center gap-3 p-2">
+            <Skeleton className="aspect-video w-28 shrink-0 rounded-lg" />
+            <span className="min-w-0 flex-1 space-y-2">
+              <Skeleton className="h-3 w-full rounded-full" />
+              <Skeleton className="h-3 w-2/3 rounded-full" />
+            </span>
+          </Card>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function VideoLibrary({ favorites, history, onPlay, loading = false }: VideoLibraryProps) {
   const { t } = useLanguage();
+  if (loading) return <div data-layout-slot="library"><VideoLibrarySkeleton /></div>;
   return (
     <div data-layout-slot="library">
       <VideoSection icon={Star} title={t("favorites")} videos={favorites} onPlay={onPlay} />
