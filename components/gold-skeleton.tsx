@@ -1,13 +1,24 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function GoldMetricsSkeleton() {
+export function GoldSummarySkeleton() {
   return (
-    <section aria-busy="true" className="gold-metrics-grid">
-      {[0, 1, 2, 3, 4].map((item) => (
-        <Skeleton key={item} className={`min-h-[5.3rem] rounded-[1.35rem] ${item === 4 ? "col-span-full" : ""}`} />
-      ))}
-    </section>
+    <Card aria-busy="true" className="gold-summary">
+      <div className="flex items-center gap-3">
+        <Skeleton className="size-12 shrink-0 rounded-2xl" />
+        <span className="min-w-0 flex-1 space-y-2">
+          <Skeleton className="h-3 w-28 rounded-full" />
+          <Skeleton className="h-6 w-40 rounded-full" />
+        </span>
+      </div>
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        {[0, 1, 2].map((item) => <Skeleton key={item} className="h-11 rounded-xl" />)}
+      </div>
+      <div className="mt-3 flex gap-2">
+        <Skeleton className="h-7 flex-1 rounded-full" />
+        <Skeleton className="h-7 flex-1 rounded-full" />
+      </div>
+    </Card>
   );
 }
 
@@ -52,7 +63,7 @@ export function GoldPageSkeleton() {
           </span>
         </CardContent>
       </Card>
-      <GoldMetricsSkeleton />
+      <GoldSummarySkeleton />
       <Card>
         <CardContent>
           <GoldHoldingsSkeleton />

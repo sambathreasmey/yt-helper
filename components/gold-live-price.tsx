@@ -1,9 +1,8 @@
 "use client";
 
 import { memo, useEffect, useId, useMemo, useState } from "react";
-import { ArrowDownRight, ArrowUpRight, RefreshCw } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { AnimatedNumber } from "@/components/animated-number";
-import { cn } from "@/lib/utils";
 import { useLanguage } from "@/providers/language-provider";
 
 const HISTORY_LIMIT = 30;
@@ -92,7 +91,6 @@ interface GoldLivePriceProps {
   history: number[];
   formatPrice: (value: number) => string;
   formatDelta: (value: number) => string;
-  onRefresh: () => void;
 }
 
 export const GoldLivePrice = memo(function GoldLivePrice({
@@ -104,7 +102,6 @@ export const GoldLivePrice = memo(function GoldLivePrice({
   history,
   formatPrice,
   formatDelta,
-  onRefresh,
 }: GoldLivePriceProps) {
   const { t } = useLanguage();
   // Direction since the price last moved, not just since the previous poll.
@@ -125,16 +122,6 @@ export const GoldLivePrice = memo(function GoldLivePrice({
           {t("liveBadge")}
           <span className="gold-live-status"><RefreshStatus fetching={fetching} intervalSeconds={intervalSeconds} updatedAt={priceUpdatedAt} /></span>
         </span>
-        <button
-          aria-label={t("refreshNow")}
-          className="gold-live-refresh"
-          disabled={fetching}
-          onClick={onRefresh}
-          title={t("refreshNow")}
-          type="button"
-        >
-          <RefreshCw aria-hidden="true" className={cn(fetching && "animate-spin")} size={14} />
-        </button>
       </div>
 
       <div className="mt-1.5 flex flex-wrap items-end gap-x-3 gap-y-1">

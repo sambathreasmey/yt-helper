@@ -1,13 +1,16 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { AlertTriangle, ArrowUpRight, CirclePlay, Coins, Megaphone, ShieldCheck } from "lucide-react";
 import { GoldPageSkeleton } from "@/components/gold-skeleton";
+import { PullToRefresh } from "@/components/pull-to-refresh";
 import { YouTubeHelper } from "@/features/youtube-helper/youtube-helper";
 import { useTelegram } from "@/hooks/use-telegram";
 import { useGlobalAppSettings } from "@/hooks/use-global-app-settings";
+import { useViewportLock } from "@/hooks/use-viewport-lock";
 import { useLanguage } from "@/providers/language-provider";
 import { DEFAULT_GLOBAL_APP_SETTINGS } from "@/services/dashboard-api";
 
@@ -25,6 +28,10 @@ export function AppFeatureShell() {
   const [navVisible, setNavVisible] = useState(true);
   const { telegram } = useTelegram();
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
+  useViewportLock();
+  // Pull-to-refresh re-fetches everything on screen (prices, settings, lists) in one go.
+  const refreshAll = useCallback(() => queryClient.refetchQueries({ type: "active" }), [queryClient]);
   const globalSettingsQuery = useGlobalAppSettings();
   const globalSettings = globalSettingsQuery.data ?? DEFAULT_GLOBAL_APP_SETTINGS;
   const youtubeEnabled = globalSettings.youtube_enabled;
@@ -130,6 +137,7 @@ export function AppFeatureShell() {
 
   return (
     <>
+      <PullToRefresh disabled={maintenanceMode} onRefresh={refreshAll}>
       {maintenanceMode ? (
         <main className="global-maintenance mx-auto my-8 w-[min(520px,calc(100%-32px))]">
           <span className="global-maintenance-icon"><AlertTriangle aria-hidden="true" size={24} /></span>
@@ -180,6 +188,7 @@ export function AppFeatureShell() {
           )}
         </>
       )}
+      </PullToRefresh>
       {(!maintenanceMode || isAdmin) && (
         <nav
           className="feature-nav-dock glass fixed bottom-[calc(var(--tg-safe-area-inset-bottom,0px)+12px)] left-1/2 z-40 flex w-[min(520px,calc(100vw-32px))] -translate-x-1/2 items-center rounded-full p-1.5"

@@ -1,5 +1,6 @@
 import Script from "next/script";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { themeBootScript } from "@/providers/theme-boot";
 import { LanguageProvider } from "@/providers/language-provider";
 import { QueryProvider } from "@/providers/query-provider";
 import { TelegramHapticFeedback } from "@/components/telegram-haptic-feedback";
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="km" data-theme="dark" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

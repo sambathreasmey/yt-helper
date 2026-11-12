@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ANIMATION_SPEED,
   DEFAULT_APPEARANCE,
@@ -54,6 +54,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [appearance, setAppearance] = useState<Appearance>(DEFAULT_APPEARANCE);
   const [ready, setReady] = useState(false);
   const [lowEnd, setLowEnd] = useState(false);
+  const switchTimer = useRef<number>(0);
 
   useEffect(() => {
     setAppearance(readAppearance());
@@ -109,6 +110,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       const accentColor = resolveAccentColor(appearance, theme);
 
       const root = document.documentElement;
+      // Skip colour transitions for the frame(s) where the palette changes, so elements never
+      // animate through half-old / half-new colours.
+      if (root.dataset.theme !== theme || root.style.getPropertyValue("--accent") !== accentColor) {
+        root.dataset.themeSwitching = "true";
+        window.clearTimeout(switchTimer.current);
+        switchTimer.current = window.setTimeout(() => { delete root.dataset.themeSwitching; }, 220);
+      }
       root.dataset.theme = theme;
       root.dataset.accent = appearance.accent;
       root.dataset.surface = appearance.surface;

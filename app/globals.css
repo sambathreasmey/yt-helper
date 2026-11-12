@@ -17,7 +17,7 @@
   --glass-blur: 22.4px;
   --shadow: 0 24px 64px rgb(0 0 0 / 30%), 0 8px 26px rgb(var(--accent-rgb) / 9%);
   --glass-sheen: linear-gradient(145deg, rgb(211 229 255 / 11%), rgb(174 204 245 / 3%) 48%, rgb(var(--accent-rgb) / 10%));
-  --popover-bg: rgb(17 29 47 / 96%);
+  --popover-bg: rgb(17 29 47);
   --radius-card: 1.5rem;
 }
 
@@ -35,7 +35,7 @@
   --accent-soft: rgb(var(--accent-rgb) / 12%);
   --shadow: 0 24px 64px rgb(27 49 76 / 9%), 0 8px 26px rgb(var(--accent-rgb) / 8%);
   --glass-sheen: linear-gradient(145deg, rgb(255 255 255 / 88%), rgb(229 239 249 / 50%) 48%, rgb(var(--accent-rgb) / 12%));
-  --popover-bg: rgb(250 252 255 / 97%);
+  --popover-bg: rgb(250 252 255);
 }
 
 :root[data-surface="solid"] {
@@ -3649,3 +3649,635 @@
 :root[data-motion="off"] .gold-live-dot,
 :root[data-motion="off"] .gold-refresh-bar,
 :root[data-motion="off"] .number-flash { animation: none !important; }
+
+/* ==========================================================================
+   Round 3: scroll lock, theme-correct status colours, pull-to-refresh,
+   bottom sheets and the compact gold layout
+   ========================================================================== */
+
+/* ---- No sideways scrolling, no zoom ----
+   Root cause of the old sideways pan: the ambient ::before glow on .layout-main / .gold-dashboard
+   stuck out past the page gutter (and its drift animation pushed it further). */
+html {
+  overflow-x: hidden;
+  max-width: 100%;
+  overscroll-behavior: none;
+}
+
+body {
+  max-width: 100%;
+  overscroll-behavior: none;
+}
+
+.layout-main::before,
+.gold-dashboard::before {
+  right: -1rem;
+  left: -1rem;
+}
+
+/* pan-y allows vertical scrolling only: no pinch zoom, no double-tap zoom, no sideways pan. */
+:root[data-lock="true"],
+:root[data-lock="true"] body {
+  touch-action: pan-y;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* iOS zooms the page when an input smaller than 16px gets focus. */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+}
+
+/* ---- Theme-aware status colours ---- */
+:root {
+  --solid: #111f33;
+  --pl-up: #4ade80;
+  --pl-down: #fb7185;
+  --warn-text: #fbbf24;
+  --danger-text: #fb7185;
+  --danger-bg: rgb(251 113 133 / 10%);
+  --danger-line: rgb(251 113 133 / 32%);
+}
+
+:root[data-theme="light"] {
+  --solid: #ffffff;
+  --pl-up: #15803d;
+  --pl-down: #be123c;
+  --warn-text: #92400e;
+  --danger-text: #be123c;
+  --danger-bg: rgb(225 29 72 / 7%);
+  --danger-line: rgb(225 29 72 / 28%);
+}
+
+.pl-up { color: var(--pl-up); }
+.pl-down { color: var(--pl-down); }
+
+.status-error {
+  border: 1px solid var(--danger-line);
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+/* Colours that were written for the dark theme only and became unreadable on light. */
+:root[data-theme="light"] .text-rose-400,
+:root[data-theme="light"] .text-rose-300,
+:root[data-theme="light"] .text-rose-200,
+:root[data-theme="light"] .text-red-300,
+:root[data-theme="light"] .global-settings-error,
+:root[data-theme="light"] .youtube-ad-error,
+:root[data-theme="light"] .admin-error,
+:root[data-theme="light"] .admin-ad-error,
+:root[data-theme="light"] .admin-user-status[data-status="blocked"] {
+  color: var(--danger-text);
+}
+
+:root[data-theme="light"] .text-emerald-400,
+:root[data-theme="light"] .admin-ad-success,
+:root[data-theme="light"] .admin-user-status {
+  color: var(--pl-up);
+}
+
+:root[data-theme="light"] .text-amber-300,
+:root[data-theme="light"] .auto-redirect-error,
+:root[data-theme="light"] .admin-user-status[data-status="inactive"],
+:root[data-theme="light"] .global-announcement h2,
+:root[data-theme="light"] .global-announcement > a {
+  color: var(--warn-text);
+}
+
+:root[data-theme="light"] .global-settings-error {
+  border-color: var(--danger-line);
+  background: var(--danger-bg);
+}
+
+:root[data-theme="light"] .border-rose-400\/40,
+:root[data-theme="light"] .border-rose-500\/40 { border-color: var(--danger-line); }
+:root[data-theme="light"] .bg-rose-400\/10,
+:root[data-theme="light"] .bg-rose-500\/10 { background-color: var(--danger-bg); }
+
+/* The settings panel and sheets must be solid enough to read over any page content. */
+/* `:root` raises specificity above the lite-mode `.glass` rule, which would otherwise win. */
+:root .appearance-panel.glass,
+:root .sheet-panel.glass {
+  background-color: var(--popover-bg);
+  background-image: none;
+}
+
+/* Lite mode removes the blur, so cards must be genuinely solid to stay readable over the background.
+   Only the colour changes: cards with their own gradient (gold price hero) keep it. */
+:root[data-perf="lite"] .glass {
+  background-color: var(--solid);
+}
+
+/* While the palette changes, skip colour transitions so nothing animates through wrong colours. */
+:root[data-theme-switching="true"] *,
+:root[data-theme-switching="true"] *::before,
+:root[data-theme-switching="true"] *::after {
+  transition: none !important;
+}
+
+/* Lite mode / reduced motion: the ambient glow is decoration, drop it. */
+:root[data-perf="lite"] .layout-main::before,
+:root[data-perf="lite"] .gold-dashboard::before {
+  display: none;
+}
+
+/* ---- Pull to refresh ---- */
+.ptr-indicator {
+  position: fixed;
+  z-index: 70;
+  top: calc(env(safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px) + 6px);
+  right: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(0, var(--ptr-y, 0px), 0);
+}
+
+.ptr-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--popover-bg);
+  padding: 0.4rem 0.85rem;
+  color: var(--mut);
+  font-size: 0.72rem;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+}
+
+.ptr-chip-ready {
+  border-color: rgb(var(--accent-rgb) / 45%);
+  color: var(--accent);
+}
+
+.ptr-arrow { transform: rotate(var(--ptr-rotate, 0deg)); }
+
+.ptr-content.ptr-animate,
+.ptr-indicator.ptr-animate {
+  transition: transform 280ms cubic-bezier(0.2, 0.85, 0.25, 1), opacity 200ms ease;
+}
+
+/* ---- Bottom sheet ---- */
+.sheet-root {
+  position: fixed;
+  z-index: 90;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.sheet-root[data-visible="true"] { pointer-events: auto; }
+
+.sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(3 8 18 / 55%);
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+:root[data-theme="light"] .sheet-backdrop { background: rgb(18 32 54 / 38%); }
+.sheet-root[data-visible="true"] .sheet-backdrop { opacity: 1; }
+
+.sheet-panel {
+  position: relative;
+  display: flex;
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(var(--sheet-vh, 100dvh) - 20px);
+  margin-bottom: var(--sheet-kb, 0px);
+  flex-direction: column;
+  border-radius: 1.75rem 1.75rem 0 0;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--tg-safe-area-inset-bottom, 0px));
+  outline: none;
+  transform: translate3d(0, 100%, 0);
+  transition: transform 280ms cubic-bezier(0.2, 0.85, 0.25, 1);
+}
+
+.sheet-root[data-visible="true"] .sheet-panel { transform: translate3d(0, 0, 0); }
+
+.sheet-header {
+  flex: 0 0 auto;
+  padding: 0.55rem 1rem 0.8rem;
+  touch-action: none;
+}
+
+.sheet-grabber {
+  display: block;
+  width: 2.5rem;
+  height: 0.3rem;
+  margin: 0 auto 0.8rem;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.sheet-close {
+  display: grid;
+  width: 2.1rem;
+  height: 2.1rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface-strong);
+  color: var(--mut);
+}
+
+.sheet-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 1rem 1rem;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ---- Compact gold page ---- */
+.gold-price-content {
+  min-height: 0;
+  gap: 0.8rem;
+  padding: 0.95rem 1rem;
+}
+
+.gold-price-icon { transform: scale(0.9); }
+
+.gold-summary {
+  padding: 0.9rem 1rem;
+}
+
+.gold-summary-top {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.gold-summary-icon {
+  display: grid;
+  width: 2.9rem;
+  height: 2.9rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 1rem;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.gold-summary-label {
+  color: var(--mut);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.gold-summary-total {
+  margin-top: 0.1rem;
+  font-size: 1.65rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.gold-summary-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+
+.gold-summary-stats > div {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 0.9rem;
+  background: var(--surface);
+  padding: 0.5rem 0.6rem;
+}
+
+.gold-summary-stats dt {
+  color: var(--mut);
+  font-size: 0.65rem;
+  line-height: 1.25;
+}
+
+.gold-summary-stats dd {
+  margin-top: 0.2rem;
+  overflow: hidden;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.gold-summary-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.gold-chip {
+  display: inline-flex;
+  min-width: 0;
+  flex: 1 1 8.5rem;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  background: var(--surface-strong);
+  padding: 0.3rem 0.65rem;
+  color: var(--mut);
+  font-size: 0.68rem;
+}
+
+.gold-chip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gold-chip b {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.gold-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 0.6rem;
+}
+
+.gold-actions > button {
+  position: relative;
+  min-height: 3rem;
+  border-radius: 1rem;
+  font-weight: 700;
+}
+
+.gold-badge {
+  display: inline-grid;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  place-items: center;
+  margin-left: 0.15rem;
+  border-radius: 999px;
+  background: var(--accent);
+  padding: 0 0.3rem;
+  color: var(--bg);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.gold-list-card { padding: 0; }
+
+.gold-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--line);
+  padding: 0.6rem 0.7rem;
+}
+
+.gold-tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-radius: 0.95rem;
+  background: var(--surface);
+  padding: 0.2rem;
+}
+
+.gold-tab {
+  display: inline-flex;
+  min-height: 2.1rem;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 0.75rem;
+  padding: 0 0.7rem;
+  color: var(--mut);
+  font-size: 0.78rem;
+  font-weight: 700;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.gold-tab[aria-selected="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.gold-tab-count {
+  min-width: 1.15rem;
+  border-radius: 999px;
+  background: var(--surface-strong);
+  padding: 0 0.3rem;
+  text-align: center;
+  font-size: 0.65rem;
+  line-height: 1.15rem;
+}
+
+.gold-list-head .gold-sort-select {
+  max-width: 7.5rem;
+  height: 2.4rem;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background: var(--surface-strong);
+  padding: 0 0.4rem;
+  color: var(--tx);
+  font-size: 0.72rem;
+}
+
+.gold-list-body {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.6rem;
+}
+
+.gold-holding-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: var(--surface);
+  padding: 0.65rem 0.7rem;
+  text-align: left;
+  transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.gold-holding-row:active { transform: scale(0.985); background: var(--surface-strong); }
+
+@media (hover: hover) {
+  .gold-holding-row:hover { border-color: rgb(var(--accent-rgb) / 35%); }
+}
+
+.gold-row-badge {
+  display: grid;
+  min-width: 2.4rem;
+  height: 2.4rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.85rem;
+  background: var(--accent-soft);
+  padding: 0 0.3rem;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.gold-fab {
+  position: fixed;
+  z-index: 45;
+  right: max(1rem, calc(50% - 260px + 1rem));
+  bottom: calc(var(--tg-safe-area-inset-bottom, 0px) + 5.9rem);
+  display: grid;
+  width: 3.4rem;
+  height: 3.4rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg);
+  box-shadow: 0 12px 28px rgb(var(--accent-rgb) / 38%), 0 4px 10px rgb(0 0 0 / 22%);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(0, 14px, 0) scale(0.8);
+  transition: opacity 200ms ease, transform 240ms cubic-bezier(0.2, 1.2, 0.4, 1);
+}
+
+.gold-fab[data-visible="true"] {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.gold-fab:active { transform: scale(0.92); }
+
+.app-toast {
+  position: fixed;
+  z-index: 100;
+  right: 1rem;
+  bottom: calc(var(--tg-safe-area-inset-bottom, 0px) + 6rem);
+  left: 1rem;
+  width: fit-content;
+  max-width: min(30rem, calc(100vw - 2rem));
+  margin: 0 auto;
+  border: 1px solid rgb(var(--accent-rgb) / 40%);
+  border-radius: 1rem;
+  background: var(--popover-bg);
+  padding: 0.65rem 1rem;
+  color: var(--tx);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(0, 12px, 0);
+  transition: opacity 200ms ease, transform 240ms ease;
+}
+
+.app-toast[data-visible="true"] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.app-toast:empty { display: none; }
+
+/* Grid/flex children must be allowed to shrink, otherwise long text pushes rows past their card. */
+.gold-list-body { grid-template-columns: minmax(0, 1fr); }
+.gold-holding-row,
+.gold-transaction-row,
+.gold-alert-row { min-width: 0; max-width: 100%; }
+
+.gold-summary-stats dd {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+/* Realized / unrealized chips: label on top, amount below, so neither gets cut off. */
+.gold-chip {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 0.35rem;
+  row-gap: 0.05rem;
+  flex: 1 1 0;
+  border-radius: 0.9rem;
+  padding: 0.4rem 0.7rem;
+}
+
+.gold-chip b {
+  grid-column: 1 / -1;
+  margin-left: 0;
+  font-size: 0.85rem;
+}
+
+/* Form fields inside bottom sheets (the old rules were scoped to the removed inline form card). */
+.sheet-body .gold-field-input {
+  width: 100%;
+  min-width: 0;
+  border-radius: 999px;
+  border-color: rgb(var(--accent-rgb) / 24%);
+  padding-left: 3.15rem;
+}
+
+.sheet-body .gold-field-input:focus {
+  border-color: rgb(var(--accent-rgb) / 70%);
+  box-shadow: 0 0 0 3px rgb(var(--accent-rgb) / 13%);
+}
+
+.sheet-body select { border-radius: 999px; }
+
+/* Theme-aware action buttons for the holding sheet. */
+:root { --on-accent: #07131f; }
+:root[data-theme="light"] { --on-accent: #ffffff; }
+
+.sheet-action {
+  display: inline-flex;
+  min-height: 2.9rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 1px solid var(--line);
+  border-radius: 0.95rem;
+  background: var(--surface-strong);
+  color: var(--tx);
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: transform 150ms ease, opacity 150ms ease;
+}
+
+.sheet-action:active:not(:disabled) { transform: scale(0.96); }
+.sheet-action:disabled { opacity: 0.4; }
+
+.sheet-action-sell {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.sheet-action-delete {
+  border-color: var(--danger-line);
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+/* Keep the header (and its settings dropdown) above the cards that follow it. */
+.youtube-header { z-index: 30; }
+
+.gold-tab,
+.gold-actions > button { white-space: nowrap; }
