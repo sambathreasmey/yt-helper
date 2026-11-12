@@ -76,8 +76,23 @@ export function BottomSheet({ open, onClose, title, description, icon, children 
     syncKeyboard();
     viewport?.addEventListener("resize", syncKeyboard);
     viewport?.addEventListener("scroll", syncKeyboard);
+    // Some Telegram clients resize the whole web view instead of the visual viewport.
+    window.addEventListener("resize", syncKeyboard);
+    const telegram = window.Telegram?.WebApp;
+    telegram?.onEvent?.("viewportChanged", syncKeyboard);
 
-    const focusTimer = window.setTimeout(() => panelRef.current?.focus({ preventScroll: true }), 60);
+    // Keep the field being typed in visible inside the sheet once the keyboard has finished animating.
+    let focusTimer = 0;
+    const onFocusIn = (event: FocusEvent) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement) || !panelRef.current?.contains(target)) return;
+      if (!target.matches("input, textarea, select")) return;
+      window.clearTimeout(focusTimer);
+      focusTimer = window.setTimeout(() => target.scrollIntoView({ block: "center", behavior: "smooth" }), 320);
+    };
+    document.addEventListener("focusin", onFocusIn);
+
+    const panelFocusTimer = window.setTimeout(() => panelRef.current?.focus({ preventScroll: true }), 60);
 
     return () => {
       delete root.dataset.sheet;
@@ -87,7 +102,11 @@ export function BottomSheet({ open, onClose, title, description, icon, children 
       window.removeEventListener("keydown", onKey);
       viewport?.removeEventListener("resize", syncKeyboard);
       viewport?.removeEventListener("scroll", syncKeyboard);
+      window.removeEventListener("resize", syncKeyboard);
+      telegram?.offEvent?.("viewportChanged", syncKeyboard);
+      document.removeEventListener("focusin", onFocusIn);
       window.clearTimeout(focusTimer);
+      window.clearTimeout(panelFocusTimer);
       try {
         backButton?.offClick?.(requestClose);
         backButton?.hide?.();
