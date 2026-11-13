@@ -4283,3 +4283,150 @@ body {
 
 .gold-tab,
 .gold-actions > button { white-space: nowrap; }
+
+/* ==========================================================================
+   Admin dashboard: compact overview, shortcut tiles, sheet-based forms
+   ========================================================================== */
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.admin-stat {
+  --admin-tone-rgb: 148 163 184;
+  display: grid;
+  min-width: 0;
+  justify-items: start;
+  gap: 0.1rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: var(--surface);
+  padding: 0.55rem 0.65rem;
+  text-align: left;
+}
+
+.admin-stat svg { color: rgb(var(--admin-tone-rgb)); }
+.admin-stat b { max-width: 100%; overflow: hidden; font-size: 1.1rem; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+.admin-stat small { max-width: 100%; overflow: hidden; color: var(--mut); font-size: 0.62rem; letter-spacing: 0.04em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.admin-stat[data-tone="blue"] { --admin-tone-rgb: 59 130 246; }
+.admin-stat[data-tone="green"] { --admin-tone-rgb: 16 185 129; }
+.admin-stat[data-tone="rose"] { --admin-tone-rgb: 244 63 94; }
+.admin-stat[data-tone="gold"] { --admin-tone-rgb: 234 179 8; }
+.admin-stat[data-tone="violet"] { --admin-tone-rgb: 139 92 246; }
+.admin-stat[data-tone="cyan"] { --admin-tone-rgb: 6 182 212; }
+.admin-stat[data-tone="indigo"] { --admin-tone-rgb: 99 102 241; }
+
+.admin-stat-action {
+  cursor: pointer;
+  border-color: rgb(var(--accent-rgb) / 30%);
+  background: var(--accent-soft);
+  transition: transform 150ms ease;
+}
+
+.admin-stat-action svg,
+.admin-stat-action b { color: var(--accent); }
+.admin-stat-action:active { transform: scale(0.96); }
+
+.admin-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.admin-tiles > .admin-tile:last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+.admin-tile {
+  --admin-tone-rgb: 148 163 184;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 1.1rem;
+  background: var(--surface);
+  padding: 0.7rem 0.75rem;
+  transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.admin-tile:active { transform: scale(0.97); background: var(--surface-strong); }
+@media (hover: hover) { .admin-tile:hover { border-color: rgb(var(--admin-tone-rgb) / 45%); } }
+
+.admin-tile[data-tone="blue"] { --admin-tone-rgb: 59 130 246; }
+.admin-tile[data-tone="green"] { --admin-tone-rgb: 16 185 129; }
+.admin-tile[data-tone="gold"] { --admin-tone-rgb: 234 179 8; }
+.admin-tile[data-tone="violet"] { --admin-tone-rgb: 139 92 246; }
+.admin-tile[data-tone="cyan"] { --admin-tone-rgb: 6 182 212; }
+
+.admin-tile-icon {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.9rem;
+  background: rgb(var(--admin-tone-rgb) / 16%);
+  color: rgb(var(--admin-tone-rgb));
+}
+
+:root[data-theme="light"] .admin-tile-icon,
+:root[data-theme="light"] .admin-stat svg { filter: saturate(1.1) brightness(0.8); }
+
+.admin-tile-status {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin-top: 0.1rem;
+  color: var(--mut);
+  font-size: 0.68rem;
+}
+
+.admin-dot { width: 0.45rem; height: 0.45rem; flex: 0 0 auto; border-radius: 50%; background: #94a3b8; }
+.admin-dot[data-state="on"] { background: var(--pl-up); }
+.admin-dot[data-state="warn"] { background: var(--warn-text); }
+
+.admin-users-card { overflow: hidden; }
+.admin-users-head { display: grid; gap: 0.6rem; padding: 0.8rem 0.8rem 0.4rem; }
+.admin-users-title { display: flex; min-width: 0; align-items: center; gap: 0.6rem; }
+.admin-users-pager { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; border-top: 1px solid var(--line); padding: 0.6rem 0.8rem; }
+
+.admin-user-hero {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: var(--surface);
+  padding: 0.65rem;
+}
+
+.sheet-tabs { display: flex; width: 100%; }
+.sheet-tabs .gold-tab { flex: 1 1 0; justify-content: center; padding: 0 0.3rem; }
+
+.sheet-body .admin-ad-field { display: grid; gap: 0.4rem; }
+.sheet-body .admin-global-select { width: 100%; }
+
+@media (min-width: 640px) {
+  .admin-stats { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .admin-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .admin-tiles > .admin-tile:last-child:nth-child(odd) { grid-column: auto; }
+}
+
+.admin-tile-status span {
+  display: -webkit-box;
+  overflow: hidden;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.admin-tile-status .admin-dot { margin-top: 0.3rem; }
+.admin-stat-action b { font-size: 0.85rem; }
+
+/* Light mode: plain text colour for the small labels so they clear WCAG AA on the tinted background. */
+:root[data-theme="light"] .admin-stat-action b,
+:root[data-theme="light"] .admin-stat-action small { color: var(--tx); }
+:root[data-theme="light"] .admin-stat-action svg { filter: brightness(0.8); }
+:root[data-theme="light"] .admin-user-status { color: #166534; }

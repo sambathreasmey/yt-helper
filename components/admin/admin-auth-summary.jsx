@@ -13,6 +13,7 @@ import {
   Users,
   UserX,
 } from "lucide-react";
+import { BottomSheet } from "@/components/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -60,19 +61,53 @@ export function AdminLogin({ onLoggedIn }) {
   );
 }
 
-export function SummaryCards({ summary }) {
-  if (!summary) return null;
-  const users = summary.users || {};
-  const sessions = summary.sessions || {};
+function formatDuration(value) {
+  const seconds = Math.max(Number(value) || 0, 0);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m`;
+  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+}
+
+function formatSessionUser(session) {
+  return [session.first_name, session.last_name].filter(Boolean).join(" ") ||
+    (session.username ? `@${session.username}` : String(session.chat_id));
+}
+
+/** All the key numbers in one compact grid, so the dashboard needs no scrolling to read them. */
+export function SummaryTiles({ summary, onOpenActivity }) {
+  const users = summary?.users || {};
+  const sessions = summary?.sessions || {};
   const items = [
-    ["Total users", users.total_users, Users, "blue"],
+    ["Total", users.total_users, Users, "blue"],
     ["Active", users.active_users, UserCheck, "green"],
     ["Blocked", users.blocked_users, UserX, "rose"],
     ["Premium", users.premium_users, Crown, "gold"],
-    ["New today", users.new_today, UserPlus, "violet"],
-    ["Active 24h", users.active_last_24h, Activity, "cyan"],
+    ["New", users.new_today, UserPlus, "violet"],
+    ["24h", users.active_last_24h, Activity, "cyan"],
     ["Sessions", sessions.total_sessions, Radio, "indigo"],
   ];
+  return (
+    <section aria-label="Admin overview" className="admin-stats">
+      {items.map(([label, value, Icon, tone]) => (
+        <div className="admin-stat" data-tone={tone} key={label} title={{ New: "New today", "24h": "Active in the last 24 hours" }[label] || label}>
+          <Icon aria-hidden="true" size={15} strokeWidth={2.3} />
+          <b className="tabular-nums">{summary ? Number(value) || 0 : "–"}</b>
+          <small>{label}</small>
+        </div>
+      ))}
+      <button className="admin-stat admin-stat-action" onClick={onOpenActivity} type="button">
+        <Clock3 aria-hidden="true" size={15} strokeWidth={2.3} />
+        <b>More</b>
+        <small>Activity</small>
+      </button>
+    </section>
+  );
+}
+
+/** User-activity bars and the latest sessions, shown in a sheet instead of two long cards. */
+export function ActivitySheet({ open, onClose, summary }) {
+  const users = summary?.users || {};
   const totalUsers = Math.max(Number(users.total_users) || 0, 0);
   const chartItems = [
     ["Active users", users.active_users, "green"],
@@ -80,41 +115,19 @@ export function SummaryCards({ summary }) {
     ["Blocked users", users.blocked_users, "rose"],
     ["Active in 24h", users.active_last_24h, "blue"],
   ];
-  const recentSessions = summary.recent_sessions || [];
-  const formatDuration = (value) => {
-    const seconds = Math.max(Number(value) || 0, 0);
-    if (seconds < 60) return `${seconds}s`;
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m`;
-    return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
-  };
-  const formatSessionUser = (session) =>
-    [session.first_name, session.last_name].filter(Boolean).join(" ") ||
-    (session.username ? `@${session.username}` : String(session.chat_id));
+  const recentSessions = summary?.recent_sessions || [];
 
   return (
-    <section className="admin-overview space-y-3" aria-label="Admin overview">
-      <div className="admin-summary-grid grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-        {items.map(([label, value, Icon, tone]) => (
-          <Card key={label} className="admin-metric-card rounded-3xl p-3.5 sm:p-4" data-tone={tone}>
-            <span className="admin-metric-icon" aria-hidden="true"><Icon size={19} strokeWidth={2.2} /></span>
-            <span className="min-w-0">
-              <span className="block truncate text-[10px] font-semibold uppercase tracking-[0.09em] text-muted">{label}</span>
-              <span className="mt-1 block text-xl font-bold tabular-nums">{Number(value) || 0}</span>
-            </span>
-          </Card>
-        ))}
-      </div>
-      <Card className="admin-chart-card p-4 sm:p-5">
-        <div className="admin-section-heading mb-4">
-          <span className="admin-heading-icon" aria-hidden="true"><Activity size={18} /></span>
-          <div>
-            <h2 className="text-sm font-bold">User activity</h2>
-            <p className="mt-0.5 text-xs text-muted">Current user counts by status and activity</p>
-          </div>
-          <span className="admin-chart-total ml-auto">{totalUsers} total</span>
-        </div>
-        <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2" role="img" aria-label="Horizontal bar chart of active, premium, blocked, and recently active users">
+    <BottomSheet
+      description="Current user counts and the most recent Mini App activity."
+      icon={<Activity size={17} />}
+      onClose={onClose}
+      open={open}
+      title="User activity"
+    >
+      <div className="space-y-4">
+        <div className="space-y-3" role="img" aria-label="Horizontal bar chart of active, premium, blocked, and recently active users">
+          <p className="admin-chart-total">{totalUsers} total users</p>
           {chartItems.map(([label, value, tone]) => {
             const count = Math.max(Number(value) || 0, 0);
             const width = totalUsers > 0 ? Math.min((count / totalUsers) * 100, 100) : 0;
@@ -131,42 +144,36 @@ export function SummaryCards({ summary }) {
             );
           })}
         </div>
-      </Card>
-      <Card className="admin-recent-sessions-card p-4 sm:p-5">
-        <div className="admin-section-heading mb-3">
-          <span className="admin-heading-icon admin-heading-cyan" aria-hidden="true"><Clock3 size={18} /></span>
-          <div>
-            <h2 className="text-sm font-bold">Latest 5 user sessions</h2>
-            <p className="mt-0.5 text-xs text-muted">Most recent Mini App activity</p>
-          </div>
-          <span className="admin-chart-total ml-auto">{recentSessions.length} sessions</span>
+
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.09em] text-muted">Latest {recentSessions.length || 5} sessions</p>
+          {recentSessions.length > 0 ? (
+            <ol className="admin-recent-session-list">
+              {recentSessions.map((session) => (
+                <li className="admin-recent-session-row" key={session.id}>
+                  <span className="admin-session-platform-icon" aria-hidden="true"><Smartphone size={17} /></span>
+                  <span className="admin-session-user">
+                    <strong>{formatSessionUser(session)}</strong>
+                    <small>
+                      {session.platform || "Platform not reported"}
+                      {session.username ? ` · @${session.username}` : ""}
+                    </small>
+                  </span>
+                  <span className="admin-session-time">
+                    <time dateTime={session.session_start || undefined}>
+                      {session.session_start ? formatUtcTimestamp(session.session_start) : "Time unavailable"}
+                    </time>
+                    <small>{session.session_end ? formatDuration(session.duration_seconds) : "In progress"}</small>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="admin-recent-sessions-empty">No user sessions have been recorded yet.</p>
+          )}
         </div>
-        {recentSessions.length > 0 ? (
-          <ol className="admin-recent-session-list">
-            {recentSessions.map((session) => (
-              <li className="admin-recent-session-row" key={session.id}>
-                <span className="admin-session-platform-icon" aria-hidden="true"><Smartphone size={17} /></span>
-                <span className="admin-session-user">
-                  <strong>{formatSessionUser(session)}</strong>
-                  <small>
-                    {session.platform || "Platform not reported"}
-                    {session.username ? ` · @${session.username}` : ""}
-                  </small>
-                </span>
-                <span className="admin-session-time">
-                  <time dateTime={session.session_start || undefined}>
-                    {session.session_start ? formatUtcTimestamp(session.session_start) : "Time unavailable"}
-                  </time>
-                  <small>{session.session_end ? formatDuration(session.duration_seconds) : "In progress"}</small>
-                </span>
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <p className="admin-recent-sessions-empty">No user sessions have been recorded yet.</p>
-        )}
-      </Card>
-    </section>
+      </div>
+    </BottomSheet>
   );
 }
 

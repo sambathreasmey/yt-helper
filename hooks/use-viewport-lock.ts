@@ -7,8 +7,10 @@ import { useEffect } from "react";
  * no ctrl+wheel / keyboard zoom, and no sideways panning of the page.
  * The CSS half of the lock lives under `:root[data-lock="true"]` in globals.css.
  */
-export function useViewportLock(): void {
+export function useViewportLock(touchOnly = false): void {
   useEffect(() => {
+    // Desktop browsers keep normal zoom when `touchOnly` is set (used by the admin page).
+    if (touchOnly && !window.matchMedia("(pointer: coarse)").matches) return undefined;
     const root = document.documentElement;
     root.dataset.lock = "true";
 
@@ -40,5 +42,5 @@ export function useViewportLock(): void {
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, []);
+  }, [touchOnly]);
 }
