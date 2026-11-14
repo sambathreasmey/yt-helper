@@ -99,7 +99,6 @@ export function WelcomeBannerDemo() {
             alt=""
             className="object-cover"
             fill
-            priority
             sizes="(max-width: 1024px) 100vw, 1024px"
             src="/demo/helper-home-screen-desktop.jpg"
           />

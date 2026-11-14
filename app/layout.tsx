@@ -9,13 +9,15 @@ import type { Metadata, Viewport } from "next";
 
 const siteUrl = "https://sambathreasmey.online";
 const siteTitle = "Helper Mini App";
-const siteDescription = "YouTube tools and gold trading management for Telegram.";
+const siteDescription = "A Telegram Mini App for YouTube and gold trading: open YouTube in one tap, track live gold prices, record purchases and sales, and get price alerts. Available in Khmer, English and Chinese.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: siteTitle,
   description: siteDescription,
   applicationName: siteTitle,
+  keywords: ["Telegram Mini App", "YouTube helper", "gold trading", "gold price", "Cambodia", "Khmer"],
+  alternates: { canonical: siteUrl },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },

@@ -11,6 +11,7 @@ var K=${JSON.stringify(STORAGE_KEY)},A=${JSON.stringify(ACCENTS)},T=${JSON.strin
 var a={};try{a=JSON.parse(localStorage.getItem(K)||"{}")||{}}catch(e){}
 var g=function(k){return a[k]!==undefined&&a[k]!==null?a[k]:D[k]};
 var r=document.documentElement,tg=window.Telegram&&window.Telegram.WebApp,m=g("mode");
+try{if(/tgWebApp(Data|Platform|Version)=/.test(location.hash)||sessionStorage.getItem("__telegram__initParams")||(tg&&tg.initData))r.dataset.tg="true"}catch(e){}
 var light=m==="light"||(m==="system"&&(tg&&tg.colorScheme?tg.colorScheme==="light":window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches));
 var th=light?"light":"dark",ac=g("accent"),col;
 if(ac==="custom"&&/^#[0-9a-fA-F]{6}$/.test(g("customAccent"))){
