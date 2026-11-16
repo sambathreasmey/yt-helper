@@ -1,0 +1,115 @@
+diff --git a/app/performance.css b/app/performance.css
+index 8c1f8bd..895f2d5 100644
+--- a/app/performance.css
++++ b/app/performance.css
+@@ -35,3 +35,18 @@
+ :root[data-paused="true"] .countdown-orbit-ring {
+   animation-play-state: paused !important;
+ }
++
++/* Admin: Telegram profile photos */
++.admin-user-avatar {
++  overflow: hidden;
++  width: 2.4rem;
++  border-radius: 9999px;
++  padding: 0;
++}
++
++.admin-user-avatar-img {
++  display: block;
++  width: 100%;
++  height: 100%;
++  object-fit: cover;
++}
+diff --git a/components/admin/user-avatar.jsx b/components/admin/user-avatar.jsx
+new file mode 100644
+index 0000000..f42a079
+--- /dev/null
++++ b/components/admin/user-avatar.jsx
+@@ -0,0 +1,33 @@
++"use client";
++
++import { useEffect, useState } from "react";
++import { formatUserName } from "@/components/admin/ui";
++
++/** Telegram profile photo with a letter fallback (no photo, or the image fails to load). */
++export function UserAvatar({ user }) {
++  const photo = user?.photo_url || null;
++  const [failed, setFailed] = useState(false);
++
++  // A new photo URL deserves a new attempt.
++  useEffect(() => setFailed(false), [photo]);
++
++  const initial = formatUserName(user).replace(/^@/, "").trim().slice(0, 1).toUpperCase() || "?";
++
++  return (
++    <span aria-hidden="true" className="gold-row-badge admin-user-avatar">
++      {photo && !failed ? (
++        <img
++          alt=""
++          className="admin-user-avatar-img"
++          decoding="async"
++          loading="lazy"
++          onError={() => setFailed(true)}
++          referrerPolicy="no-referrer"
++          src={photo}
++        />
++      ) : (
++        initial
++      )}
++    </span>
++  );
++}
+diff --git a/components/admin/user-detail-panel.jsx b/components/admin/user-detail-panel.jsx
+index 21cedb6..44f7a66 100644
+--- a/components/admin/user-detail-panel.jsx
++++ b/components/admin/user-detail-panel.jsx
+@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
+ import { UserRound } from "lucide-react";
+ import { BottomSheet } from "@/components/bottom-sheet";
+ import { SheetTabs } from "@/components/sheet-tabs";
++import { UserAvatar } from "@/components/admin/user-avatar";
+ import { Button } from "@/components/ui/button";
+ import { Input } from "@/components/ui/input";
+ import {
+@@ -81,7 +82,7 @@ function UserDetailBody({ chatId }) {
+   return (
+     <div className="space-y-3">
+       <div className="admin-user-hero">
+-        <span aria-hidden="true" className="gold-row-badge">{formatUserName(u).replace(/^@/, "").slice(0, 1).toUpperCase()}</span>
++        <UserAvatar user={u} />
+         <div className="min-w-0 flex-1">
+           <p className="truncate text-sm font-semibold">{formatUserName(u)}</p>
+           <p className="truncate text-xs text-muted">{u.username ? `@${u.username}` : "No username"} · chat {u.chat_id}</p>
+diff --git a/components/admin/user-list.jsx b/components/admin/user-list.jsx
+index 5cfc672..20dec25 100644
+--- a/components/admin/user-list.jsx
++++ b/components/admin/user-list.jsx
+@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
+ import { Input } from "@/components/ui/input";
+ import { listUsers } from "@/services/dashboard-api";
+ import { formatUserName, selectClass } from "@/components/admin/ui";
++import { UserAvatar } from "@/components/admin/user-avatar";
+ 
+ const PAGE_SIZE = 20;
+ const STATUS_OPTIONS = [
+@@ -22,10 +23,6 @@ const PLAN_OPTIONS = [
+   { value: "false", label: "Non-premium" },
+ ];
+ 
+-function initials(user) {
+-  return formatUserName(user).replace(/^@/, "").trim().slice(0, 1).toUpperCase() || "?";
+-}
+-
+ export function UserList({ onSelect }) {
+   const [filters, setFilters] = useState({ search: "", status: "", is_premium: "" });
+   const [page, setPage] = useState(1);
+@@ -85,7 +82,7 @@ export function UserList({ onSelect }) {
+         {usersQuery.isPending && <p className="py-6 text-center text-sm text-muted">Loading users...</p>}
+         {(data?.items || []).map((user) => (
+           <button className="gold-holding-row admin-user-row" key={user.id} onClick={() => onSelect(user.chat_id)} type="button">
+-            <span aria-hidden="true" className="gold-row-badge">{initials(user)}</span>
++            <UserAvatar user={user} />
+             <span className="min-w-0 flex-1 text-left">
+               <span className="block truncate text-sm font-semibold">{formatUserName(user)}</span>
+               <span className="block truncate text-xs text-muted">
