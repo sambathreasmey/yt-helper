@@ -25,6 +25,6 @@ set("animationStyle",g("animationStyle"));set("layout",g("layout"));set("width",
 set("textSize",g("textSize"));set("motion",g("motion")===false?"off":"on");set("haptics",g("haptics")===false?"off":"on");
 set("bgDim",g("backgroundIntensity")<100?"true":"false");
 r.style.setProperty("--accent",col);r.style.setProperty("--accent-rgb",((v>>16)&255)+" "+((v>>8)&255)+" "+(v&255));
-r.style.setProperty("--glass-blur",(g("blur")*0.32)+"px");r.style.setProperty("--speed",String(S[g("animationSpeed")]||1));
+r.style.setProperty("--glass-blur",Math.min(g("blur")*0.32,12)+"px");r.style.setProperty("--speed",String(S[g("animationSpeed")]||1));
 r.style.setProperty("--bg-opacity",String(g("backgroundIntensity")/100));r.style.fontSize=T[g("textSize")]||"16px";
 }catch(e){}})();`;
