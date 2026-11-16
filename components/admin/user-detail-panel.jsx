@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { UserRound } from "lucide-react";
 import { BottomSheet } from "@/components/bottom-sheet";
 import { SheetTabs } from "@/components/sheet-tabs";
+import { UserAvatar } from "@/components/admin/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -81,7 +82,7 @@ function UserDetailBody({ chatId }) {
   return (
     <div className="space-y-3">
       <div className="admin-user-hero">
-        <span aria-hidden="true" className="gold-row-badge">{formatUserName(u).replace(/^@/, "").slice(0, 1).toUpperCase()}</span>
+        <UserAvatar user={u} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{formatUserName(u)}</p>
           <p className="truncate text-xs text-muted">{u.username ? `@${u.username}` : "No username"} · chat {u.chat_id}</p>

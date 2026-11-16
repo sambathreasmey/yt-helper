@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { listUsers } from "@/services/dashboard-api";
 import { formatUserName, selectClass } from "@/components/admin/ui";
+import { UserAvatar } from "@/components/admin/user-avatar";
 
 const PAGE_SIZE = 20;
 const STATUS_OPTIONS = [
@@ -21,10 +22,6 @@ const PLAN_OPTIONS = [
   { value: "true", label: "Premium only" },
   { value: "false", label: "Non-premium" },
 ];
-
-function initials(user) {
-  return formatUserName(user).replace(/^@/, "").trim().slice(0, 1).toUpperCase() || "?";
-}
 
 export function UserList({ onSelect }) {
   const [filters, setFilters] = useState({ search: "", status: "", is_premium: "" });
@@ -85,7 +82,7 @@ export function UserList({ onSelect }) {
         {usersQuery.isPending && <p className="py-6 text-center text-sm text-muted">Loading users...</p>}
         {(data?.items || []).map((user) => (
           <button className="gold-holding-row admin-user-row" key={user.id} onClick={() => onSelect(user.chat_id)} type="button">
-            <span aria-hidden="true" className="gold-row-badge">{initials(user)}</span>
+            <UserAvatar user={user} />
             <span className="min-w-0 flex-1 text-left">
               <span className="block truncate text-sm font-semibold">{formatUserName(user)}</span>
               <span className="block truncate text-xs text-muted">
