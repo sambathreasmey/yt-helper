@@ -177,6 +177,7 @@ export function resolveAccentColor(appearance: Appearance, theme: "light" | "dar
  */
 export function isLowEndDevice(): boolean {
   if (typeof navigator === "undefined") return false;
+  if (isIOSDevice()) return true;
   const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
   const cores = navigator.hardwareConcurrency;
   const hasCores = typeof cores === "number" && cores > 0;
@@ -184,6 +185,12 @@ export function isLowEndDevice(): boolean {
   return (typeof memory === "number" && memory <= 2)
     || (hasCores && cores <= 2)
     || (touch && hasCores && cores <= 4);
+}
+
+export function isIOSDevice(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  return /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
 }
 
 export function readAppearance(): Appearance {
