@@ -1,0 +1,37 @@
+/* Twinkle: opacity only (filter animation is expensive) */
+@keyframes ambient-twinkle {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+
+/* Smaller animated layer in Full mode (orbit rotates, so it keeps the large one) */
+:root[data-perf="full"]:not([data-animation-style="orbit"]) body::before {
+  inset: -6%;
+}
+
+/* Freeze the ambient animation after the first seconds */
+:root[data-ambient="still"] body::before {
+  animation-play-state: paused !important;
+}
+
+/* Lite mode: stop infinite decorative loops */
+:root[data-perf="lite"] .welcome-page::before,
+:root[data-perf="lite"] .welcome-page::after,
+:root[data-perf="lite"] .welcome-demo-trigger > span,
+:root[data-perf="lite"] .welcome-card-separator span,
+:root[data-perf="lite"] .welcome-cta,
+:root[data-perf="lite"] .welcome-cta::before,
+:root[data-perf="lite"] .countdown-progress::after,
+:root[data-perf="lite"] .countdown-orbit-ring,
+:root[data-perf="lite"] .gold-live-dot {
+  animation: none !important;
+}
+
+/* Pause everything ambient while backgrounded / deactivated */
+:root[data-paused="true"] .welcome-page::before,
+:root[data-paused="true"] .welcome-page::after,
+:root[data-paused="true"] .welcome-cta,
+:root[data-paused="true"] .welcome-cta::before,
+:root[data-paused="true"] .countdown-orbit-ring {
+  animation-play-state: paused !important;
+}
