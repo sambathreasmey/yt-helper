@@ -1,0 +1,37 @@
+
+name: Apply Code Patch
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply-patch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Validate and apply patch
+        run: |
+          git apply --check .github/patches/user-avatar.patch
+          git apply .github/patches/user-avatar.patch
+
+      - name: Remove patch file
+        run: rm .github/patches/user-avatar.patch
+
+      - name: Commit changes
+        run: |
+          git add -A
+          git commit -m "feat: add Telegram user profile avatars"
+          git push origin HEAD:${{ github.ref_name }}
