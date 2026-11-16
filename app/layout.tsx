@@ -5,6 +5,7 @@ import { LanguageProvider } from "@/providers/language-provider";
 import { QueryProvider } from "@/providers/query-provider";
 import { TelegramHapticFeedback } from "@/components/telegram-haptic-feedback";
 import "./globals.css";
+import "./performance.css";
 import type { Metadata, Viewport } from "next";
 
 const siteUrl = "https://sambathreasmey.online";
