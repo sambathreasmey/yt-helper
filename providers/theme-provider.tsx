@@ -18,6 +18,9 @@ import {
   type ThemeMode,
 } from "@/providers/theme-config";
 
+const MAX_GLASS_BLUR_PX = 12;
+const AMBIENT_ACTIVE_MS = 12_000;
+
 interface ThemeContextValue {
   appearance: Appearance;
   ready: boolean;
@@ -133,7 +136,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.dataset.bgDim = appearance.backgroundIntensity < 100 ? "true" : "false";
       root.style.setProperty("--accent", accentColor);
       root.style.setProperty("--accent-rgb", rgbChannels(accentColor));
-      root.style.setProperty("--glass-blur", `${appearance.blur * 0.32}px`);
+      root.style.setProperty("--glass-blur", `${Math.min(appearance.blur * 0.32, MAX_GLASS_BLUR_PX)}px`);
       root.style.setProperty("--speed", String(ANIMATION_SPEED[appearance.animationSpeed]));
       root.style.setProperty("--bg-opacity", String(appearance.backgroundIntensity / 100));
       root.style.fontSize = TEXT_SCALE[appearance.textSize];
@@ -158,14 +161,49 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     };
   }, [appearance, lite]);
 
-  // Pause ambient animation while the app is in the background to save battery.
+  // Pause ambient animation when hidden or deactivated, and freeze it after a few seconds.
   useEffect(() => {
-    const syncVisibility = () => {
-      document.documentElement.dataset.paused = document.hidden ? "true" : "false";
+    const root = document.documentElement;
+    const telegram = window.Telegram?.WebApp;
+    let telegramInactive = false;
+    let stillTimer: number | undefined;
+
+    const syncPaused = () => {
+      root.dataset.paused = document.hidden || telegramInactive ? "true" : "false";
     };
-    syncVisibility();
-    document.addEventListener("visibilitychange", syncVisibility);
-    return () => document.removeEventListener("visibilitychange", syncVisibility);
+    const scheduleStill = () => {
+      window.clearTimeout(stillTimer);
+      delete root.dataset.ambient;
+      stillTimer = window.setTimeout(() => {
+        root.dataset.ambient = "still";
+      }, AMBIENT_ACTIVE_MS);
+    };
+    const onVisibility = () => {
+      syncPaused();
+      if (!document.hidden) scheduleStill();
+    };
+    const onDeactivated = () => {
+      telegramInactive = true;
+      syncPaused();
+    };
+    const onActivated = () => {
+      telegramInactive = false;
+      syncPaused();
+      scheduleStill();
+    };
+
+    syncPaused();
+    scheduleStill();
+    document.addEventListener("visibilitychange", onVisibility);
+    telegram?.onEvent?.("activated", onActivated);
+    telegram?.onEvent?.("deactivated", onDeactivated);
+
+    return () => {
+      window.clearTimeout(stillTimer);
+      document.removeEventListener("visibilitychange", onVisibility);
+      telegram?.offEvent?.("activated", onActivated);
+      telegram?.offEvent?.("deactivated", onDeactivated);
+    };
   }, []);
 
   const value = useMemo<ThemeContextValue>(() => ({
