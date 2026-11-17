@@ -159,6 +159,9 @@ export function GoldTrading() {
   const focusedHolding = holdings?.find((holding) => holding.id === sheet.id) ?? null;
   const livePrice = overview?.current_price ? Number(overview.current_price.price_per_damlung) : null;
   const priceHistory = usePriceHistory(livePrice, overviewQuery.dataUpdatedAt);
+  // Optional: only present once the backend sends previous_price_per_damlung.
+  const rawYesterday = Number(overview?.current_price?.previous_price_per_damlung);
+  const yesterdayPrice = Number.isFinite(rawYesterday) && rawYesterday > 0 ? rawYesterday : null;
   const animatePrice = appearance.priceAnimation && appearance.motion;
   const formatMoney = useCallback((value: number) => formatUsd(String(value), locale), [locale]);
   const formatPerDamlung = useCallback(
@@ -229,6 +232,7 @@ export function GoldTrading() {
                 intervalSeconds={appearance.refreshInterval}
                 price={livePrice}
                 priceUpdatedAt={overviewQuery.dataUpdatedAt}
+                yesterdayPrice={yesterdayPrice}
               />
             ) : (
               <p className="gold-price-amount">{t("priceUnavailable")}</p>

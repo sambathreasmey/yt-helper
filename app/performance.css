@@ -50,3 +50,30 @@
   height: 100%;
   object-fit: cover;
 }
+
+/* Gold: yesterday's price comparison */
+.gold-yesterday {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem 0.5rem;
+  margin-top: 0.4rem;
+  color: rgb(255 255 255 / 72%);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.gold-yesterday-value {
+  color: rgb(255 255 255 / 92%);
+  font-weight: 700;
+}
+
+.gold-yesterday-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+  font-weight: 700;
+}
+
+.gold-yesterday[data-trend="up"] .gold-yesterday-change { color: #bbf7d0; }
+.gold-yesterday[data-trend="down"] .gold-yesterday-change { color: #fecdd3; }

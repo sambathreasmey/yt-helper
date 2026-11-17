@@ -7,6 +7,10 @@ export type GoldPrice = {
   price_per_damlung: string;
   source: string;
   updated_on: string;
+  /** Yesterday's price per damlung. Optional: older backends do not send it yet. */
+  previous_price_per_damlung?: string | null;
+  /** Date (YYYY-MM-DD) that previous_price_per_damlung belongs to. */
+  previous_price_on?: string | null;
 };
 
 export type GoldHolding = {

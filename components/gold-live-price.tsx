@@ -89,6 +89,8 @@ interface GoldLivePriceProps {
   fetching: boolean;
   animate: boolean;
   history: number[];
+  /** Yesterday's price per damlung. Leave out (or null) to hide the comparison. */
+  yesterdayPrice?: number | null;
   formatPrice: (value: number) => string;
   formatDelta: (value: number) => string;
 }
@@ -100,6 +102,7 @@ export const GoldLivePrice = memo(function GoldLivePrice({
   fetching,
   animate,
   history,
+  yesterdayPrice = null,
   formatPrice,
   formatDelta,
 }: GoldLivePriceProps) {
@@ -113,6 +116,18 @@ export const GoldLivePrice = memo(function GoldLivePrice({
   }, [history, price]);
   const delta = price !== null && previous !== null ? price - previous : 0;
   const trend = delta > 0 ? "up" : delta < 0 ? "down" : "flat";
+
+  // Change versus yesterday. Hidden when the backend does not send a usable yesterday price.
+  const dayChange = useMemo(() => {
+    if (price === null || yesterdayPrice === null || !Number.isFinite(yesterdayPrice) || yesterdayPrice <= 0) {
+      return null;
+    }
+    const diff = Math.round((price - yesterdayPrice) * 100) / 100;
+    const dayTrend = diff > 0 ? "up" : diff < 0 ? "down" : "flat";
+    const sign = diff > 0 ? "+" : diff < 0 ? "\u2212" : "";
+    const percent = `${sign}${Math.abs((diff / yesterdayPrice) * 100).toFixed(2)}%`;
+    return { diff, trend: dayTrend, percent };
+  }, [price, yesterdayPrice]);
 
   return (
     <div className="gold-live" data-trend={trend}>
@@ -135,6 +150,19 @@ export const GoldLivePrice = memo(function GoldLivePrice({
           </span>
         )}
       </div>
+
+      {dayChange && yesterdayPrice !== null && (
+        <div className="gold-yesterday" data-trend={dayChange.trend}>
+          <span className="gold-yesterday-label">{t("yesterdayPrice")}</span>
+          <span className="gold-yesterday-value">{formatPrice(yesterdayPrice)}</span>
+          {dayChange.trend !== "flat" && (
+            <span className="gold-yesterday-change">
+              {dayChange.trend === "up" ? <ArrowUpRight aria-hidden="true" size={12} /> : <ArrowDownRight aria-hidden="true" size={12} />}
+              {formatDelta(Math.abs(dayChange.diff))} ({dayChange.percent})
+            </span>
+          )}
+        </div>
+      )}
 
       {intervalSeconds > 0 && (
         <div aria-hidden="true" className="gold-refresh-track">
