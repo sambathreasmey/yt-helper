@@ -1,0 +1,197 @@
+diff --git a/app/admin/page.jsx b/app/admin/page.jsx
+index 34f1b55..be22a72 100644
+--- a/app/admin/page.jsx
++++ b/app/admin/page.jsx
+@@ -2,7 +2,8 @@
+ 
+ import { useCallback, useEffect, useState } from "react";
+ import { useQueryClient } from "@tanstack/react-query";
+-import { Coins, Globe2, LayoutDashboard, LogOut, Megaphone, Send, ShieldCheck, Timer } from "lucide-react";
++import { Globe2, LayoutDashboard, LogOut, Megaphone, Send, ShieldCheck, Timer } from "lucide-react";
++import { GoldIcon } from "@/components/icons/gold-icon";
+ import { AppToast } from "@/components/app-toast";
+ import { PullToRefresh } from "@/components/pull-to-refresh";
+ import { Button } from "@/components/ui/button";
+@@ -80,7 +81,7 @@ function AdminDashboard({ onSignOut }) {
+ 
+         <section aria-label="Manage the app" className="admin-tiles">
+           <AdminTile
+-            icon={Coins}
++            icon={GoldIcon}
+             onClick={() => open("gold")}
+             state={globalSettings ? (globalSettings.github_gold_price_updates_enabled ? "on" : "off") : undefined}
+             status={`${globalSettings?.github_gold_price_updates_enabled ? "Auto-update on" : "Auto-update off"}${price ? ` · ${price}` : ""}`}
+diff --git a/components/admin/gold-price-automation.tsx b/components/admin/gold-price-automation.tsx
+index 11e739a..aee0176 100644
+--- a/components/admin/gold-price-automation.tsx
++++ b/components/admin/gold-price-automation.tsx
+@@ -2,7 +2,8 @@
+ 
+ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+ import { useEffect, useState } from "react";
+-import { Coins, Save, TrendingUp } from "lucide-react";
++import { Save, TrendingUp } from "lucide-react";
++import { GoldIcon } from "@/components/icons/gold-icon";
+ import { BottomSheet } from "@/components/bottom-sheet";
+ import { Button } from "@/components/ui/button";
+ import { formatUtcTimestamp } from "@/lib/date-format";
+@@ -107,7 +108,7 @@ export function GoldPriceSheet({ open, onClose, onSaved }: { open: boolean; onCl
+   return (
+     <BottomSheet
+       description="Check the current market price and control scheduled GitHub Action updates."
+-      icon={<Coins size={17} />}
++      icon={<GoldIcon size={17} />}
+       onClose={onClose}
+       open={open}
+       title="Gold price feed"
+diff --git a/components/app-feature-shell.tsx b/components/app-feature-shell.tsx
+index e512d7c..8e0162f 100644
+--- a/components/app-feature-shell.tsx
++++ b/components/app-feature-shell.tsx
+@@ -4,7 +4,8 @@ import dynamic from "next/dynamic";
+ import { useCallback, useEffect, useState } from "react";
+ import { useQueryClient } from "@tanstack/react-query";
+ import Link from "next/link";
+-import { AlertTriangle, ArrowUpRight, CirclePlay, Coins, Megaphone, ShieldCheck } from "lucide-react";
++import { AlertTriangle, ArrowUpRight, CirclePlay, Megaphone, ShieldCheck } from "lucide-react";
++import { GoldIcon } from "@/components/icons/gold-icon";
+ import { GoldPageSkeleton } from "@/components/gold-skeleton";
+ import { PullToRefresh } from "@/components/pull-to-refresh";
+ import { YouTubeHelper } from "@/features/youtube-helper/youtube-helper";
+@@ -224,7 +225,7 @@ export function AppFeatureShell() {
+               type="button"
+               aria-current={visibleFeature === "gold" ? "page" : undefined}
+             >
+-              <Coins aria-hidden="true" size={22} strokeWidth={2.2} />
++              <GoldIcon aria-hidden="true" size={22} strokeWidth={2.2} />
+               <span>{t("goldTrading")}</span>
+             </button>
+           )}
+diff --git a/components/icons/gold-icon.tsx b/components/icons/gold-icon.tsx
+new file mode 100644
+index 0000000..195881d
+--- /dev/null
++++ b/components/icons/gold-icon.tsx
+@@ -0,0 +1,31 @@
++import type { SVGProps } from "react";
++
++export interface GoldIconProps extends Omit<SVGProps<SVGSVGElement>, "width" | "height"> {
++  size?: number | string;
++  strokeWidth?: number | string;
++}
++
++/**
++ * Stacked gold bars. Same API as the lucide-react icons (size, strokeWidth, className, aria-*),
++ * so it can replace one directly. Colour comes from `currentColor`.
++ */
++export function GoldIcon({ size = 24, strokeWidth = 2, ...props }: GoldIconProps) {
++  return (
++    <svg
++      fill="none"
++      height={size}
++      stroke="currentColor"
++      strokeLinecap="round"
++      strokeLinejoin="round"
++      strokeWidth={strokeWidth}
++      viewBox="0 0 24 24"
++      width={size}
++      xmlns="http://www.w3.org/2000/svg"
++      {...props}
++    >
++      <path d="M7.5 9.5 9.2 3h5.6l1.7 6.5z" />
++      <path d="M1.5 21l1.7-8.5h5.6L10.5 21z" />
++      <path d="M13.5 21l1.7-8.5h5.6l1.7 8.5z" />
++    </svg>
++  );
++}
+diff --git a/components/landing/landing-page.tsx b/components/landing/landing-page.tsx
+index a59e8e3..dd42d4b 100644
+--- a/components/landing/landing-page.tsx
++++ b/components/landing/landing-page.tsx
+@@ -8,13 +8,13 @@ import {
+   Check,
+   ChevronDown,
+   CirclePlay,
+-  Coins,
+   LayoutGrid,
+   Play,
+   Send,
+   Smartphone,
+   Sparkles,
+ } from "lucide-react";
++import { GoldIcon } from "@/components/icons/gold-icon";
+ import { LanguageSwitcher } from "@/components/language-switcher";
+ import { WelcomeBannerDemo } from "@/components/welcome-banner-demo";
+ import { BOT_LINK, StickyTelegramCta, TelegramCta } from "@/components/landing/telegram-cta";
+@@ -119,7 +119,7 @@ function PhoneMock() {
+         />
+       </div>
+       <div aria-hidden="true" className="landing-chip landing-chip-a">
+-        <Coins size={15} />
++        <GoldIcon size={15} />
+         <span>{t("goldTrading")}</span>
+         <span className="landing-live"><i />{t("liveBadge")}</span>
+       </div>
+@@ -232,7 +232,7 @@ function Features() {
+         <FeatureCard
+           bullets={gold}
+           delay="90ms"
+-          icon={<Coins size={26} strokeWidth={1.9} />}
++          icon={<GoldIcon size={26} strokeWidth={1.9} />}
+           subtitle={t("goldSubtitle")}
+           title={t("goldTrading")}
+           tone="gold"
+diff --git a/features/gold-trading/gold-sheets.tsx b/features/gold-trading/gold-sheets.tsx
+index e65ec58..5e14c4d 100644
+--- a/features/gold-trading/gold-sheets.tsx
++++ b/features/gold-trading/gold-sheets.tsx
+@@ -1,6 +1,7 @@
+ "use client";
+ 
+-import { ArrowDownToLine, ArrowUpFromLine, Bell, Coins, FileText, Pencil, Trash2, Wallet } from "lucide-react";
++import { ArrowDownToLine, ArrowUpFromLine, Bell, FileText, Pencil, Trash2, Wallet } from "lucide-react";
++import { GoldIcon } from "@/components/icons/gold-icon";
+ import { useState, type FormEvent } from "react";
+ import { BottomSheet } from "@/components/bottom-sheet";
+ import { Button } from "@/components/ui/button";
+@@ -91,7 +92,7 @@ function TradeFields({
+           unit: t(unit === "damlung" ? "damlungUnit" : unit === "chi" ? "chiUnit" : "hunUnit"),
+         })}
+         <span className="gold-field-control">
+-          <span className="gold-field-icon gold-field-icon-cyan" aria-hidden="true"><Coins size={17} /></span>
++          <span className="gold-field-icon gold-field-icon-cyan" aria-hidden="true"><GoldIcon size={17} /></span>
+           <Input
+             className="gold-field-input"
+             required
+@@ -326,7 +327,7 @@ function AlertsContent({
+         }}
+       >
+         <span className="gold-alert-target">
+-          <span className="gold-field-icon gold-field-icon-cyan" aria-hidden="true"><Coins size={17} /></span>
++          <span className="gold-field-icon gold-field-icon-cyan" aria-hidden="true"><GoldIcon size={17} /></span>
+           <Input
+             aria-label={t("alertTarget")}
+             inputMode="decimal"
+diff --git a/features/gold-trading/gold-trading.tsx b/features/gold-trading/gold-trading.tsx
+index 42f3640..795ef6e 100644
+--- a/features/gold-trading/gold-trading.tsx
++++ b/features/gold-trading/gold-trading.tsx
+@@ -1,7 +1,8 @@
+ "use client";
+ 
+ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+-import { Bell, ChartNoAxesCombined, ChevronRight, Coins, Plus } from "lucide-react";
++import { Bell, ChartNoAxesCombined, ChevronRight, Plus } from "lucide-react";
++import { GoldIcon } from "@/components/icons/gold-icon";
+ import { useCallback, useEffect, useRef, useState } from "react";
+ import { createPortal } from "react-dom";
+ import { AppHeader } from "@/components/app-header";
+@@ -216,7 +217,7 @@ export function GoldTrading() {
+       <Card className="gold-price-hero">
+         <div className="gold-price-content">
+           <span className="gold-price-icon" aria-hidden="true">
+-            <Coins size={24} strokeWidth={2.1} />
++            <GoldIcon size={24} strokeWidth={2.1} />
+           </span>
+           <div className="min-w-0 flex-1">
+             <p className="text-xs font-medium text-white/75">{t("goldPrice")}</p>
