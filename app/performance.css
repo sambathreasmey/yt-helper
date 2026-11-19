@@ -277,14 +277,14 @@
 /* Gold: share button on the portfolio summary card */
 .gold-summary { position: relative; }
 
-.gold-summary .gold-share-button {
+.gold-more-button {
   position: absolute;
   top: 0.7rem;
   right: 0.7rem;
   z-index: 3;
   display: inline-flex;
-  width: 2.1rem;
-  height: 2.1rem;
+  width: 2.25rem;
+  height: 2.25rem;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--line);
@@ -295,7 +295,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.gold-summary .gold-share-button:active { transform: scale(0.94); }
+.gold-more-button:active { transform: scale(0.94); }
 
 /* Keep the label clear of the share button. */
 .gold-summary-top { padding-right: 2.4rem; }

@@ -1,7 +1,8 @@
 "use client";
 
-import { Share2 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { Ellipsis, Share2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ActionMenuSheet, type MenuAction } from "@/components/action-menu-sheet";
 import { ShareImageSheet, type ShareImageJob } from "@/components/share-image-sheet";
 import { formatProfit, formatQuantity, formatShortDate, formatUsd } from "@/features/gold-trading/gold-format";
 import { renderGoldSummaryCard, type GoldSummaryCardData, type Trend } from "@/lib/gold-summary-card";
@@ -13,12 +14,22 @@ function trendOf(value: number | null): Trend {
   return value > 0 ? "up" : "down";
 }
 
-/** Share button for the portfolio summary card: makes a designed image to share, copy or download. */
-export function GoldSummaryShareButton({ summary }: { summary: GoldOverview["summary"] }) {
+/** Time the menu sheet needs to slide away before the next sheet opens (matches BottomSheet). */
+const SHEET_EXIT_MS = 280;
+
+/**
+ * "…" button for the portfolio summary card. It opens a menu of options; for now there is one,
+ * "Share as image". To add an option, push another entry into `actions` below.
+ */
+export function GoldSummaryMenu({ summary }: { summary: GoldOverview["summary"] }) {
   const { t, locale } = useLanguage();
   const [job, setJob] = useState<ShareImageJob | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const timerRef = useRef<number | undefined>(undefined);
 
-  const open = useCallback(() => {
+  useEffect(() => () => window.clearTimeout(timerRef.current), []);
+
+  const buildShareJob = useCallback(() => {
     const total = summary.total_profit_loss === null ? null : Number(summary.total_profit_loss);
     const unrealized = summary.unrealized_profit_loss === null ? null : Number(summary.unrealized_profit_loss);
     const realized = Number(summary.realized_profit_loss);
@@ -62,11 +73,27 @@ export function GoldSummaryShareButton({ summary }: { summary: GoldOverview["sum
     });
   }, [locale, summary, t]);
 
+  const actions: MenuAction[] = [
+    {
+      id: "share-image",
+      icon: <Share2 aria-hidden="true" size={18} />,
+      label: t("menuShareImage"),
+      description: t("menuShareImageHint"),
+      onSelect: () => {
+        setMenuOpen(false);
+        // Let the menu slide away first so two sheets never overlap.
+        window.clearTimeout(timerRef.current);
+        timerRef.current = window.setTimeout(buildShareJob, SHEET_EXIT_MS);
+      },
+    },
+  ];
+
   return (
     <>
-      <button aria-label={t("shareSummaryTitle")} className="gold-share-button" onClick={open} type="button">
-        <Share2 aria-hidden="true" size={17} />
+      <button aria-label={t("moreOptions")} className="gold-more-button" onClick={() => setMenuOpen(true)} type="button">
+        <Ellipsis aria-hidden="true" size={20} />
       </button>
+      <ActionMenuSheet actions={actions} onClose={() => setMenuOpen(false)} open={menuOpen} title={t("moreOptions")} />
       <ShareImageSheet job={job} onClose={() => setJob(null)} title={t("shareSummaryTitle")} />
     </>
   );
