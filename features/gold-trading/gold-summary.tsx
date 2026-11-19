@@ -3,6 +3,7 @@
 import { ArrowUpFromLine, ChartNoAxesCombined } from "lucide-react";
 import { memo, useCallback } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
+import { GoldSummaryShareButton } from "@/components/gold-summary-share-button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/providers/language-provider";
@@ -35,6 +36,7 @@ export const GoldSummary = memo(function GoldSummary({ summary, animate }: GoldS
 
   return (
     <Card aria-label={t("portfolio")} className="gold-summary" role="region">
+      <GoldSummaryShareButton summary={summary} />
       <div className="gold-summary-top">
         <span aria-hidden="true" className="gold-summary-icon"><ChartNoAxesCombined size={22} strokeWidth={2.2} /></span>
         <div className="min-w-0 flex-1">

@@ -25,9 +25,9 @@ export interface GoldShareCardData {
 export const SHARE_CARD_WIDTH = 1080;
 export const SHARE_CARD_HEIGHT = 1350;
 
-type Ctx = CanvasRenderingContext2D;
+export type Ctx = CanvasRenderingContext2D;
 
-function roundRectPath(ctx: Ctx, x: number, y: number, w: number, h: number, r: number) {
+export function roundRectPath(ctx: Ctx, x: number, y: number, w: number, h: number, r: number) {
   const radius = Math.min(r, w / 2, h / 2);
   ctx.beginPath();
   ctx.moveTo(x + radius, y);
@@ -39,7 +39,7 @@ function roundRectPath(ctx: Ctx, x: number, y: number, w: number, h: number, r: 
 }
 
 /** Picks the largest font size (down to `min`) at which `text` fits in `maxWidth`, and applies it. */
-function fitFont(ctx: Ctx, text: string, weight: number, max: number, min: number, maxWidth: number, family: string) {
+export function fitFont(ctx: Ctx, text: string, weight: number, max: number, min: number, maxWidth: number, family: string) {
   let size = max;
   ctx.font = `${weight} ${size}px ${family}`;
   while (size > min && ctx.measureText(text).width > maxWidth) {
@@ -82,7 +82,7 @@ function drawBackground(ctx: Ctx) {
   });
 }
 
-function drawLogo(ctx: Ctx, logo: CanvasImageSource | null, x: number, y: number, size: number) {
+export function drawLogo(ctx: Ctx, logo: CanvasImageSource | null, x: number, y: number, size: number) {
   ctx.save();
   roundRectPath(ctx, x, y, size, size, size * 0.27);
   ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
@@ -100,7 +100,28 @@ function drawLogo(ctx: Ctx, logo: CanvasImageSource | null, x: number, y: number
   ctx.restore();
 }
 
-function drawCoinTile(ctx: Ctx, x: number, y: number, size: number) {
+/** The Helper gold-bars symbol (same shapes as components/icons/gold-icon.tsx) stroked on a canvas. */
+export function drawGoldBars(ctx: Ctx, x: number, y: number, size: number, color: string, lineWidth = 2) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(size / 24, size / 24);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  const bar = (points: [number, number][]) => {
+    ctx.beginPath();
+    points.forEach(([px, py], index) => (index === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py)));
+    ctx.closePath();
+    ctx.stroke();
+  };
+  bar([[7.5, 9.5], [9.2, 3], [14.8, 3], [16.5, 9.5]]);
+  bar([[1.5, 21], [3.2, 12.5], [8.8, 12.5], [10.5, 21]]);
+  bar([[13.5, 21], [15.2, 12.5], [20.8, 12.5], [22.5, 21]]);
+  ctx.restore();
+}
+
+export function drawCoinTile(ctx: Ctx, x: number, y: number, size: number) {
   ctx.save();
   roundRectPath(ctx, x, y, size, size, size * 0.33);
   const tile = ctx.createLinearGradient(x, y, x + size, y + size);
@@ -116,17 +137,7 @@ function drawCoinTile(ctx: Ctx, x: number, y: number, size: number) {
   ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
   ctx.stroke();
 
-  ctx.beginPath();
-  ctx.arc(x + size / 2, y + size / 2, size * 0.29, 0, Math.PI * 2);
-  ctx.lineWidth = 6;
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
-  ctx.stroke();
-
-  ctx.fillStyle = "#fff";
-  ctx.font = `800 ${size * 0.4}px system-ui, sans-serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("$", x + size / 2, y + size / 2 + 3);
+  drawGoldBars(ctx, x + size * 0.19, y + size * 0.19, size * 0.62, "#ffffff", 2.2);
   ctx.restore();
 }
 
@@ -271,7 +282,7 @@ export function drawGoldShareCard(ctx: Ctx, data: GoldShareCardData, logo: Canva
   ctx.textAlign = "left";
 }
 
-function loadImage(src: string): Promise<HTMLImageElement | null> {
+export function loadImage(src: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
     const image = new Image();
     image.onload = () => resolve(image);
@@ -280,8 +291,10 @@ function loadImage(src: string): Promise<HTMLImageElement | null> {
   });
 }
 
-/** Renders the card to a PNG blob in the browser. */
-export async function renderGoldShareCard(data: GoldShareCardData): Promise<Blob> {
+/** Runs a draw function on a fresh 1080x1350 canvas and returns it as a PNG blob. */
+export async function renderCardBlob(
+  draw: (ctx: Ctx, logo: CanvasImageSource | null, family: string) => void,
+): Promise<Blob> {
   const [logo] = await Promise.all([loadImage("/logo.png"), document.fonts?.ready ?? Promise.resolve()]);
 
   const canvas = document.createElement("canvas");
@@ -291,9 +304,14 @@ export async function renderGoldShareCard(data: GoldShareCardData): Promise<Blob
   if (!ctx) throw new Error("Canvas is not available");
 
   const family = getComputedStyle(document.body).fontFamily || "system-ui, sans-serif";
-  drawGoldShareCard(ctx, data, logo, family);
+  draw(ctx, logo, family);
 
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("Could not create image"))), "image/png");
   });
+}
+
+/** Renders the price card to a PNG blob in the browser. */
+export function renderGoldShareCard(data: GoldShareCardData): Promise<Blob> {
+  return renderCardBlob((ctx, logo, family) => drawGoldShareCard(ctx, data, logo, family));
 }
