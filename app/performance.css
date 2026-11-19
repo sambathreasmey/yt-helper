@@ -182,3 +182,50 @@
 
 .gold-keep-awake[aria-checked="true"] .gold-keep-awake-switch { background: #d6a63a; }
 .gold-keep-awake[aria-checked="true"] .gold-keep-awake-switch::after { transform: translateX(0.7rem); }
+
+/* Gold: share price card */
+.gold-price-hero .gold-share-button {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  z-index: 3;
+  display: inline-flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(255 255 255 / 30%);
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 16%);
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.gold-share-button:active { transform: scale(0.94); }
+
+.gold-share-panel { display: grid; gap: 0.9rem; }
+
+.gold-share-preview {
+  display: block;
+  width: min(100%, 22rem);
+  aspect-ratio: 1080 / 1350;
+  margin: 0 auto;
+  border-radius: 1rem;
+  object-fit: contain;
+  -webkit-touch-callout: default;
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
+.gold-share-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.gold-share-notice {
+  color: rgb(255 255 255 / 75%);
+  font-size: 0.78rem;
+  text-align: center;
+}

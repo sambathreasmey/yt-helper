@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import { AppHeader } from "@/components/app-header";
 import { GoldLivePrice, usePriceHistory } from "@/components/gold-live-price";
 import { GoldKeepAwake } from "@/components/gold-keep-awake";
+import { GoldShareButton } from "@/components/gold-share-button";
 import { GoldHoldingsSkeleton, GoldSummarySkeleton } from "@/components/gold-skeleton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -250,6 +251,14 @@ export function GoldTrading() {
           </div>
           <ChartNoAxesCombined className="gold-price-decoration" aria-hidden="true" />
         </div>
+        {livePrice !== null && (
+          <GoldShareButton
+            history={priceHistory}
+            price={livePrice}
+            updatedOn={overview?.current_price?.updated_on}
+            yesterdayPrice={yesterdayPrice}
+          />
+        )}
       </Card>
 
       {overviewQuery.isPending && <GoldSummarySkeleton />}
