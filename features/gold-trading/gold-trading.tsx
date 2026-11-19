@@ -2,10 +2,11 @@
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, ChartNoAxesCombined, ChevronRight, Plus } from "lucide-react";
-import { GoldIcon } from "@/components/icons/gold-icon";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AppHeader } from "@/components/app-header";
+import { GoldIcon } from "@/components/icons/gold-icon";
+import { UserProfileSheet } from "@/components/user-profile-sheet";
 import { GoldLivePrice, usePriceHistory } from "@/components/gold-live-price";
 import { GoldKeepAwake } from "@/components/gold-keep-awake";
 import { GoldShareButton } from "@/components/gold-share-button";
@@ -54,7 +55,7 @@ type Tab = "holdings" | "history";
 const TOAST_MS = 3400;
 
 export function GoldTrading() {
-  const { telegram } = useTelegram();
+  const { telegram, profile } = useTelegram();
   const { t, locale } = useLanguage();
   const { appearance } = useTheme();
   const initData = telegram?.initData || "";
@@ -200,6 +201,17 @@ export function GoldTrading() {
     return () => observer.disconnect();
   }, [overviewQuery.isPending]);
 
+  const [profileOpen, setProfileOpen] = useState(false);
+  const headerAvatar = useMemo(
+    () => ({
+      photoUrl: profile?.photoUrl ?? null,
+      fallback: profile?.name?.charAt(0).toUpperCase() ?? "",
+      label: t("viewMyProfile"),
+      onClick: () => setProfileOpen(true),
+      badge: <GoldIcon size={12} strokeWidth={2.6} />,
+    }),
+    [profile, t],
+  );
   const pendingAny = savePurchase.isPending || removePurchase.isPending || sellPurchase.isPending
     || saveAlert.isPending || removeAlert.isPending;
   const activeAlerts = alertsQuery.data?.filter((alert) => !alert.triggered_on).length ?? 0;
@@ -211,7 +223,7 @@ export function GoldTrading() {
 
   return (
     <main className="gold-dashboard mx-auto w-full max-w-[520px] space-y-4">
-      <AppHeader title={t("goldTrading")} subtitle={t("goldSubtitle")} brandIcon={ChartNoAxesCombined} brandVariant="gold" />
+      <AppHeader avatar={headerAvatar} title={t("goldTrading")} subtitle={t("goldSubtitle")} brandIcon={ChartNoAxesCombined} brandVariant="gold" />
       <GoldKeepAwake />
 
       <Card className="gold-price-hero">
@@ -460,6 +472,7 @@ export function GoldTrading() {
         </div>,
         document.body,
       )}
+      <UserProfileSheet onClose={() => setProfileOpen(false)} open={profileOpen} />
     </main>
   );
 }
