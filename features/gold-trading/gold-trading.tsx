@@ -1,7 +1,8 @@
 "use client";
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bell, ChartNoAxesCombined, ChevronRight, Coins, Plus } from "lucide-react";
+import { Bell, ChartNoAxesCombined, ChevronRight, Plus } from "lucide-react";
+import { GoldIcon } from "@/components/icons/gold-icon";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AppHeader } from "@/components/app-header";
@@ -216,7 +217,7 @@ export function GoldTrading() {
       <Card className="gold-price-hero">
         <div className="gold-price-content">
           <span className="gold-price-icon" aria-hidden="true">
-            <Coins size={24} strokeWidth={2.1} />
+            <GoldIcon size={24} strokeWidth={2.1} />
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-medium text-white/75">{t("goldPrice")}</p>

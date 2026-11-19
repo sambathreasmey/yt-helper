@@ -4,7 +4,8 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { AlertTriangle, ArrowUpRight, CirclePlay, Coins, Megaphone, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, CirclePlay, Megaphone, ShieldCheck } from "lucide-react";
+import { GoldIcon } from "@/components/icons/gold-icon";
 import { GoldPageSkeleton } from "@/components/gold-skeleton";
 import { PullToRefresh } from "@/components/pull-to-refresh";
 import { YouTubeHelper } from "@/features/youtube-helper/youtube-helper";
@@ -224,7 +225,7 @@ export function AppFeatureShell() {
               type="button"
               aria-current={visibleFeature === "gold" ? "page" : undefined}
             >
-              <Coins aria-hidden="true" size={22} strokeWidth={2.2} />
+              <GoldIcon aria-hidden="true" size={22} strokeWidth={2.2} />
               <span>{t("goldTrading")}</span>
             </button>
           )}

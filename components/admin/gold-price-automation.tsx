@@ -2,7 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Coins, Save, TrendingUp } from "lucide-react";
+import { Save, TrendingUp } from "lucide-react";
+import { GoldIcon } from "@/components/icons/gold-icon";
 import { BottomSheet } from "@/components/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { formatUtcTimestamp } from "@/lib/date-format";
@@ -107,7 +108,7 @@ export function GoldPriceSheet({ open, onClose, onSaved }: { open: boolean; onCl
   return (
     <BottomSheet
       description="Check the current market price and control scheduled GitHub Action updates."
-      icon={<Coins size={17} />}
+      icon={<GoldIcon size={17} />}
       onClose={onClose}
       open={open}
       title="Gold price feed"

@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowDownToLine, ArrowUpFromLine, Bell, Coins, FileText, Pencil, Trash2, Wallet } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, Bell, FileText, Pencil, Trash2, Wallet } from "lucide-react";
+import { GoldIcon } from "@/components/icons/gold-icon";
 import { useState, type FormEvent } from "react";
 import { BottomSheet } from "@/components/bottom-sheet";
 import { Button } from "@/components/ui/button";
@@ -91,7 +92,7 @@ function TradeFields({
           unit: t(unit === "damlung" ? "damlungUnit" : unit === "chi" ? "chiUnit" : "hunUnit"),
         })}
         <span className="gold-field-control">
-          <span className="gold-field-icon gold-field-icon-cyan" aria-hidden="true"><Coins size={17} /></span>
+          <span className="gold-field-icon gold-field-icon-cyan" aria-hidden="true"><GoldIcon size={17} /></span>
           <Input
             className="gold-field-input"
             required
@@ -326,7 +327,7 @@ function AlertsContent({
         }}
       >
         <span className="gold-alert-target">
-          <span className="gold-field-icon gold-field-icon-cyan" aria-hidden="true"><Coins size={17} /></span>
+          <span className="gold-field-icon gold-field-icon-cyan" aria-hidden="true"><GoldIcon size={17} /></span>
           <Input
             aria-label={t("alertTarget")}
             inputMode="decimal"

@@ -8,13 +8,13 @@ import {
   Check,
   ChevronDown,
   CirclePlay,
-  Coins,
   LayoutGrid,
   Play,
   Send,
   Smartphone,
   Sparkles,
 } from "lucide-react";
+import { GoldIcon } from "@/components/icons/gold-icon";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { WelcomeBannerDemo } from "@/components/welcome-banner-demo";
 import { BOT_LINK, StickyTelegramCta, TelegramCta } from "@/components/landing/telegram-cta";
@@ -119,7 +119,7 @@ function PhoneMock() {
         />
       </div>
       <div aria-hidden="true" className="landing-chip landing-chip-a">
-        <Coins size={15} />
+        <GoldIcon size={15} />
         <span>{t("goldTrading")}</span>
         <span className="landing-live"><i />{t("liveBadge")}</span>
       </div>
@@ -232,7 +232,7 @@ function Features() {
         <FeatureCard
           bullets={gold}
           delay="90ms"
-          icon={<Coins size={26} strokeWidth={1.9} />}
+          icon={<GoldIcon size={26} strokeWidth={1.9} />}
           subtitle={t("goldSubtitle")}
           title={t("goldTrading")}
           tone="gold"

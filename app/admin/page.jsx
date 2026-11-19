@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Coins, Globe2, LayoutDashboard, LogOut, Megaphone, Send, ShieldCheck, Timer } from "lucide-react";
+import { Globe2, LayoutDashboard, LogOut, Megaphone, Send, ShieldCheck, Timer } from "lucide-react";
+import { GoldIcon } from "@/components/icons/gold-icon";
 import { AppToast } from "@/components/app-toast";
 import { PullToRefresh } from "@/components/pull-to-refresh";
 import { Button } from "@/components/ui/button";
@@ -80,7 +81,7 @@ function AdminDashboard({ onSignOut }) {
 
         <section aria-label="Manage the app" className="admin-tiles">
           <AdminTile
-            icon={Coins}
+            icon={GoldIcon}
             onClick={() => open("gold")}
             state={globalSettings ? (globalSettings.github_gold_price_updates_enabled ? "on" : "off") : undefined}
             status={`${globalSettings?.github_gold_price_updates_enabled ? "Auto-update on" : "Auto-update off"}${price ? ` · ${price}` : ""}`}
