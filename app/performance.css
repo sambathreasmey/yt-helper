@@ -77,3 +77,67 @@
 
 .gold-yesterday[data-trend="up"] .gold-yesterday-change { color: #bbf7d0; }
 .gold-yesterday[data-trend="down"] .gold-yesterday-change { color: #fecdd3; }
+
+/* Admin: tappable avatar + full-screen profile photo */
+.admin-user-avatar-button {
+  display: inline-flex;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: 0 0 0 2px rgb(255 255 255 / 18%);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.admin-user-avatar-button:active { transform: scale(0.95); }
+
+.admin-photo-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  background: rgb(0 0 0 / 90%);
+  padding: calc(env(safe-area-inset-top, 0px) + 1rem) 1rem calc(env(safe-area-inset-bottom, 0px) + 5rem);
+}
+
+.admin-photo-viewer-img {
+  display: block;
+  width: min(92vw, 28rem);
+  max-height: 72vh;
+  border-radius: 1.25rem;
+  background: rgb(255 255 255 / 6%);
+  object-fit: contain;
+}
+
+.admin-photo-viewer-name {
+  max-width: 92vw;
+  overflow: hidden;
+  color: rgb(255 255 255 / 90%);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-photo-viewer-close {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 1.25rem);
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border: 0;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 16%);
+  color: #fff;
+  transform: translateX(-50%);
+  cursor: pointer;
+}

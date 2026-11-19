@@ -82,7 +82,7 @@ function UserDetailBody({ chatId }) {
   return (
     <div className="space-y-3">
       <div className="admin-user-hero">
-        <UserAvatar user={u} />
+        <UserAvatar user={u} zoomable />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{formatUserName(u)}</p>
           <p className="truncate text-xs text-muted">{u.username ? `@${u.username}` : "No username"} · chat {u.chat_id}</p>
