@@ -1,0 +1,217 @@
+diff --git a/app/performance.css b/app/performance.css
+index 0d76292..24e13d9 100644
+--- a/app/performance.css
++++ b/app/performance.css
+@@ -277,14 +277,14 @@
+ /* Gold: share button on the portfolio summary card */
+ .gold-summary { position: relative; }
+ 
+-.gold-summary .gold-share-button {
++.gold-more-button {
+   position: absolute;
+   top: 0.7rem;
+   right: 0.7rem;
+   z-index: 3;
+   display: inline-flex;
+-  width: 2.1rem;
+-  height: 2.1rem;
++  width: 2.25rem;
++  height: 2.25rem;
+   align-items: center;
+   justify-content: center;
+   border: 1px solid var(--line);
+@@ -295,7 +295,7 @@
+   -webkit-tap-highlight-color: transparent;
+ }
+ 
+-.gold-summary .gold-share-button:active { transform: scale(0.94); }
++.gold-more-button:active { transform: scale(0.94); }
+ 
+ /* Keep the label clear of the share button. */
+ .gold-summary-top { padding-right: 2.4rem; }
+diff --git a/components/action-menu-sheet.tsx b/components/action-menu-sheet.tsx
+new file mode 100644
+index 0000000..8deda60
+--- /dev/null
++++ b/components/action-menu-sheet.tsx
+@@ -0,0 +1,50 @@
++"use client";
++
++import { ChevronRight } from "lucide-react";
++import type { ReactNode } from "react";
++import { BottomSheet } from "@/components/bottom-sheet";
++
++/** One row in the menu. Add more of these to give a card more options. */
++export interface MenuAction {
++  id: string;
++  icon: ReactNode;
++  label: string;
++  description?: string;
++  onSelect: () => void;
++}
++
++/** Bottom sheet listing a card's actions as tappable rows. */
++export function ActionMenuSheet({
++  open,
++  onClose,
++  title,
++  actions,
++}: {
++  open: boolean;
++  onClose: () => void;
++  title: string;
++  actions: MenuAction[];
++}) {
++  return (
++    <BottomSheet onClose={onClose} open={open} title={title}>
++      <ul className="grid gap-2">
++        {actions.map((action) => (
++          <li key={action.id}>
++            <button
++              className="flex w-full items-center gap-3 rounded-2xl border border-border bg-surface-strong px-3.5 py-3 text-left text-foreground"
++              onClick={action.onSelect}
++              type="button"
++            >
++              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">{action.icon}</span>
++              <span className="min-w-0 flex-1">
++                <span className="block text-sm font-semibold">{action.label}</span>
++                {action.description && <span className="mt-0.5 block text-xs text-muted">{action.description}</span>}
++              </span>
++              <ChevronRight aria-hidden="true" className="shrink-0 text-muted" size={18} />
++            </button>
++          </li>
++        ))}
++      </ul>
++    </BottomSheet>
++  );
++}
+diff --git a/components/gold-summary-share-button.tsx b/components/gold-summary-menu.tsx
+similarity index 64%
+rename from components/gold-summary-share-button.tsx
+rename to components/gold-summary-menu.tsx
+index 6195cac..28c9ab7 100644
+--- a/components/gold-summary-share-button.tsx
++++ b/components/gold-summary-menu.tsx
+@@ -1,7 +1,8 @@
+ "use client";
+ 
+-import { Share2 } from "lucide-react";
+-import { useCallback, useState } from "react";
++import { Ellipsis, Share2 } from "lucide-react";
++import { useCallback, useEffect, useRef, useState } from "react";
++import { ActionMenuSheet, type MenuAction } from "@/components/action-menu-sheet";
+ import { ShareImageSheet, type ShareImageJob } from "@/components/share-image-sheet";
+ import { formatProfit, formatQuantity, formatShortDate, formatUsd } from "@/features/gold-trading/gold-format";
+ import { renderGoldSummaryCard, type GoldSummaryCardData, type Trend } from "@/lib/gold-summary-card";
+@@ -13,12 +14,22 @@ function trendOf(value: number | null): Trend {
+   return value > 0 ? "up" : "down";
+ }
+ 
+-/** Share button for the portfolio summary card: makes a designed image to share, copy or download. */
+-export function GoldSummaryShareButton({ summary }: { summary: GoldOverview["summary"] }) {
++/** Time the menu sheet needs to slide away before the next sheet opens (matches BottomSheet). */
++const SHEET_EXIT_MS = 280;
++
++/**
++ * "…" button for the portfolio summary card. It opens a menu of options; for now there is one,
++ * "Share as image". To add an option, push another entry into `actions` below.
++ */
++export function GoldSummaryMenu({ summary }: { summary: GoldOverview["summary"] }) {
+   const { t, locale } = useLanguage();
+   const [job, setJob] = useState<ShareImageJob | null>(null);
++  const [menuOpen, setMenuOpen] = useState(false);
++  const timerRef = useRef<number | undefined>(undefined);
++
++  useEffect(() => () => window.clearTimeout(timerRef.current), []);
+ 
+-  const open = useCallback(() => {
++  const buildShareJob = useCallback(() => {
+     const total = summary.total_profit_loss === null ? null : Number(summary.total_profit_loss);
+     const unrealized = summary.unrealized_profit_loss === null ? null : Number(summary.unrealized_profit_loss);
+     const realized = Number(summary.realized_profit_loss);
+@@ -62,11 +73,27 @@ export function GoldSummaryShareButton({ summary }: { summary: GoldOverview["sum
+     });
+   }, [locale, summary, t]);
+ 
++  const actions: MenuAction[] = [
++    {
++      id: "share-image",
++      icon: <Share2 aria-hidden="true" size={18} />,
++      label: t("menuShareImage"),
++      description: t("menuShareImageHint"),
++      onSelect: () => {
++        setMenuOpen(false);
++        // Let the menu slide away first so two sheets never overlap.
++        window.clearTimeout(timerRef.current);
++        timerRef.current = window.setTimeout(buildShareJob, SHEET_EXIT_MS);
++      },
++    },
++  ];
++
+   return (
+     <>
+-      <button aria-label={t("shareSummaryTitle")} className="gold-share-button" onClick={open} type="button">
+-        <Share2 aria-hidden="true" size={17} />
++      <button aria-label={t("moreOptions")} className="gold-more-button" onClick={() => setMenuOpen(true)} type="button">
++        <Ellipsis aria-hidden="true" size={20} />
+       </button>
++      <ActionMenuSheet actions={actions} onClose={() => setMenuOpen(false)} open={menuOpen} title={t("moreOptions")} />
+       <ShareImageSheet job={job} onClose={() => setJob(null)} title={t("shareSummaryTitle")} />
+     </>
+   );
+diff --git a/features/gold-trading/gold-summary.tsx b/features/gold-trading/gold-summary.tsx
+index 63ee973..5b50cb9 100644
+--- a/features/gold-trading/gold-summary.tsx
++++ b/features/gold-trading/gold-summary.tsx
+@@ -3,7 +3,7 @@
+ import { ArrowUpFromLine, ChartNoAxesCombined } from "lucide-react";
+ import { memo, useCallback } from "react";
+ import { AnimatedNumber } from "@/components/animated-number";
+-import { GoldSummaryShareButton } from "@/components/gold-summary-share-button";
++import { GoldSummaryMenu } from "@/components/gold-summary-menu";
+ import { Card } from "@/components/ui/card";
+ import { cn } from "@/lib/utils";
+ import { useLanguage } from "@/providers/language-provider";
+@@ -36,7 +36,7 @@ export const GoldSummary = memo(function GoldSummary({ summary, animate }: GoldS
+ 
+   return (
+     <Card aria-label={t("portfolio")} className="gold-summary" role="region">
+-      <GoldSummaryShareButton summary={summary} />
++      <GoldSummaryMenu summary={summary} />
+       <div className="gold-summary-top">
+         <span aria-hidden="true" className="gold-summary-icon"><ChartNoAxesCombined size={22} strokeWidth={2.2} /></span>
+         <div className="min-w-0 flex-1">
+diff --git a/providers/language-provider.tsx b/providers/language-provider.tsx
+index c4dc0ae..e083d77 100644
+--- a/providers/language-provider.tsx
++++ b/providers/language-provider.tsx
+@@ -266,6 +266,9 @@ const translations = {
+     shareSaveHint: "បើមិនទាន់រក្សាទុក សូមសង្កត់លើរូបភាពឱ្យយូរ",
+     shareFailed: "មិនអាចចែករំលែកបានទេ។ សូមសាកល្បងទាញយក ឬសង្កត់លើរូបភាពឱ្យយូរ",
+     shareSummaryTitle: "ចែករំលែកសង្ខេបផលប័ត្រ",
++    moreOptions: "ជម្រើសបន្ថែម",
++    menuShareImage: "ចែករំលែកជារូបភាព",
++    menuShareImageHint: "បង្កើតរូបភាពដើម្បីចែករំលែក ចម្លង ឬទាញយក",
+     yesterdayPrice: "ម្សិលមិញ",
+     navFeatures: "មុខងារ",
+     navHowItWorks: "របៀបប្រើ",
+@@ -573,6 +576,9 @@ const translations = {
+     shareSaveHint: "If it did not save, press and hold the image",
+     shareFailed: "Could not share here. Try Download, or press and hold the image to save it.",
+     shareSummaryTitle: "Share portfolio summary",
++    moreOptions: "More options",
++    menuShareImage: "Share as image",
++    menuShareImageHint: "Create a picture to share, copy or download",
+     yesterdayPrice: "Yesterday",
+     navFeatures: "Features",
+     navHowItWorks: "How it works",
+@@ -880,6 +886,9 @@ const translations = {
+     shareSaveHint: "如未保存，请长按图片",
+     shareFailed: "无法在此分享。请尝试下载，或长按图片保存。",
+     shareSummaryTitle: "分享投资组合摘要",
++    moreOptions: "更多选项",
++    menuShareImage: "分享为图片",
++    menuShareImageHint: "生成图片，可分享、复制或下载",
+     yesterdayPrice: "昨日",
+     navFeatures: "功能",
+     navHowItWorks: "使用方式",
