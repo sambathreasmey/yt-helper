@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AppHeader } from "@/components/app-header";
 import { GoldLivePrice, usePriceHistory } from "@/components/gold-live-price";
+import { GoldKeepAwake } from "@/components/gold-keep-awake";
 import { GoldHoldingsSkeleton, GoldSummarySkeleton } from "@/components/gold-skeleton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -209,6 +210,7 @@ export function GoldTrading() {
   return (
     <main className="gold-dashboard mx-auto w-full max-w-[520px] space-y-4">
       <AppHeader title={t("goldTrading")} subtitle={t("goldSubtitle")} brandIcon={ChartNoAxesCombined} brandVariant="gold" />
+      <GoldKeepAwake />
 
       <Card className="gold-price-hero">
         <div className="gold-price-content">

@@ -141,3 +141,44 @@
   transform: translateX(-50%);
   cursor: pointer;
 }
+
+/* Gold: keep-screen-on switch */
+.gold-keep-awake {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 6%);
+  padding: 0.35rem 0.7rem;
+  color: rgb(255 255 255 / 80%);
+  font-size: 0.72rem;
+  font-weight: 600;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.gold-keep-awake[data-active="true"] { color: #fde68a; }
+.gold-keep-awake:disabled { opacity: 0.6; }
+
+.gold-keep-awake-switch {
+  position: relative;
+  width: 1.7rem;
+  height: 1rem;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 22%);
+}
+
+.gold-keep-awake-switch::after {
+  content: "";
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  background: #fff;
+  transition: transform 0.15s ease;
+}
+
+.gold-keep-awake[aria-checked="true"] .gold-keep-awake-switch { background: #d6a63a; }
+.gold-keep-awake[aria-checked="true"] .gold-keep-awake-switch::after { transform: translateX(0.7rem); }
