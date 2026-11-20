@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Globe2, LayoutDashboard, LogOut, Megaphone, Send, ShieldCheck, Timer } from "lucide-react";
 import { GoldIcon } from "@/components/icons/gold-icon";
+import { AdminBackButton } from "@/components/admin/admin-back-button";
 import { AppToast } from "@/components/app-toast";
 import { PullToRefresh } from "@/components/pull-to-refresh";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,7 @@ function AdminDashboard({ onSignOut }) {
   return (
     <PullToRefresh onRefresh={refreshAll}>
       <main className="admin-page mx-auto w-full max-w-[1100px] space-y-3 p-2 sm:space-y-4 sm:p-4">
+        <AdminBackButton />
         <header className="admin-toolbar relative z-[60] flex items-center justify-between gap-3 rounded-[28px] border border-border px-4 py-3 shadow-glass sm:px-5">
           <div className="admin-toolbar-brand flex min-w-0 items-center gap-3">
             <span className="admin-toolbar-icon" aria-hidden="true"><LayoutDashboard size={21} /></span>
@@ -141,7 +143,16 @@ export default function AdminPage() {
   }, []);
 
   if (!ready) return null;
-  if (!loggedIn) return <AdminLogin onLoggedIn={() => setLoggedIn(true)} />;
+  if (!loggedIn) {
+    return (
+      <>
+        <div className="mx-auto w-full max-w-sm px-4 pt-3">
+          <AdminBackButton />
+        </div>
+        <AdminLogin onLoggedIn={() => setLoggedIn(true)} />
+      </>
+    );
+  }
 
   return (
     <AdminDashboard
