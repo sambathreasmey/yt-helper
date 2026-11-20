@@ -30,46 +30,69 @@ export function GoldSummaryMenu({ summary }: { summary: GoldOverview["summary"] 
   useEffect(() => () => window.clearTimeout(timerRef.current), []);
 
   const buildShareJob = useCallback(() => {
-    const total = summary.total_profit_loss === null ? null : Number(summary.total_profit_loss);
-    const unrealized = summary.unrealized_profit_loss === null ? null : Number(summary.unrealized_profit_loss);
-    const realized = Number(summary.realized_profit_loss);
-    const value = summary.market_value === null ? null : Number(summary.market_value);
-    const invested = Number(summary.total_purchase_cost);
-    const money = (amount: number | null) => (amount === null ? "\u2014" : formatUsd(String(amount), locale));
-    const profit = (amount: number | null) => (amount === null ? "\u2014" : formatProfit(String(amount), locale));
+    // Builds the card data; `mask` says which values to hide.
+    const makeData = (mask: Record<string, boolean>): GoldSummaryCardData => {
+      const total = summary.total_profit_loss === null ? null : Number(summary.total_profit_loss);
+      const unrealized = summary.unrealized_profit_loss === null ? null : Number(summary.unrealized_profit_loss);
+      const realized = Number(summary.realized_profit_loss);
+      const value = summary.market_value === null ? null : Number(summary.market_value);
+      const invested = Number(summary.total_purchase_cost);
+      const money = (amount: number | null) => (amount === null ? "\u2014" : formatUsd(String(amount), locale));
+      const profit = (amount: number | null) => (amount === null ? "\u2014" : formatProfit(String(amount), locale));
 
-    let heroPercent: string | null = null;
-    if (total !== null && Number.isFinite(invested) && invested > 0) {
-      const percent = (total / invested) * 100;
-      heroPercent = `${percent > 0 ? "+" : percent < 0 ? "\u2212" : ""}${Math.abs(percent).toFixed(2)}%`;
-    }
+      let heroPercent: string | null = null;
+      if (total !== null && Number.isFinite(invested) && invested > 0) {
+        const percent = (total / invested) * 100;
+        heroPercent = `${percent > 0 ? "+" : percent < 0 ? "\u2212" : ""}${Math.abs(percent).toFixed(2)}%`;
+      }
 
-    const data: GoldSummaryCardData = {
-      brand: "Helper",
-      subtitle: t("portfolio"),
-      date: formatShortDate(new Date().toISOString(), locale),
-      footer: window.location.host,
-      heroLabel: t("totalProfitLoss"),
-      heroValue: profit(total),
-      heroTrend: trendOf(total),
-      heroPercent,
-      tiles: [
-        { label: t("goldHeld"), value: `${formatQuantity(Number(summary.quantity_hun) / 100, locale)} ${t("damlungUnit")}` },
-        { label: t("costBasis"), value: money(Number(summary.cost_basis)) },
-        { label: t("currentValue"), value: money(value) },
-      ],
-      results: [
-        { label: t("realizedPL"), value: profit(realized), trend: trendOf(realized), icon: "realized" },
-        { label: t("unrealizedPL"), value: profit(unrealized), trend: trendOf(unrealized), icon: "unrealized" },
-      ],
+      return {
+        brand: "Helper",
+        subtitle: t("portfolio"),
+        date: formatShortDate(new Date().toISOString(), locale),
+        footer: window.location.host,
+        heroLabel: t("totalProfitLoss"),
+        heroValue: profit(total),
+        heroTrend: trendOf(total),
+        heroPercent,
+        tiles: [
+          {
+            label: t("goldHeld"),
+            value: `${formatQuantity(Number(summary.quantity_hun) / 100, locale)} ${t("damlungUnit")}`,
+            masked: mask.goldHeld,
+          },
+          { label: t("costBasis"), value: money(Number(summary.cost_basis)), masked: mask.costBasis },
+          { label: t("currentValue"), value: money(value) },
+        ],
+        results: [
+          // A hidden value is drawn as a fixed-size blur, so neither its digits nor its colour show.
+          {
+            label: t("realizedPL"),
+            value: profit(realized),
+            trend: trendOf(realized),
+            icon: "realized",
+            masked: mask.realized,
+          },
+          { label: t("unrealizedPL"), value: profit(unrealized), trend: trendOf(unrealized), icon: "unrealized" },
+        ],
+      };
     };
+
+    const initial = makeData({});
 
     setJob({
       fileName: "helper-gold-portfolio.png",
-      shareTitle: data.brand,
-      shareText: `${data.heroLabel}: ${data.heroValue}`,
-      alt: data.heroLabel,
-      render: () => renderGoldSummaryCard(data),
+      shareTitle: initial.brand,
+      shareText: `${initial.heroLabel}: ${initial.heroValue}`,
+      alt: initial.heroLabel,
+      optionsTitle: t("shareMaskTitle"),
+      storageKey: "helper-summary-mask",
+      options: [
+        { id: "goldHeld", label: t("goldHeld") },
+        { id: "costBasis", label: t("costBasis") },
+        { id: "realized", label: t("realizedPL") },
+      ],
+      render: (mask) => renderGoldSummaryCard(makeData(mask)),
     });
   }, [locale, summary, t]);
 

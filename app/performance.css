@@ -299,3 +299,34 @@
 
 /* Keep the label clear of the share button. */
 .gold-summary-top { padding-right: 2.4rem; }
+
+/* Share sheet: hide-in-image switches */
+.share-options { display: grid; gap: 0.5rem; }
+
+.share-options-title {
+  color: rgb(255 255 255 / 70%);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.share-options-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.share-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  background: var(--surface-strong);
+  padding: 0.4rem 0.8rem;
+  color: var(--tx);
+  font-size: 0.78rem;
+  font-weight: 600;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.share-option[data-on="true"] {
+  border-color: transparent;
+  background: var(--accent);
+  color: #fff;
+}

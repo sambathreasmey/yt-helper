@@ -27,9 +27,9 @@ export interface GoldSummaryCardData {
   /** Return on the money put in, for example "+4.20%". Null hides the chip. */
   heroPercent: string | null;
   /** Exactly three small tiles: gold held, cost, current value. */
-  tiles: { label: string; value: string }[];
+  tiles: { label: string; value: string; masked?: boolean }[];
   /** Exactly two P/L tiles: realized, unrealized. */
-  results: { label: string; value: string; trend: Trend; icon: "realized" | "unrealized" }[];
+  results: { label: string; value: string; trend: Trend; icon: "realized" | "unrealized"; masked?: boolean }[];
 }
 
 const TREND = {
@@ -108,6 +108,53 @@ function drawIcon(ctx: Ctx, kind: "realized" | "unrealized", x: number, y: numbe
   }
   ctx.stroke();
   ctx.restore();
+}
+
+/**
+ * A soft, blurred frosted placeholder that stands in for a hidden value. It has a fixed size and is not
+ * made from the real text, so nothing about the value (digits, length, sign) can be recovered from it.
+ * Uses shadows for the blur because canvas `filter` is not available in every WebView.
+ */
+function drawMaskedBlob(
+  ctx: Ctx,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  tile: { x: number; y: number; w: number; h: number; r: number },
+) {
+  const radius = h * 0.4;
+  const far = 2400; // shape is drawn off-canvas; only its blurred shadow lands on the card
+
+  const softLayer = (blur: number, shadow: string, fill: string) => {
+    ctx.save();
+    ctx.shadowColor = shadow;
+    ctx.shadowBlur = blur;
+    ctx.shadowOffsetX = far;
+    ctx.fillStyle = fill;
+    roundRectPath(ctx, x - far, y, w, h, radius);
+    ctx.fill();
+    ctx.restore();
+  };
+  // Everything stays inside the tile, so the blur never spills over its edge or its label.
+  ctx.save();
+  roundRectPath(ctx, tile.x + 2, tile.y + 2, tile.w - 4, tile.h - 4, tile.r);
+  ctx.clip();
+  softLayer(30, "rgba(255, 255, 255, 0.20)", "rgba(255, 255, 255, 0.20)"); // soft glow
+  softLayer(12, "rgba(226, 232, 240, 0.62)", "rgba(226, 232, 240, 0.62)"); // blurred body
+
+  // Brighter centre, like light shining through frosted glass (a soft oval, so it has no straight edges).
+  const radius2 = w * 0.55;
+  ctx.save();
+  ctx.translate(x + w / 2, y + h / 2);
+  ctx.scale(1, (h * 0.95) / radius2);
+  const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, radius2);
+  glow.addColorStop(0, "rgba(255, 255, 255, 0.30)");
+  glow.addColorStop(1, "rgba(255, 255, 255, 0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(-radius2 - 2, -radius2 - 2, radius2 * 2 + 4, radius2 * 2 + 4);
+  ctx.restore();
+  ctx.restore(); // end of clip
 }
 
 function glassTile(ctx: Ctx, x: number, y: number, w: number, h: number, radius: number) {
@@ -214,9 +261,13 @@ export function drawGoldSummaryCard(ctx: Ctx, data: GoldSummaryCardData, logo: C
     ctx.fillStyle = "rgba(255, 255, 255, 0.70)";
     fitFont(ctx, tile.label, 500, 26, 16, tileW - 48, family);
     ctx.fillText(tile.label, tx + 24, y + 54);
-    ctx.fillStyle = "#fff";
-    fitFont(ctx, tile.value, 800, 46, 20, tileW - 48, family);
-    ctx.fillText(tile.value, tx + 24, y + 112);
+    if (tile.masked) {
+      drawMaskedBlob(ctx, tx + 24, y + 78, Math.min(150, tileW - 48), 46, { x: tx, y, w: tileW, h: tilesH, r: 36 });
+    } else {
+      ctx.fillStyle = "#fff";
+      fitFont(ctx, tile.value, 800, 46, 20, tileW - 48, family);
+      ctx.fillText(tile.value, tx + 24, y + 112);
+    }
   });
   y += tilesH + gap;
 
@@ -230,9 +281,13 @@ export function drawGoldSummaryCard(ctx: Ctx, data: GoldSummaryCardData, logo: C
     ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
     fitFont(ctx, result.label, 500, 26, 16, resultW - 120, family);
     ctx.fillText(result.label, rx + 28 + 50, y + 58);
-    ctx.fillStyle = color;
-    fitFont(ctx, result.value, 800, 62, 28, resultW - 56, family);
-    ctx.fillText(result.value, rx + 28, y + 136);
+    if (result.masked) {
+      drawMaskedBlob(ctx, rx + 28, y + 88, Math.min(230, resultW - 56), 58, { x: rx, y, w: resultW, h: resultsH, r: 40 });
+    } else {
+      ctx.fillStyle = color;
+      fitFont(ctx, result.value, 800, 62, 28, resultW - 56, family);
+      ctx.fillText(result.value, rx + 28, y + 136);
+    }
   });
 
   // Footer.

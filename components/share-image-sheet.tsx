@@ -1,11 +1,17 @@
 "use client";
 
-import { Copy, Download, Share2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Copy, Download, Eye, EyeOff, Share2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { BottomSheet } from "@/components/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/providers/language-provider";
+
+/** An on/off switch shown under the preview. Its state is passed to `render`, and the image redraws. */
+export interface ShareImageOption {
+  id: string;
+  label: string;
+}
 
 /** One image to preview and share. Create it when the user taps a share button; clear it to close the sheet. */
 export interface ShareImageJob {
@@ -13,7 +19,30 @@ export interface ShareImageJob {
   shareTitle: string;
   shareText: string;
   alt: string;
-  render: () => Promise<Blob>;
+  /** Optional switches (for example "hide this value"). All start off unless a saved choice exists. */
+  options?: ShareImageOption[];
+  optionsTitle?: string;
+  /** localStorage key used to remember the switches between visits. */
+  storageKey?: string;
+  render: (values: Record<string, boolean>) => Promise<Blob>;
+}
+
+function loadOptionValues(job: ShareImageJob): Record<string, boolean> {
+  const values: Record<string, boolean> = {};
+  job.options?.forEach((option) => {
+    values[option.id] = false;
+  });
+  if (job.storageKey) {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem(job.storageKey) ?? "{}") as Record<string, unknown>;
+      job.options?.forEach((option) => {
+        if (saved[option.id] === true) values[option.id] = true;
+      });
+    } catch {
+      // Ignore unreadable or unavailable storage.
+    }
+  }
+  return values;
 }
 
 function ShareImagePanel({ job }: { job: ShareImageJob }) {
@@ -21,26 +50,54 @@ function ShareImagePanel({ job }: { job: ShareImageJob }) {
   const [image, setImage] = useState<{ blob: Blob; url: string } | null>(null);
   const [failed, setFailed] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [values, setValues] = useState<Record<string, boolean>>(() => loadOptionValues(job));
+  const urlRef = useRef("");
 
-  // Draw the card once when the sheet opens; free the image URL when it closes.
+  // Draw the card when the sheet opens and again whenever a switch changes.
+  // The previous image stays visible until the new one is ready, so the preview does not flicker.
   useEffect(() => {
     let cancelled = false;
-    let objectUrl = "";
     job
-      .render()
+      .render(values)
       .then((blob) => {
         if (cancelled) return;
-        objectUrl = URL.createObjectURL(blob);
-        setImage({ blob, url: objectUrl });
+        const url = URL.createObjectURL(blob);
+        if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+        urlRef.current = url;
+        setImage({ blob, url });
+        setFailed(false);
       })
       .catch(() => {
         if (!cancelled) setFailed(true);
       });
     return () => {
       cancelled = true;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [job]);
+  }, [job, values]);
+
+  // Free the last image URL when the sheet closes.
+  useEffect(
+    () => () => {
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+      urlRef.current = "";
+    },
+    [],
+  );
+
+  const toggleOption = (id: string) => {
+    setNotice(null);
+    setValues((current) => {
+      const next = { ...current, [id]: !current[id] };
+      if (job.storageKey) {
+        try {
+          window.localStorage.setItem(job.storageKey, JSON.stringify(next));
+        } catch {
+          // Ignore storage errors: the choice just is not remembered.
+        }
+      }
+      return next;
+    });
+  };
 
   const share = async () => {
     if (!image) return;
@@ -88,6 +145,28 @@ function ShareImagePanel({ job }: { job: ShareImageJob }) {
         <img alt={job.alt} className="gold-share-preview" src={image.url} />
       ) : (
         <Skeleton className="gold-share-preview" />
+      )}
+
+      {job.options && job.options.length > 0 && (
+        <div className="share-options">
+          {job.optionsTitle && <p className="share-options-title">{job.optionsTitle}</p>}
+          <div className="share-options-list">
+            {job.options.map((option) => (
+              <button
+                aria-checked={Boolean(values[option.id])}
+                className="share-option"
+                data-on={values[option.id] ? "true" : "false"}
+                key={option.id}
+                onClick={() => toggleOption(option.id)}
+                role="switch"
+                type="button"
+              >
+                {values[option.id] ? <EyeOff aria-hidden="true" size={15} /> : <Eye aria-hidden="true" size={15} />}
+                <span>{option.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
       <div className="gold-share-actions">
