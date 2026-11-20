@@ -1,0 +1,81 @@
+diff --git a/app/admin/page.jsx b/app/admin/page.jsx
+index be22a72..c1e4bb0 100644
+--- a/app/admin/page.jsx
++++ b/app/admin/page.jsx
+@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
+ import { useQueryClient } from "@tanstack/react-query";
+ import { Globe2, LayoutDashboard, LogOut, Megaphone, Send, ShieldCheck, Timer } from "lucide-react";
+ import { GoldIcon } from "@/components/icons/gold-icon";
++import { AdminBackButton } from "@/components/admin/admin-back-button";
+ import { AppToast } from "@/components/app-toast";
+ import { PullToRefresh } from "@/components/pull-to-refresh";
+ import { Button } from "@/components/ui/button";
+@@ -61,6 +62,7 @@ function AdminDashboard({ onSignOut }) {
+   return (
+     <PullToRefresh onRefresh={refreshAll}>
+       <main className="admin-page mx-auto w-full max-w-[1100px] space-y-3 p-2 sm:space-y-4 sm:p-4">
++        <AdminBackButton />
+         <header className="admin-toolbar relative z-[60] flex items-center justify-between gap-3 rounded-[28px] border border-border px-4 py-3 shadow-glass sm:px-5">
+           <div className="admin-toolbar-brand flex min-w-0 items-center gap-3">
+             <span className="admin-toolbar-icon" aria-hidden="true"><LayoutDashboard size={21} /></span>
+@@ -141,7 +143,16 @@ export default function AdminPage() {
+   }, []);
+ 
+   if (!ready) return null;
+-  if (!loggedIn) return <AdminLogin onLoggedIn={() => setLoggedIn(true)} />;
++  if (!loggedIn) {
++    return (
++      <>
++        <div className="mx-auto w-full max-w-sm px-4 pt-3">
++          <AdminBackButton />
++        </div>
++        <AdminLogin onLoggedIn={() => setLoggedIn(true)} />
++      </>
++    );
++  }
+ 
+   return (
+     <AdminDashboard
+diff --git a/components/admin/admin-back-button.tsx b/components/admin/admin-back-button.tsx
+new file mode 100644
+index 0000000..d99141b
+--- /dev/null
++++ b/components/admin/admin-back-button.tsx
+@@ -0,0 +1,37 @@
++"use client";
++
++import { ArrowLeft } from "lucide-react";
++import Link from "next/link";
++import { useState } from "react";
++
++const LAST_FEATURE_KEY = "helper-last-feature";
++
++/** The page the user was on before opening Admin: Gold trading or YouTube (YouTube if unknown). */
++function readLastFeature(): "gold" | "youtube" {
++  if (typeof window === "undefined") return "youtube";
++  try {
++    return window.localStorage.getItem(LAST_FEATURE_KEY) === "gold" ? "gold" : "youtube";
++  } catch {
++    return "youtube";
++  }
++}
++
++/**
++ * "Back" button for the admin screens. It returns to the main app, which opens on the page
++ * the user left (Gold trading or YouTube), and its label says which one.
++ */
++export function AdminBackButton({ className = "" }: { className?: string }) {
++  const [target] = useState(readLastFeature);
++  const label = target === "gold" ? "Gold trading" : "YouTube";
++
++  return (
++    <Link
++      aria-label={`Back to ${label}`}
++      className={`inline-flex items-center gap-2 rounded-full border border-border bg-surface-strong px-3.5 py-2 text-sm font-semibold text-foreground transition-transform active:scale-95 ${className}`}
++      href="/"
++    >
++      <ArrowLeft aria-hidden="true" size={16} />
++      <span>{label}</span>
++    </Link>
++  );
++}
