@@ -523,3 +523,14 @@
   box-shadow: 0 2px 6px rgb(170 93 4 / 35%);
   color: #fff;
 }
+
+/* Share sheet: icon above the label, so long labels (for example "Copy image") never wrap awkwardly */
+.gold-share-actions > button {
+  min-height: 4rem;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.55rem 0.3rem;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  text-align: center;
+}

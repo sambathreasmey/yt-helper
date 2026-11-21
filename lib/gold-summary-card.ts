@@ -6,15 +6,19 @@
 import {
   SHARE_CARD_HEIGHT,
   SHARE_CARD_WIDTH,
+  TREND,
   drawCoinTile,
+  drawDarkBackground,
   drawLogo,
   fitFont,
+  glassTile,
   renderCardBlob,
   roundRectPath,
   type Ctx,
-} from "@/lib/gold-share-card";
+  type Trend,
+} from "@/lib/share-card-kit";
 
-export type Trend = "up" | "down" | "flat";
+export type { Trend };
 
 export interface GoldSummaryCardData {
   brand: string;
@@ -30,52 +34,6 @@ export interface GoldSummaryCardData {
   tiles: { label: string; value: string; masked?: boolean }[];
   /** Exactly two P/L tiles: realized, unrealized. */
   results: { label: string; value: string; trend: Trend; icon: "realized" | "unrealized"; masked?: boolean }[];
-}
-
-const TREND = {
-  up: { text: "#6ee7a8", glow: "16, 185, 129", chip: "rgba(52, 211, 153, 0.20)" },
-  down: { text: "#fb7185", glow: "244, 63, 94", chip: "rgba(251, 113, 133, 0.20)" },
-  flat: { text: "#e2e8f0", glow: "148, 163, 184", chip: "rgba(255, 255, 255, 0.14)" },
-} as const;
-
-function drawBackground(ctx: Ctx, trend: Trend) {
-  const w = SHARE_CARD_WIDTH;
-  const h = SHARE_CARD_HEIGHT;
-  const glow = TREND[trend].glow;
-
-  const base = ctx.createLinearGradient(0, 0, w, h);
-  base.addColorStop(0, "#0a1128");
-  base.addColorStop(0.55, "#0f1b3d");
-  base.addColorStop(1, "#0b1430");
-  ctx.fillStyle = base;
-  ctx.fillRect(0, 0, w, h);
-
-  const glows: [number, number, number, string][] = [
-    [w - 60, 140, 760, `rgba(${glow}, 0.40)`],
-    [0, 0, 700, "rgba(40, 84, 243, 0.30)"],
-    [60, h + 60, 800, "rgba(255, 196, 70, 0.26)"],
-  ];
-  glows.forEach(([cx, cy, radius, color]) => {
-    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
-    g.addColorStop(0, color);
-    g.addColorStop(1, color.replace(/[\d.]+\)$/, "0)"));
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, w, h);
-  });
-
-  // Fine dot grid for texture.
-  ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
-  for (let gx = 27; gx < w; gx += 54) {
-    for (let gy = 27; gy < h; gy += 54) ctx.fillRect(gx, gy, 3, 3);
-  }
-
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
-  ctx.lineWidth = 3;
-  [260, 360, 460].forEach((radius) => {
-    ctx.beginPath();
-    ctx.arc(w - 40, h - 120, radius, 0, Math.PI * 2);
-    ctx.stroke();
-  });
 }
 
 /** Small stroked icons on a 24-unit grid. */
@@ -157,25 +115,13 @@ function drawMaskedBlob(
   ctx.restore(); // end of clip
 }
 
-function glassTile(ctx: Ctx, x: number, y: number, w: number, h: number, radius: number) {
-  roundRectPath(ctx, x, y, w, h, radius);
-  const fill = ctx.createLinearGradient(x, y, x, y + h);
-  fill.addColorStop(0, "rgba(255, 255, 255, 0.10)");
-  fill.addColorStop(1, "rgba(255, 255, 255, 0.05)");
-  ctx.fillStyle = fill;
-  ctx.fill();
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
-  ctx.stroke();
-}
-
 /** Pure drawing routine, so it also runs outside a browser page. */
 export function drawGoldSummaryCard(ctx: Ctx, data: GoldSummaryCardData, logo: CanvasImageSource | null, family: string) {
   const w = SHARE_CARD_WIDTH;
   const tone = TREND[data.heroTrend];
   ctx.textBaseline = "alphabetic";
   ctx.textAlign = "left";
-  drawBackground(ctx, data.heroTrend);
+  drawDarkBackground(ctx, data.heroTrend);
 
   // Header: logo, brand, subtitle and date pill.
   drawLogo(ctx, logo, 80, 80, 108);

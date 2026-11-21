@@ -3,7 +3,7 @@
 import { Share2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { ShareImageSheet, type ShareImageJob } from "@/components/share-image-sheet";
-import { formatUsd } from "@/features/gold-trading/gold-format";
+import { formatShortDate, formatUsd, pricePerUnit, unitLabelKey } from "@/features/gold-trading/gold-format";
 import { formatUtcTimestamp } from "@/lib/date-format";
 import { renderGoldShareCard, type GoldShareCardData } from "@/lib/gold-share-card";
 import { useLanguage } from "@/providers/language-provider";
@@ -21,30 +21,36 @@ export function GoldShareButton({ price, yesterdayPrice, history, updatedOn }: G
   const [job, setJob] = useState<ShareImageJob | null>(null);
 
   const open = useCallback(() => {
-    let yesterday: GoldShareCardData["yesterday"] = null;
+    let change: GoldShareCardData["change"] = null;
+    const units: GoldShareCardData["units"] = [
+      { label: `1 ${t(unitLabelKey("chi"))}`, value: formatUsd(pricePerUnit(String(price), "chi"), locale) },
+      { label: `1 ${t(unitLabelKey("hun"))}`, value: formatUsd(pricePerUnit(String(price), "hun"), locale) },
+    ];
     if (yesterdayPrice !== null && Number.isFinite(yesterdayPrice) && yesterdayPrice > 0) {
       const diff = Math.round((price - yesterdayPrice) * 100) / 100;
-      const trend = diff > 0 ? "up" : diff < 0 ? "down" : "flat";
       const sign = diff > 0 ? "+" : diff < 0 ? "\u2212" : "";
-      yesterday = {
-        label: t("yesterdayPrice"),
-        value: formatUsd(String(yesterdayPrice), locale),
-        change: formatUsd(String(Math.abs(diff)), locale),
+      change = {
+        trend: diff > 0 ? "up" : diff < 0 ? "down" : "flat",
+        amount: formatUsd(String(Math.abs(diff)), locale),
         percent: `${sign}${Math.abs((diff / yesterdayPrice) * 100).toFixed(2)}%`,
-        trend,
+        caption: t("yesterdayPrice"),
       };
+      units.push({ label: t("yesterdayPrice"), value: formatUsd(String(yesterdayPrice), locale) });
     }
 
     const data: GoldShareCardData = {
       brand: "Helper",
       subtitle: t("goldTrading"),
+      date: formatShortDate(new Date().toISOString(), locale),
       label: t("goldPrice"),
       amount: formatUsd(String(price), locale),
       unit: `/ ${t("damlungUnit")}`,
+      change,
+      units,
+      chartLabel: t("priceChart"),
+      history: history.slice(-24),
       updated: updatedOn ? t("updated", { date: formatUtcTimestamp(updatedOn, locale) }) : "",
       footer: window.location.host,
-      history: history.slice(-24),
-      yesterday,
     };
 
     setJob({
