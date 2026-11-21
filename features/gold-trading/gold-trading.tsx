@@ -2,13 +2,14 @@
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, ChartNoAxesCombined, ChevronRight, Plus } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { AppHeader } from "@/components/app-header";
 import { GoldIcon } from "@/components/icons/gold-icon";
 import { UserProfileSheet } from "@/components/user-profile-sheet";
 import { GoldLivePrice, usePriceHistory } from "@/components/gold-live-price";
 import { GoldKeepAwake } from "@/components/gold-keep-awake";
+import { GoldLiveMode } from "@/components/gold-live-mode";
 import { GoldShareButton } from "@/components/gold-share-button";
 import { GoldHoldingsSkeleton, GoldSummarySkeleton } from "@/components/gold-skeleton";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,7 @@ import {
   unitLabelKey,
 } from "@/features/gold-trading/gold-format";
 import { GoldSummary } from "@/features/gold-trading/gold-summary";
+import { LIVE_MODE_REFRESH_MS, getLiveModeActive, subscribeLiveMode } from "@/lib/live-mode-state";
 import {
   AlertsSheet,
   HoldingSheet,
@@ -72,13 +74,15 @@ export function GoldTrading() {
   const actionsRef = useRef<HTMLDivElement>(null);
 
   const refreshMs = appearance.refreshInterval * 1000;
+  // Live mode asks for fresher prices while it is open.
+  const liveModeOpen = useSyncExternalStore(subscribeLiveMode, getLiveModeActive, () => false);
   const overviewQuery = useQuery({
     queryKey: ["gold-overview", initData, sortBy, order],
     queryFn: () => getGoldOverview(initData, sortBy, order),
     enabled: Boolean(initData),
     // Keep the old numbers on screen while a new sort order loads, so the page never flashes empty.
     placeholderData: keepPreviousData,
-    refetchInterval: refreshMs > 0 ? refreshMs : false,
+    refetchInterval: liveModeOpen ? LIVE_MODE_REFRESH_MS : refreshMs > 0 ? refreshMs : false,
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
     staleTime: 5_000,
@@ -224,7 +228,15 @@ export function GoldTrading() {
   return (
     <main className="gold-dashboard mx-auto w-full max-w-[520px] space-y-4">
       <AppHeader avatar={headerAvatar} title={t("goldTrading")} subtitle={t("goldSubtitle")} brandIcon={ChartNoAxesCombined} brandVariant="gold" />
-      <GoldKeepAwake />
+      <div className="flex flex-wrap items-center gap-2">
+        <GoldKeepAwake />
+        <GoldLiveMode
+          dataUpdatedAt={overviewQuery.dataUpdatedAt}
+          price={livePrice}
+          updatedOn={overview?.current_price?.updated_on}
+          yesterdayPrice={yesterdayPrice}
+        />
+      </div>
 
       <Card className="gold-price-hero">
         <div className="gold-price-content">
