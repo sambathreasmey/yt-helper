@@ -43,6 +43,7 @@ import {
   unitLabelKey,
 } from "@/features/gold-trading/gold-format";
 import { GoldSummary } from "@/features/gold-trading/gold-summary";
+import { GoldPricePerformanceSummary } from "@/features/gold-trading/gold-price-performance";
 import { LIVE_MODE_REFRESH_MS, getLiveModeActive, subscribeLiveMode } from "@/lib/live-mode-state";
 import {
   AlertsSheet,
@@ -292,6 +293,10 @@ export function GoldTrading() {
           />
         )}
       </Card>
+
+      {overview?.price_performance && (
+        <GoldPricePerformanceSummary performance={overview.price_performance} />
+      )}
 
       {overviewQuery.isPending && <GoldSummarySkeleton />}
       {summary && <GoldSummary animate={animatePrice} summary={summary} />}

@@ -13,6 +13,19 @@ export type GoldPrice = {
   previous_price_on?: string | null;
 };
 
+export type GoldPricePerformancePeriod =
+  | "today"
+  | "yesterday"
+  | "30_days"
+  | "6_months"
+  | "1_year"
+  | "5_years";
+
+export type GoldPricePerformance = Record<
+  GoldPricePerformancePeriod,
+  { amount: string | null; percentage: string | null }
+>;
+
 export type GoldHolding = {
   id: number;
   unit: GoldUnit;
@@ -46,6 +59,7 @@ export type GoldTransaction = {
 
 export type GoldOverview = {
   current_price: GoldPrice | null;
+  price_performance?: GoldPricePerformance;
   summary: {
     quantity_hun: string;
     cost_basis: string;
