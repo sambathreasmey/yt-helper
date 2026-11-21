@@ -1,4 +1,7 @@
-/** Tiny shared flag: true while the full-screen Live mode is open (the price is then polled faster). */
+/**
+ * Tiny shared flag: true while the full-screen Live mode needs the page to poll the server faster,
+ * that is, when Live mode is open but the direct market feed is not connected.
+ */
 let active = false;
 const listeners = new Set<() => void>();
 

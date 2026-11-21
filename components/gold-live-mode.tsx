@@ -4,6 +4,7 @@ import { ArrowDownRight, ArrowUpRight, Radio, X } from "lucide-react";
 import { useEffect, useId, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { formatUsd } from "@/features/gold-trading/gold-format";
+import { useLiveGoldFeed } from "@/hooks/use-live-gold-feed";
 import { useWakeLock } from "@/hooks/use-wake-lock";
 import { formatUtcTimestamp } from "@/lib/date-format";
 import { setLiveModeActive } from "@/lib/live-mode-state";
@@ -26,8 +27,19 @@ interface GoldLiveModeProps {
   updatedOn?: string;
 }
 
-function LiveScreen({ price, yesterdayPrice, dataUpdatedAt, updatedOn, onClose }: GoldLiveModeProps & { onClose: () => void }) {
+function LiveScreen({
+  price: polledPrice,
+  yesterdayPrice,
+  dataUpdatedAt: polledAt,
+  updatedOn,
+  onClose,
+}: GoldLiveModeProps & { onClose: () => void }) {
   const { t, locale } = useLanguage();
+  // Prices come straight from the market feed. If it is not reachable, fall back to the server price.
+  const feed = useLiveGoldFeed(true);
+  const feedLive = feed.status === "live" && feed.price !== null;
+  const price = feedLive ? feed.price : polledPrice;
+  const dataUpdatedAt = feedLive ? (feed.updatedAt ?? 0) : polledAt;
   const gradientId = useId();
   const [series, setSeries] = useState<Point[]>([]);
   const [now, setNow] = useState(() => Date.now());
@@ -36,7 +48,11 @@ function LiveScreen({ price, yesterdayPrice, dataUpdatedAt, updatedOn, onClose }
   // Keep the screen on and tell the page to refresh the price faster while this screen is open.
   useWakeLock(true);
   useEffect(() => {
-    setLiveModeActive(true);
+    setLiveModeActive(!feedLive);
+  }, [feedLive]);
+  // Switch the flag off only when this screen closes (not on every re-render).
+  useEffect(() => () => setLiveModeActive(false), []);
+  useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKeyDown = (event: KeyboardEvent) => {
@@ -44,7 +60,6 @@ function LiveScreen({ price, yesterdayPrice, dataUpdatedAt, updatedOn, onClose }
     };
     document.addEventListener("keydown", onKeyDown);
     return () => {
-      setLiveModeActive(false);
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", onKeyDown);
     };
@@ -61,8 +76,11 @@ function LiveScreen({ price, yesterdayPrice, dataUpdatedAt, updatedOn, onClose }
     if (price === null || !Number.isFinite(price)) return;
     setSeries((current) => {
       const last = current[current.length - 1];
-      if (last && last.p !== price) setFlash({ key: Date.now(), dir: price > last.p ? "up" : "down" });
-      return [...current, { t: Date.now(), p: price }].slice(-MAX_POINTS);
+      const at = Date.now();
+      if (last && last.p !== price) setFlash({ key: at, dir: price > last.p ? "up" : "down" });
+      // Ticks can arrive several times a second: keep one chart point per second (the newest value).
+      if (last && at - last.t < 1000) return [...current.slice(0, -1), { t: last.t, p: price }];
+      return [...current, { t: at, p: price }].slice(-MAX_POINTS);
     });
   }, [price, dataUpdatedAt]);
 
@@ -111,7 +129,10 @@ function LiveScreen({ price, yesterdayPrice, dataUpdatedAt, updatedOn, onClose }
           <span aria-hidden="true" className="live-mode-dot" />
           {t("liveBadge")}
         </span>
-        <span className="live-mode-clock">{new Date(now).toLocaleTimeString(locale)}</span>
+        <span className="live-mode-clock">
+          {new Date(now).toLocaleTimeString(locale)}
+          <small>{feedLive ? t("liveSourceFeed") : t("liveSourcePolling")}</small>
+        </span>
       </div>
 
       <div className="live-mode-body">
@@ -168,7 +189,11 @@ function LiveScreen({ price, yesterdayPrice, dataUpdatedAt, updatedOn, onClose }
           </div>
         )}
 
-        {updatedOn && <p className="live-mode-updated">{t("updated", { date: formatUtcTimestamp(updatedOn, locale) })}</p>}
+        {feedLive && feed.updatedAt ? (
+          <p className="live-mode-updated">{t("updated", { date: new Date(feed.updatedAt).toLocaleTimeString(locale) })}</p>
+        ) : (
+          updatedOn && <p className="live-mode-updated">{t("updated", { date: formatUtcTimestamp(updatedOn, locale) })}</p>
+        )}
       </div>
 
       <button aria-label={t("liveClose")} className="live-mode-close" onClick={onClose} type="button">
