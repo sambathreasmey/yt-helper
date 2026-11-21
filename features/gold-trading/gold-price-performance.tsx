@@ -15,10 +15,11 @@ import { pricePerUnit, unitLabelKey, units } from "@/features/gold-trading/gold-
 const periods: Array<{
   key: GoldPricePerformancePeriod;
   label: "performanceToday" | "performanceYesterday" | "performance30Days"
-    | "performance6Months" | "performance1Year" | "performance5Years";
+    | "performance7Days" | "performance6Months" | "performance1Year" | "performance5Years";
 }> = [
   { key: "today", label: "performanceToday" },
   { key: "yesterday", label: "performanceYesterday" },
+  { key: "7_days", label: "performance7Days" },
   { key: "30_days", label: "performance30Days" },
   { key: "6_months", label: "performance6Months" },
   { key: "1_year", label: "performance1Year" },
@@ -47,6 +48,13 @@ export function GoldPricePerformanceSummary({
   const { t, locale } = useLanguage();
   const [unit, setUnit] = useState<GoldUnit>("damlung");
   const fractionDigits = unit === "damlung" ? 2 : unit === "chi" ? 3 : 4;
+  const availablePeriods = periods.filter(({ key }) => {
+    const change = performance[key];
+    if (change.amount === null || change.percentage === null) return false;
+    return Number.isFinite(Number(change.amount)) && Number.isFinite(Number(change.percentage));
+  });
+
+  if (availablePeriods.length === 0) return null;
 
   return (
     <Card
@@ -82,7 +90,7 @@ export function GoldPricePerformanceSummary({
           </tr>
         </thead>
         <tbody>
-          {periods.map(({ key, label }) => {
+          {availablePeriods.map(({ key, label }) => {
             const change = performance[key];
             const amount = change.amount === null ? null : Number(change.amount);
             const percentage = change.percentage === null

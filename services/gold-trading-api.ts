@@ -16,6 +16,7 @@ export type GoldPrice = {
 export type GoldPricePerformancePeriod =
   | "today"
   | "yesterday"
+  | "7_days"
   | "30_days"
   | "6_months"
   | "1_year"
