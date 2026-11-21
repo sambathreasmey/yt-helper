@@ -3,6 +3,7 @@
 import { memo, useEffect, useId, useMemo, useState } from "react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { AnimatedNumber } from "@/components/animated-number";
+import { GoldIcon } from "@/components/icons/gold-icon";
 import { useLanguage } from "@/providers/language-provider";
 
 const HISTORY_LIMIT = 30;
@@ -92,6 +93,8 @@ interface GoldLivePriceProps {
   /** Yesterday's price per damlung. Leave out (or null) to hide the comparison. */
   yesterdayPrice?: number | null;
   formatPrice: (value: number) => string;
+  /** Formats the price of one chi (1/10 damlung), given the price per damlung. Leave out to hide the chi pill. */
+  formatChiPrice?: (pricePerDamlung: number) => string;
   formatDelta: (value: number) => string;
 }
 
@@ -104,6 +107,7 @@ export const GoldLivePrice = memo(function GoldLivePrice({
   history,
   yesterdayPrice = null,
   formatPrice,
+  formatChiPrice,
   formatDelta,
 }: GoldLivePriceProps) {
   const { t } = useLanguage();
@@ -150,6 +154,17 @@ export const GoldLivePrice = memo(function GoldLivePrice({
           </span>
         )}
       </div>
+
+      {formatChiPrice && price !== null && (
+        <div className="gold-unit-row">
+          <span className="gold-unit-chip">
+            <span aria-hidden="true" className="gold-unit-chip-icon">
+              <GoldIcon size={12} strokeWidth={2.6} />
+            </span>
+            {formatChiPrice(price)}
+          </span>
+        </div>
+      )}
 
       {dayChange && yesterdayPrice !== null && (
         <div className="gold-yesterday" data-trend={dayChange.trend}>

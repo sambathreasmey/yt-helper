@@ -176,6 +176,12 @@ export function GoldTrading() {
     (value: number) => `${formatUsd(String(value), locale)} / ${t("damlungUnit")}`,
     [locale, t],
   );
+  // Price of one chi (1/10 damlung), shown in its own pill under the main price.
+  const formatPerChi = useCallback(
+    (pricePerDamlung: number) =>
+      `${formatUsd(pricePerUnit(String(pricePerDamlung), "chi"), locale)} / ${t(unitLabelKey("chi"))}`,
+    [locale, t],
+  );
 
   // Soft haptic when the live price moves.
   const lastPrice = useRef<number | null>(null);
@@ -254,6 +260,7 @@ export function GoldTrading() {
               <GoldLivePrice
                 animate={animatePrice}
                 fetching={overviewQuery.isFetching}
+                formatChiPrice={formatPerChi}
                 formatDelta={formatMoney}
                 formatPrice={formatPerDamlung}
                 history={priceHistory}

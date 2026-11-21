@@ -495,3 +495,31 @@
 
 :root[data-perf="lite"] .live-mode-dot,
 :root[data-perf="lite"] .live-mode-price { animation: none !important; }
+
+/* Gold price card: price per chi in its own pill */
+.gold-unit-row { display: flex; margin-top: 0.55rem; }
+
+.gold-unit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid rgb(255 255 255 / 28%);
+  border-radius: 9999px;
+  background: linear-gradient(135deg, rgb(255 212 91 / 30%), rgb(255 255 255 / 10%));
+  padding: 0.28rem 0.75rem 0.28rem 0.32rem;
+  color: #fff;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.gold-unit-chip-icon {
+  display: grid;
+  width: 1.4rem;
+  height: 1.4rem;
+  place-items: center;
+  border-radius: 9999px;
+  background: linear-gradient(145deg, #ffd45b, #f39817);
+  box-shadow: 0 2px 6px rgb(170 93 4 / 35%);
+  color: #fff;
+}
