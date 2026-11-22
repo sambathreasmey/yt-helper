@@ -77,9 +77,13 @@ The Gold Trading screen also shows recent, keyword-matched GDELT headlines in
 their original language with publisher links and GDELT attribution. Headlines
 are related coverage, not explanations or predictions of gold-price changes.
 Before enabling the feed, apply `helper_flask_app/sql/gold_news_cache.sql` to
-the backend MySQL database. The backend shares a 15-minute cache and only
-refreshes it on demand, guarded by a MySQL advisory lock; it does not add a
-Flask in-process scheduler.
+the backend MySQL database. A GitHub Actions workflow fetches headlines when
+it receives the `update_news_gold` repository-dispatch event and posts them to
+the backend's key-protected `POST /api/gold/news/github` callback; the Mini App
+only reads the shared MySQL cache. Configure `GOLD_NEWS_UPDATE_API_KEY` in the
+backend environment and as a GitHub Actions repository secret with the same
+value. The backend's `/trigger_callback` endpoint forwards this event to
+GitHub; configure `PING_SERVER_GITHUB_TOKEN` in the backend environment.
 
 Use **Customize** in the header to select System, Light, or Dark, pick from six
 accent colors, choose the app icon and one of 12 backgrounds, adjust Glass card
