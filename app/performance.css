@@ -534,3 +534,63 @@
   line-height: 1.2;
   text-align: center;
 }
+
+/* Gold page: portfolio first */
+.gold-tools-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+
+/* News bar: one slim line (label and headline side by side) */
+.gold-news-ticker { padding: 0.5rem 0.75rem; }
+.gold-news-ticker-copy { display: flex; align-items: center; gap: 0.5rem; }
+.gold-news-ticker-label { flex: 0 0 auto; white-space: nowrap; }
+.gold-news-ticker-viewport { min-width: 0; flex: 1; }
+
+/* Price performance: a one-line glance that expands into the full table */
+.gold-performance-card { padding: 0.7rem 1rem; }
+
+.gold-performance-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.6rem;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.gold-performance-toggle .gold-performance-heading { flex: 0 0 auto; margin-bottom: 0; }
+.gold-performance-h { margin: 0; font: inherit; }
+.gold-performance-toggle .gold-performance-heading { font-size: 0.88rem; }
+
+.gold-performance-toggle { flex-wrap: wrap; row-gap: 0.6rem; }
+.gold-performance-toggle .gold-performance-heading { flex: 1; min-width: 0; }
+
+/* Three mini tiles under the title: today, 7 days, 30 days */
+.gold-performance-glance {
+  order: 3;
+  display: grid;
+  flex: 1 0 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.gold-performance-chip {
+  display: grid;
+  gap: 0.05rem;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background: var(--surface-strong);
+  padding: 0.4rem 0.65rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.gold-performance-chip small { overflow: hidden; color: var(--mut); font-size: 0.66rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.gold-performance-chip strong { font-size: 0.9rem; }
+
+.gold-performance-chevron { flex: 0 0 auto; margin-left: auto; color: var(--mut); transition: transform 0.2s ease; }
+.gold-performance-toggle[data-open="true"] .gold-performance-chevron { transform: rotate(180deg); }
+.gold-performance-toggle[data-open="true"] { margin-bottom: 0.5rem; }

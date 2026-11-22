@@ -1,6 +1,6 @@
 "use client";
 
-import { ChartNoAxesCombined } from "lucide-react";
+import { ChartNoAxesCombined, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -31,6 +31,24 @@ function trendClass(value: number | null): string {
   return value < 0 ? "pl-down" : "pl-up";
 }
 
+const OPEN_KEY = "helper-performance-open";
+/** Periods shown in the compact one-line view. */
+const compactKeys: GoldPricePerformancePeriod[] = ["today", "7_days", "30_days"];
+
+function readOpen(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(OPEN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function formatPercent(value: number, locale: string): string {
+  const sign = value > 0 ? "+" : value < 0 ? "\u2212" : "";
+  return `${sign}${new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(value))}%`;
+}
+
 function formatAmount(value: number, locale: string, fractionDigits: number): string {
   const sign = value > 0 ? "+" : value < 0 ? "−" : "";
   const amount = new Intl.NumberFormat(locale, {
@@ -47,6 +65,17 @@ export function GoldPricePerformanceSummary({
 }) {
   const { t, locale } = useLanguage();
   const [unit, setUnit] = useState<GoldUnit>("damlung");
+  const [open, setOpen] = useState(readOpen);
+  const toggleOpen = () => {
+    setOpen((current) => {
+      try {
+        window.localStorage.setItem(OPEN_KEY, current ? "0" : "1");
+      } catch {
+        // Ignore storage errors: the choice just is not remembered.
+      }
+      return !current;
+    });
+  };
   const fractionDigits = unit === "damlung" ? 2 : unit === "chi" ? 3 : 4;
   const availablePeriods = periods.filter(({ key }) => {
     const change = performance[key];
@@ -62,10 +91,39 @@ export function GoldPricePerformanceSummary({
       className="gold-performance-card"
       role="region"
     >
-      <div className="gold-performance-heading">
-        <ChartNoAxesCombined aria-hidden="true" size={18} />
-        <h2>{t("goldPricePerformance")}</h2>
-      </div>
+      <h2 className="gold-performance-h">
+        <button
+          aria-expanded={open}
+          className="gold-performance-toggle"
+          data-open={open ? "true" : "false"}
+          onClick={toggleOpen}
+          type="button"
+        >
+          <span className="gold-performance-heading">
+            <ChartNoAxesCombined aria-hidden="true" size={18} />
+            <span>{t("goldPricePerformance")}</span>
+          </span>
+          {!open && (
+            <span className="gold-performance-glance">
+              {compactKeys
+                .filter((key) => availablePeriods.some((period) => period.key === key))
+                .map((key) => {
+                  const period = periods.find((item) => item.key === key)!;
+                  const value = Number(performance[key].percentage);
+                  return (
+                    <span className="gold-performance-chip" key={key}>
+                      <small>{t(period.label)}</small>
+                      <strong className={trendClass(value)}>{formatPercent(value, locale)}</strong>
+                    </span>
+                  );
+                })}
+            </span>
+          )}
+          <ChevronDown aria-hidden="true" className="gold-performance-chevron" size={18} />
+        </button>
+      </h2>
+      {open && (
+        <>
       <div className="gold-performance-controls">
         <span>{t("performanceUnit")}</span>
         <div aria-label={t("performanceUnit")} className="gold-performance-units" role="group">
@@ -127,6 +185,8 @@ export function GoldPricePerformanceSummary({
           })}
         </tbody>
       </table>
+        </>
+      )}
     </Card>
   );
 }

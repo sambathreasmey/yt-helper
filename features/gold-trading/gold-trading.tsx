@@ -269,15 +269,6 @@ export function GoldTrading() {
         isPending={goldNewsQuery.isPending}
         onOpen={() => setScreen("news")}
       />
-      <div className="flex flex-wrap items-center gap-2">
-        <GoldKeepAwake />
-        <GoldLiveMode
-          dataUpdatedAt={overviewQuery.dataUpdatedAt}
-          price={livePrice}
-          updatedOn={overview?.current_price?.updated_on}
-          yesterdayPrice={yesterdayPrice}
-        />
-      </div>
 
       <Card className="gold-price-hero">
         <div className="gold-price-content">
@@ -328,10 +319,6 @@ export function GoldTrading() {
         )}
       </Card>
 
-      {overview?.price_performance && (
-        <GoldPricePerformanceSummary performance={overview.price_performance} />
-      )}
-
       {overviewQuery.isPending && <GoldSummarySkeleton />}
       {summary && <GoldSummary animate={animatePrice} summary={summary} />}
 
@@ -344,6 +331,21 @@ export function GoldTrading() {
           {activeAlerts > 0 && <span className="gold-badge">{activeAlerts}</span>}
         </Button>
       </div>
+
+      {/* Portfolio first: the price, then the portfolio and its actions; tools and market details follow. */}
+      <div className="gold-tools-row">
+        <GoldKeepAwake />
+        <GoldLiveMode
+          dataUpdatedAt={overviewQuery.dataUpdatedAt}
+          price={livePrice}
+          updatedOn={overview?.current_price?.updated_on}
+          yesterdayPrice={yesterdayPrice}
+        />
+      </div>
+
+      {overview?.price_performance && (
+        <GoldPricePerformanceSummary performance={overview.price_performance} />
+      )}
 
       {overviewQuery.error && (
         <p className="status-error rounded-xl px-4 py-3 text-sm" role="alert">{overviewQuery.error.message}</p>
