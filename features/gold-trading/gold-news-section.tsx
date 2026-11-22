@@ -43,7 +43,9 @@ export function GoldNewsBar({
       <Newspaper aria-hidden="true" className="gold-news-ticker-icon" size={18} />
       <span className="gold-news-ticker-copy">
         <span className="gold-news-ticker-label">{t("goldNewsLatest")}</span>
-        <span className="gold-news-ticker-headline">{headline}</span>
+        <span className="gold-news-ticker-viewport">
+          <span className="gold-news-ticker-headline">{headline}</span>
+        </span>
       </span>
       <span className="gold-news-ticker-action">
         <span className="gold-news-ticker-action-label">{t("goldNewsViewAll")}</span>

@@ -3968,13 +3968,29 @@ body {
   font-weight: 600;
 }
 
-.gold-news-ticker-headline {
+.gold-news-ticker-viewport {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 1.35em;
   overflow: hidden;
+}
+
+.gold-news-ticker-headline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: max-content;
   font-size: 0.78rem;
   font-weight: 650;
   line-height: 1.35;
-  text-overflow: ellipsis;
   white-space: nowrap;
+  animation: gold-news-ticker-right 18s linear infinite;
+}
+
+@keyframes gold-news-ticker-right {
+  from { left: 0; }
+  to { left: 100%; }
 }
 
 .gold-news-ticker-action {
@@ -3986,6 +4002,10 @@ body {
   font-size: 0.68rem;
   font-weight: 650;
   white-space: nowrap;
+}
+
+.gold-news-ticker:hover .gold-news-ticker-headline {
+  animation-play-state: paused;
 }
 
 .gold-news-screen {
@@ -4088,6 +4108,16 @@ body {
 
   .gold-news-ticker-action-label {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gold-news-ticker-headline {
+    position: static;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    animation: none;
   }
 }
 
