@@ -60,6 +60,12 @@ skip changing the price. The Admin page displays the current price but no
 longer has a manual price-entry form. The existing JWT-protected
 `POST /api/gold/price` endpoint remains available to trusted integrations.
 Telegram price alerts are sent when a price update crosses a user's target.
+Gold purchase, sale, and price-alert messages use the language selected in the
+Mini App, include an **Open Gold Mini App** button, and format message text as
+Telegram HTML. The signed `/telegram-user` registration request syncs the
+selected language to the user's existing settings. Set the optional backend
+`GOLD_TRADING_MINI_APP_URL` environment variable to override the button URL
+(defaults to `https://sambathreasmey.online`).
 In **Helper Management**, administrators can also manage a YouTube-home ad,
 app-wide announcement, maintenance notice, YouTube and Gold Trade availability,
 support link, and default language. A user's saved language always overrides

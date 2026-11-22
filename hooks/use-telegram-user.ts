@@ -9,9 +9,16 @@ export const TELEGRAM_USER_QUERY_KEY = ["telegram-user"] as const;
  * Registers the Telegram user through the backend with React Query.
  * The query fails with BlockedUserError when the backend returns 403.
  */
-export function useTelegramUserQuery(initData: string | undefined, profile: { platform?: string; appVersion?: string } = {}) {
+export function useTelegramUserQuery(
+  initData: string | undefined,
+  profile: {
+    platform?: string;
+    appVersion?: string;
+    appLanguage?: "KH" | "EN" | "CN";
+  } = {},
+) {
   return useQuery<TelegramUserData | null, Error>({
-    queryKey: [...TELEGRAM_USER_QUERY_KEY, initData],
+    queryKey: [...TELEGRAM_USER_QUERY_KEY, initData, profile.appLanguage],
     queryFn: () => registerTelegramUser(initData as string, profile),
     enabled: Boolean(initData),
     retry: (failureCount, error) => error.name !== "BlockedUserError" && failureCount < 2,

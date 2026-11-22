@@ -19,6 +19,7 @@ function BlockedScreen() {
 }
 
 function BlockedGate({ children }: { children: ReactNode }) {
+  const { language } = useLanguage();
   const [initData, setInitData] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -27,7 +28,9 @@ function BlockedGate({ children }: { children: ReactNode }) {
 
   // Render the app right away; the register-user request runs in the background and
   // only swaps in the blocked screen if the backend reports the account as blocked.
-  const { data, error, isError } = useTelegramUserQuery(initData);
+  const { data, error, isError } = useTelegramUserQuery(initData, {
+    appLanguage: language,
+  });
 
   if (initData === undefined) return null;
 

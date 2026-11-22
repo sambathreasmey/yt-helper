@@ -10,6 +10,7 @@ export class BlockedUserError extends Error {
 export interface TelegramUserProfileInput {
   platform?: string;
   appVersion?: string;
+  appLanguage?: "KH" | "EN" | "CN";
 }
 
 export interface TelegramUserRecord {
@@ -56,6 +57,7 @@ export async function registerTelegramUser(
       body: JSON.stringify({
         platform: profile.platform || null,
         app_version: profile.appVersion || null,
+        app_language: profile.appLanguage || null,
       }),
     });
   } catch {
