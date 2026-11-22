@@ -45,7 +45,7 @@ import {
 } from "@/features/gold-trading/gold-format";
 import { GoldSummary } from "@/features/gold-trading/gold-summary";
 import { GoldPricePerformanceSummary } from "@/features/gold-trading/gold-price-performance";
-import { GoldNewsSection } from "@/features/gold-trading/gold-news-section";
+import { GoldNewsBar, GoldNewsScreen } from "@/features/gold-trading/gold-news-section";
 import { LIVE_MODE_REFRESH_MS, getLiveModeActive, subscribeLiveMode } from "@/lib/live-mode-state";
 import {
   AlertsSheet,
@@ -56,6 +56,7 @@ import {
 
 type SheetKind = "buy" | "edit" | "sell" | "holding" | "alerts";
 type Tab = "holdings" | "history";
+type GoldScreen = "trading" | "news";
 
 const TOAST_MS = 3400;
 
@@ -69,6 +70,7 @@ export function GoldTrading() {
   const [sortBy, setSortBy] = useState("profit_loss");
   const [order, setOrder] = useState("desc");
   const [tab, setTab] = useState<Tab>("holdings");
+  const [screen, setScreen] = useState<GoldScreen>("trading");
   // `sheet` keeps its last value after closing so the sheet can finish its exit animation with the same content.
   const [sheet, setSheet] = useState<{ kind: SheetKind; id: number | null }>({ kind: "buy", id: null });
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -243,9 +245,30 @@ export function GoldTrading() {
     setOrder(nextOrder);
   };
 
+  if (screen === "news") {
+    return (
+      <main className="gold-dashboard mx-auto w-full max-w-[520px] space-y-4">
+        <GoldNewsScreen
+          data={goldNewsQuery.data}
+          error={goldNewsQuery.error}
+          isFetching={goldNewsQuery.isFetching}
+          isPending={goldNewsQuery.isPending}
+          onBack={() => setScreen("trading")}
+          onRetry={() => void goldNewsQuery.refetch()}
+        />
+      </main>
+    );
+  }
+
   return (
     <main className="gold-dashboard mx-auto w-full max-w-[520px] space-y-4">
       <AppHeader avatar={headerAvatar} title={t("goldTrading")} subtitle={t("goldSubtitle")} brandIcon={ChartNoAxesCombined} brandVariant="gold" />
+      <GoldNewsBar
+        data={goldNewsQuery.data}
+        error={goldNewsQuery.error}
+        isPending={goldNewsQuery.isPending}
+        onOpen={() => setScreen("news")}
+      />
       <div className="flex flex-wrap items-center gap-2">
         <GoldKeepAwake />
         <GoldLiveMode
@@ -308,14 +331,6 @@ export function GoldTrading() {
       {overview?.price_performance && (
         <GoldPricePerformanceSummary performance={overview.price_performance} />
       )}
-
-      <GoldNewsSection
-        data={goldNewsQuery.data}
-        error={goldNewsQuery.error}
-        isFetching={goldNewsQuery.isFetching}
-        isPending={goldNewsQuery.isPending}
-        onRetry={() => void goldNewsQuery.refetch()}
-      />
 
       {overviewQuery.isPending && <GoldSummarySkeleton />}
       {summary && <GoldSummary animate={animatePrice} summary={summary} />}
