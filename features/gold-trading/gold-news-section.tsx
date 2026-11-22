@@ -29,13 +29,19 @@ export function GoldNewsBar({
   onOpen: () => void;
 }) {
   const { t } = useLanguage();
-  const latest = data?.items[0];
-  const headline = latest?.title
-    ?? (isPending ? t("goldNewsLoading") : error ? t("goldNewsError") : t("goldNewsEmpty"));
+  const tickerText = data?.items.length
+    ? data.items.map((item) => item.title).join("   •   ")
+    : isPending
+      ? t("goldNewsLoading")
+      : error
+        ? t("goldNewsError")
+        : t("goldNewsEmpty");
+  const accessibleHeadline = data?.items[0]?.title ?? tickerText;
+  const tickerDuration = `${Math.max(30, tickerText.length / 18)}s`;
 
   return (
     <button
-      aria-label={`${t("goldNewsLatest")}: ${headline}. ${t("goldNewsViewAll")}`}
+      aria-label={`${t("goldNewsLatest")}: ${accessibleHeadline}. ${t("goldNewsViewAll")}`}
       className="gold-news-ticker"
       onClick={onOpen}
       type="button"
@@ -43,8 +49,11 @@ export function GoldNewsBar({
       <Newspaper aria-hidden="true" className="gold-news-ticker-icon" size={18} />
       <span className="gold-news-ticker-copy">
         <span className="gold-news-ticker-label">{t("goldNewsLatest")}</span>
-        <span className="gold-news-ticker-viewport">
-          <span className="gold-news-ticker-headline">{headline}</span>
+        <span aria-hidden="true" className="gold-news-ticker-viewport">
+          <span className="gold-news-ticker-track" style={{ animationDuration: tickerDuration }}>
+            <span className="gold-news-ticker-sequence">{tickerText}</span>
+            <span className="gold-news-ticker-sequence">{tickerText}</span>
+          </span>
         </span>
       </span>
       <span className="gold-news-ticker-action">
