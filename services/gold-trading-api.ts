@@ -82,6 +82,26 @@ export type GoldPriceAlert = {
   triggered_on: string | null;
 };
 
+export type GoldNewsItem = {
+  id: string;
+  title: string;
+  url: string;
+  domain: string;
+  language: string;
+  seen_at: string | null;
+};
+
+export type GoldNewsResponse = {
+  status: "ok" | "stale" | "empty";
+  stale: boolean;
+  fetched_at: string;
+  attribution: {
+    provider: string;
+    url: string;
+  };
+  items: GoldNewsItem[];
+};
+
 export type GoldTradeInput = {
   unit: GoldUnit;
   quantity: string;
@@ -143,6 +163,9 @@ export const getGoldOverview = (
 
 export const getGoldAlerts = (initData: string): Promise<GoldPriceAlert[]> =>
   request(initData, "/alerts");
+
+export const getGoldNews = (initData: string): Promise<GoldNewsResponse> =>
+  request(initData, "/news");
 
 export const createGoldPurchase = (
   initData: string,

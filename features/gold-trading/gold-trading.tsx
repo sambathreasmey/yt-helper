@@ -27,6 +27,7 @@ import {
   deleteGoldPriceAlert,
   deleteGoldPurchase,
   getGoldAlerts,
+  getGoldNews,
   getGoldOverview,
   sellGoldPurchase,
   updateGoldPurchase,
@@ -44,6 +45,7 @@ import {
 } from "@/features/gold-trading/gold-format";
 import { GoldSummary } from "@/features/gold-trading/gold-summary";
 import { GoldPricePerformanceSummary } from "@/features/gold-trading/gold-price-performance";
+import { GoldNewsSection } from "@/features/gold-trading/gold-news-section";
 import { LIVE_MODE_REFRESH_MS, getLiveModeActive, subscribeLiveMode } from "@/lib/live-mode-state";
 import {
   AlertsSheet,
@@ -87,6 +89,15 @@ export function GoldTrading() {
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
     staleTime: 5_000,
+  });
+  const goldNewsQuery = useQuery({
+    queryKey: ["gold-news", initData],
+    queryFn: () => getGoldNews(initData),
+    enabled: Boolean(initData),
+    refetchInterval: 15 * 60 * 1000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
+    staleTime: 5 * 60 * 1000,
   });
   const alertsQuery = useQuery({
     queryKey: ["gold-price-alerts", initData],
@@ -297,6 +308,14 @@ export function GoldTrading() {
       {overview?.price_performance && (
         <GoldPricePerformanceSummary performance={overview.price_performance} />
       )}
+
+      <GoldNewsSection
+        data={goldNewsQuery.data}
+        error={goldNewsQuery.error}
+        isFetching={goldNewsQuery.isFetching}
+        isPending={goldNewsQuery.isPending}
+        onRetry={() => void goldNewsQuery.refetch()}
+      />
 
       {overviewQuery.isPending && <GoldSummarySkeleton />}
       {summary && <GoldSummary animate={animatePrice} summary={summary} />}

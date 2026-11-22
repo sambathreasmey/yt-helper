@@ -73,6 +73,13 @@ the app default. Separate, confirmed Telegram actions send saved maintenance or
 announcement messages to active users, or a private message to one selected
 active user; saving a setting alone never sends a Telegram message. These
 notifications use the backend's configured `telegram.polling_bot` token.
+The Gold Trading screen also shows recent, keyword-matched GDELT headlines in
+their original language with publisher links and GDELT attribution. Headlines
+are related coverage, not explanations or predictions of gold-price changes.
+Before enabling the feed, apply `helper_flask_app/sql/gold_news_cache.sql` to
+the backend MySQL database. The backend shares a 15-minute cache and only
+refreshes it on demand, guarded by a MySQL advisory lock; it does not add a
+Flask in-process scheduler.
 
 Use **Customize** in the header to select System, Light, or Dark, pick from six
 accent colors, choose the app icon and one of 12 backgrounds, adjust Glass card
