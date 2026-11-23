@@ -1,8 +1,10 @@
 "use client";
 
 import { ArrowDownRight, ArrowUpRight, Radio, X } from "lucide-react";
-import { useEffect, useId, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { AnimatedNumber } from "@/components/animated-number";
+import { LiveTicker } from "@/components/live-ticker";
 import { formatUsd } from "@/features/gold-trading/gold-format";
 import { useLiveGoldFeed } from "@/hooks/use-live-gold-feed";
 import { useWakeLock } from "@/hooks/use-wake-lock";
@@ -11,8 +13,6 @@ import { setLiveModeActive } from "@/lib/live-mode-state";
 import { useLanguage } from "@/providers/language-provider";
 
 const MAX_POINTS = 240;
-/** The chart always spans at least this long, so the first few points do not jump around. */
-const MIN_SPAN_MS = 60_000;
 
 interface Point {
   t: number;
@@ -40,10 +40,9 @@ function LiveScreen({
   const feedLive = feed.status === "live" && feed.price !== null;
   const price = feedLive ? feed.price : polledPrice;
   const dataUpdatedAt = feedLive ? (feed.updatedAt ?? 0) : polledAt;
-  const gradientId = useId();
+  const formatPrice = useCallback((value: number) => formatUsd(String(value), locale), [locale]);
   const [series, setSeries] = useState<Point[]>([]);
   const [now, setNow] = useState(() => Date.now());
-  const [flash, setFlash] = useState<{ key: number; dir: "up" | "down" } | null>(null);
 
   // Keep the screen on and tell the page to refresh the price faster while this screen is open.
   useWakeLock(true);
@@ -71,13 +70,12 @@ function LiveScreen({
     return () => window.clearInterval(timer);
   }, []);
 
-  // One point per successful refresh; flash green/red when the price moves.
+  // One chart point per second (the newest value wins).
   useEffect(() => {
     if (price === null || !Number.isFinite(price)) return;
     setSeries((current) => {
       const last = current[current.length - 1];
       const at = Date.now();
-      if (last && last.p !== price) setFlash({ key: at, dir: price > last.p ? "up" : "down" });
       // Ticks can arrive several times a second: keep one chart point per second (the newest value).
       if (last && at - last.t < 1000) return [...current.slice(0, -1), { t: last.t, p: price }];
       return [...current, { t: at, p: price }].slice(-MAX_POINTS);
@@ -95,30 +93,12 @@ function LiveScreen({
   const change = useMemo(() => {
     if (price === null || baseline === null || baseline <= 0) return null;
     const diff = Math.round((price - baseline) * 100) / 100;
-    const sign = diff > 0 ? "+" : diff < 0 ? "\u2212" : "";
     return {
       trend: diff > 0 ? ("up" as const) : diff < 0 ? ("down" as const) : ("flat" as const),
-      amount: formatUsd(String(Math.abs(diff)), locale),
-      percent: `${sign}${Math.abs((diff / baseline) * 100).toFixed(2)}%`,
+      diff,
+      percent: (diff / baseline) * 100,
     };
-  }, [baseline, locale, price]);
-
-  const chart = useMemo(() => {
-    if (series.length < 2 || !stats) return null;
-    const t0 = series[0].t;
-    const span = Math.max(series[series.length - 1].t - t0, MIN_SPAN_MS);
-    const range = stats.high - stats.low;
-    const pad = range === 0 ? Math.max(stats.high * 0.001, 0.01) : range * 0.18;
-    const min = stats.low - pad;
-    const max = stats.high + pad;
-    const coords = series.map((point) => ({
-      x: ((point.t - t0) / span) * 100,
-      y: 100 - ((point.p - min) / (max - min)) * 100,
-    }));
-    const line = coords.map((c, index) => `${index === 0 ? "M" : "L"}${c.x.toFixed(2)} ${c.y.toFixed(2)}`).join(" ");
-    const last = coords[coords.length - 1];
-    return { line, area: `${line} L${last.x.toFixed(2)} 100 L0 100 Z`, last };
-  }, [series, stats]);
+  }, [baseline, price]);
 
   const trend = change?.trend ?? "flat";
 
@@ -137,54 +117,37 @@ function LiveScreen({
 
       <div className="live-mode-body">
         <p className="live-mode-label">{t("goldPrice")}</p>
-        <p className="live-mode-price" data-flash={flash?.dir ?? "none"} key={flash?.key ?? "initial"}>
-          {price === null ? "\u2014" : formatUsd(String(price), locale)}
-        </p>
-        <p className="live-mode-unit">/ {t("damlungUnit")}</p>
+        <LiveTicker formatPrice={formatPrice} price={price} series={series} waitingText={`${t("liveBadge")}\u2026`}>
+          <p className="live-mode-unit">/ {t("damlungUnit")}</p>
 
-        {change && (
-          <div className="live-mode-change">
-            {change.trend !== "flat" &&
-              (change.trend === "up" ? <ArrowUpRight aria-hidden="true" size={22} /> : <ArrowDownRight aria-hidden="true" size={22} />)}
-            <strong>
-              {change.amount} ({change.percent})
-            </strong>
-            <span>{yesterdayPrice !== null && yesterdayPrice > 0 ? t("yesterdayPrice") : t("liveSinceOpened")}</span>
-          </div>
-        )}
-
-        <div className="live-mode-chart">
-          {chart ? (
-            <>
-              <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 100 100">
-                <defs>
-                  <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="currentColor" stopOpacity="0.32" />
-                    <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-                {[25, 50, 75].map((y) => (
-                  <line className="live-mode-grid" key={y} x1="0" x2="100" y1={y} y2={y} />
-                ))}
-                <path d={chart.area} fill={`url(#${gradientId})`} />
-                <path className="live-mode-line" d={chart.line} />
-              </svg>
-              <span aria-hidden="true" className="live-mode-last" style={{ left: `${chart.last.x}%`, top: `${chart.last.y}%` }} />
-            </>
-          ) : (
-            <p className="live-mode-waiting">{t("liveBadge")}…</p>
+          {change && (
+            <div className="live-mode-change">
+              {change.trend !== "flat" &&
+                (change.trend === "up" ? <ArrowUpRight aria-hidden="true" size={22} /> : <ArrowDownRight aria-hidden="true" size={22} />)}
+              <strong>
+                <AnimatedNumber duration={500} format={(value) => formatUsd(String(Math.abs(value)), locale)} value={change.diff} />{" "}
+                (
+                <AnimatedNumber
+                  duration={500}
+                  format={(value) => `${value > 0 ? "+" : value < 0 ? "\u2212" : ""}${Math.abs(value).toFixed(2)}%`}
+                  value={Math.round(change.percent * 100) / 100}
+                />
+                )
+              </strong>
+              <span>{yesterdayPrice !== null && yesterdayPrice > 0 ? t("yesterdayPrice") : t("liveSinceOpened")}</span>
+            </div>
           )}
-        </div>
+        </LiveTicker>
 
         {stats && (
           <div className="live-mode-stats">
             <div>
               <span>{t("liveHigh")}</span>
-              <strong>{formatUsd(String(stats.high), locale)}</strong>
+              <strong><AnimatedNumber duration={500} format={formatPrice} value={stats.high} /></strong>
             </div>
             <div>
               <span>{t("liveLow")}</span>
-              <strong>{formatUsd(String(stats.low), locale)}</strong>
+              <strong><AnimatedNumber duration={500} format={formatPrice} value={stats.low} /></strong>
             </div>
           </div>
         )}

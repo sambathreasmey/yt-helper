@@ -594,3 +594,37 @@
 .gold-performance-chevron { flex: 0 0 auto; margin-left: auto; color: var(--mut); transition: transform 0.2s ease; }
 .gold-performance-toggle[data-open="true"] .gold-performance-chevron { transform: rotate(180deg); }
 .gold-performance-toggle[data-open="true"] { margin-bottom: 0.5rem; }
+
+/* Live mode: smooth motion */
+@property --live-accent {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #cbd5e1;
+}
+
+/* The accent colour (price, glow, chart line) fades between green, red and grey instead of snapping. */
+.live-mode { transition: --live-accent 0.7s ease; }
+
+/* The chart scrolls left over time: fade the line out at the left edge. */
+.live-mode-chart svg {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 14%);
+}
+
+.live-mode-line { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--live-accent) 55%, transparent)); }
+
+/* The newest point: a soft pulse ring, hidden until the first frame has positioned it. */
+.live-mode-last { will-change: top; }
+.live-mode-last::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 9999px;
+  background: #ffd45b;
+  opacity: 0.5;
+  animation: live-mode-ring 1.8s ease-out infinite;
+}
+@keyframes live-mode-ring { to { opacity: 0; transform: scale(2.6); } }
+:root[data-perf="lite"] .live-mode-last::after,
+:root[data-motion="off"] .live-mode-last::after { animation: none; opacity: 0; }
+.live-mode-last:not([data-ready]) { opacity: 0; }
