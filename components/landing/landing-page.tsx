@@ -1,24 +1,33 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import {
+  ArrowDownRight,
   ArrowRight,
+  ArrowUpRight,
+  Activity,
   BellRing,
   Check,
   ChevronDown,
   CirclePlay,
   LayoutGrid,
   Play,
+  Scale,
   Send,
   Smartphone,
   Sparkles,
 } from "lucide-react";
 import { GoldIcon } from "@/components/icons/gold-icon";
+import { GoldBullionArt } from "@/components/gold-bullion-art";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { WelcomeBannerDemo } from "@/components/welcome-banner-demo";
 import { BOT_LINK, StickyTelegramCta, TelegramCta } from "@/components/landing/telegram-cta";
 import { useReveal } from "@/components/landing/use-reveal";
+import { AnimatedNumber } from "@/components/animated-number";
+import { LiveTicker, type TickerPoint } from "@/components/live-ticker";
+import { useLiveGoldFeed } from "@/hooks/use-live-gold-feed";
+import { formatUsd } from "@/features/gold-trading/gold-format";
 import { useLanguage, type TranslationKey } from "@/providers/language-provider";
 import { cn } from "@/lib/utils";
 
@@ -66,6 +75,7 @@ function LandingHeader() {
   }, []);
 
   const links: { id: string; label: TranslationKey }[] = [
+    { id: "market", label: "navLiveMarket" },
     { id: "features", label: "navFeatures" },
     { id: "how-it-works", label: "navHowItWorks" },
     { id: "faq", label: "navFaq" },
@@ -164,6 +174,243 @@ function Hero() {
         </ul>
       </div>
       <PhoneMock />
+    </section>
+  );
+}
+
+type MarketUnit = "damlung" | "chi" | "hun";
+
+const MARKET_UNITS: { id: MarketUnit; label: TranslationKey; divisor: number }[] = [
+  { id: "damlung", label: "damlungUnit", divisor: 1 },
+  { id: "chi", label: "chiUnit", divisor: 10 },
+  { id: "hun", label: "hunUnit", divisor: 100 },
+];
+
+function LandingMarket() {
+  const { t, locale } = useLanguage();
+  const feed = useLiveGoldFeed(true);
+  const [unit, setUnit] = useState<MarketUnit>("damlung");
+  const [windowSize, setWindowSize] = useState<"1m" | "2m">("2m");
+  const [prices, setPrices] = useState<TickerPoint[]>([]);
+  const [activity, setActivity] = useState<TickerPoint[]>([]);
+  const [startPrice, setStartPrice] = useState<number | null>(null);
+  const [range, setRange] = useState<{ high: number; low: number } | null>(null);
+  const formatPrice = useCallback((value: number) => formatUsd(String(value), locale), [locale]);
+
+  useEffect(() => {
+    const price = feed.price;
+    if (price === null) return;
+    setPrices((current) => {
+      const last = current[current.length - 1];
+      const at = feed.updatedAt ?? Date.now();
+      if (last && at - last.t < 1_000) {
+        return [...current.slice(0, -1), { t: last.t, p: price }];
+      }
+      return [...current, { t: at, p: price }].slice(-240);
+    });
+    setActivity((current) => [...current, { t: feed.updatedAt ?? Date.now(), p: price }].slice(-5));
+    setStartPrice((current) => current ?? price);
+    setRange((current) => ({
+      high: current ? Math.max(current.high, price) : price,
+      low: current ? Math.min(current.low, price) : price,
+    }));
+  }, [feed.price, feed.updatedAt]);
+
+  const selectedUnit = MARKET_UNITS.find((item) => item.id === unit) ?? MARKET_UNITS[0];
+  const displayedPrice = feed.price === null ? null : feed.price / selectedUnit.divisor;
+  const displayedRange = range
+    ? { high: range.high / selectedUnit.divisor, low: range.low / selectedUnit.divisor }
+    : null;
+  const chartSeries = useMemo(
+    () => {
+      const cutoff = Date.now() - (windowSize === "1m" ? 60_000 : 120_000);
+      const visible = prices.filter((point) => point.t >= cutoff);
+      const points = visible.length ? visible : prices.slice(-1);
+      return points.map((point) => ({ ...point, p: point.p / selectedUnit.divisor }));
+    },
+    [prices, selectedUnit.divisor, windowSize],
+  );
+  const statusText = feed.status === "live"
+    ? t("liveBadge")
+    : feed.status === "failed"
+      ? t("landingMarketReconnecting")
+      : t("landingMarketConnecting");
+  const trend = feed.price !== null && startPrice !== null ? feed.price - startPrice : 0;
+  const trendPercent = startPrice ? (trend / startPrice) * 100 : null;
+  const displayedTrend = trend / selectedUnit.divisor;
+
+  return (
+    <section aria-labelledby="market-title" className="landing-market-section reveal" id="market">
+      <div
+        className="landing-market-card"
+        data-status={feed.status}
+        data-trend={trend > 0 ? "up" : trend < 0 ? "down" : "flat"}
+      >
+        <div aria-hidden="true" className="landing-market-orb landing-market-orb-a" />
+        <div aria-hidden="true" className="landing-market-orb landing-market-orb-b" />
+        <div className="landing-market-hero">
+          <div className="landing-market-price-panel">
+            <div className="landing-market-brandline">
+              <span className="landing-market-status"><i />{statusText}</span>
+              <span className="landing-market-source"><Activity aria-hidden="true" size={15} />{t("landingMarketSource")}</span>
+            </div>
+            <div aria-live="polite" className="landing-market-price-row">
+              {displayedPrice === null ? (
+                <p className="landing-market-price-placeholder">{t("priceUnavailable")}</p>
+              ) : (
+                <AnimatedNumber
+                  className="landing-market-price"
+                  duration={450}
+                  key={unit}
+                  format={formatPrice}
+                  value={displayedPrice}
+                />
+              )}
+              {displayedPrice !== null && <span className="landing-market-unit">/ {t(selectedUnit.label)}</span>}
+            </div>
+            <div className="landing-market-change" data-trend={trend > 0 ? "up" : trend < 0 ? "down" : "flat"}>
+              {trend > 0 ? <ArrowUpRight aria-hidden="true" size={20} /> : trend < 0 ? <ArrowDownRight aria-hidden="true" size={20} /> : <span className="landing-market-change-dash" />}
+              <strong>
+                {displayedPrice === null || startPrice === null
+                  ? "—"
+                  : `${trend > 0 ? "+" : trend < 0 ? "−" : ""}${formatUsd(String(Math.abs(displayedTrend)), locale)}`}
+              </strong>
+              <span>
+                {trendPercent === null
+                  ? "—"
+                  : `${trendPercent > 0 ? "+" : trendPercent < 0 ? "−" : ""}${new Intl.NumberFormat(locale, { maximumFractionDigits: 3 }).format(Math.abs(trendPercent))}%`}
+              </span>
+            </div>
+          </div>
+          <div className="landing-market-brand">
+            <div className="landing-market-brand-copy">
+              <p className="landing-market-eyebrow">{t("landingMarketTitle")}</p>
+              <p className="landing-market-description">{t("landingMarketDescription")}</p>
+            </div>
+            <div className="landing-market-art">
+              <GoldBullionArt />
+            </div>
+          </div>
+        </div>
+
+        <div className="landing-market-dashboard">
+          <div className="landing-market-chart-panel">
+            <div className="landing-market-chart-toolbar">
+              <div className="landing-market-chart-title">
+                <p>{t("priceChart")}</p>
+                <span data-status={feed.status}><i />{statusText}</span>
+              </div>
+              <div className="landing-market-chart-controls">
+                <div aria-label={t("priceChart")} className="landing-market-window">
+                  {(["1m", "2m"] as const).map((size) => (
+                    <button
+                      aria-pressed={windowSize === size}
+                      key={size}
+                      onClick={() => setWindowSize(size)}
+                      type="button"
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+                <div aria-label={t("pricePerUnit", { unit: t(selectedUnit.label) })} className="landing-market-units">
+                  {MARKET_UNITS.map((item) => (
+                    <button
+                      aria-pressed={unit === item.id}
+                      key={item.id}
+                      onClick={() => setUnit(item.id)}
+                      type="button"
+                    >
+                      {t(item.label)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            {displayedPrice === null ? (
+              <div className="landing-market-chart-wait">{statusText}</div>
+            ) : (
+              <div className="landing-market-chart-ticker">
+                <LiveTicker
+                  chartLabel={t("priceChart")}
+                  formatPrice={formatPrice}
+                  price={displayedPrice}
+                  series={chartSeries}
+                  waitingText={statusText}
+                >
+                  <p className="live-mode-unit">/ {t(selectedUnit.label)}</p>
+                </LiveTicker>
+              </div>
+            )}
+          </div>
+
+          <aside aria-label={t("landingMarketActivity")} className="landing-market-activity">
+            <h3><Activity aria-hidden="true" size={17} />{t("landingMarketActivity")}</h3>
+            {activity.length ? (
+              <ol>
+                {[...activity].reverse().map((entry) => (
+                  <li key={`${entry.t}-${entry.p}`}>
+                    <span aria-hidden="true" className="landing-market-activity-dot" />
+                    <div>
+                      <time dateTime={new Date(entry.t).toISOString()}>
+                        {new Date(entry.t).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}
+                      </time>
+                      <strong>{formatUsd(String(entry.p / selectedUnit.divisor), locale)}</strong>
+                      <small>{t("landingMarketSource")}</small>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="landing-market-activity-empty">{statusText}</p>
+            )}
+          </aside>
+        </div>
+
+        <div className="landing-market-stats">
+          <div>
+            <span className="landing-market-stat-icon"><Scale aria-hidden="true" size={23} /></span>
+            <span className="landing-market-stat-label">{t("liveHigh")}</span>
+            <strong>
+              {displayedRange
+                ? <AnimatedNumber duration={500} format={formatPrice} key={unit} value={displayedRange.high} />
+                : "—"}
+            </strong>
+          </div>
+          <div>
+            <span className="landing-market-stat-icon"><GoldIcon aria-hidden="true" size={23} /></span>
+            <span className="landing-market-stat-label">{t("liveLow")}</span>
+            <strong>
+              {displayedRange
+                ? <AnimatedNumber duration={500} format={formatPrice} key={unit} value={displayedRange.low} />
+                : "—"}
+            </strong>
+          </div>
+          <div data-trend={trend > 0 ? "up" : trend < 0 ? "down" : "flat"}>
+            <span className="landing-market-stat-icon"><Activity aria-hidden="true" size={23} /></span>
+            <span className="landing-market-stat-label">{t("liveSinceOpened")}</span>
+            <strong>
+              {displayedPrice === null || startPrice === null
+                ? "—"
+                : (
+                  <>
+                    {trend > 0 ? <ArrowUpRight aria-hidden="true" size={15} /> : trend < 0 ? <ArrowDownRight aria-hidden="true" size={15} /> : null}
+                    <AnimatedNumber
+                      duration={500}
+                      format={(value) => `${value > 0 ? "+" : value < 0 ? "−" : ""}${formatUsd(String(Math.abs(value)), locale)}`}
+                      value={displayedTrend}
+                    />
+                  </>
+                )}
+            </strong>
+          </div>
+        </div>
+        {feed.updatedAt && (
+          <p className="landing-market-updated">
+            {t("updated", { date: new Date(feed.updatedAt).toLocaleTimeString(locale) })}
+          </p>
+        )}
+      </div>
     </section>
   );
 }
@@ -383,6 +630,7 @@ export function LandingPage() {
       <LandingHeader />
       <div className="landing-body">
         <Hero />
+        <LandingMarket />
         <Features />
         <Steps />
         <Showcase />

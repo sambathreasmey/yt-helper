@@ -1,9 +1,11 @@
 "use client";
 
-import { ArrowDownRight, ArrowUpRight, Radio, X } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Clock3, Radio, Signal, TrendingDown, TrendingUp, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatedNumber } from "@/components/animated-number";
+import { GoldBullionArt } from "@/components/gold-bullion-art";
+import { GoldIcon } from "@/components/icons/gold-icon";
 import { LiveTicker } from "@/components/live-ticker";
 import { formatUsd } from "@/features/gold-trading/gold-format";
 import { useLiveGoldFeed } from "@/hooks/use-live-gold-feed";
@@ -13,6 +15,11 @@ import { setLiveModeActive } from "@/lib/live-mode-state";
 import { useLanguage } from "@/providers/language-provider";
 
 const MAX_POINTS = 240;
+const LIVE_RANGES = [
+  { label: "1m", seconds: 60 },
+  { label: "2m", seconds: 120 },
+  { label: "4m", seconds: 240 },
+] as const;
 
 interface Point {
   t: number;
@@ -43,6 +50,7 @@ function LiveScreen({
   const formatPrice = useCallback((value: number) => formatUsd(String(value), locale), [locale]);
   const [series, setSeries] = useState<Point[]>([]);
   const [now, setNow] = useState(() => Date.now());
+  const [rangeSeconds, setRangeSeconds] = useState<(typeof LIVE_RANGES)[number]["seconds"]>(120);
 
   // Keep the screen on and tell the page to refresh the price faster while this screen is open.
   useWakeLock(true);
@@ -82,14 +90,18 @@ function LiveScreen({
     });
   }, [price, dataUpdatedAt]);
 
+  const visibleSeries = useMemo(
+    () => series.filter((point) => point.t >= now - rangeSeconds * 1000),
+    [now, rangeSeconds, series],
+  );
   const stats = useMemo(() => {
-    if (series.length === 0) return null;
-    const values = series.map((point) => point.p);
-    return { high: Math.max(...values), low: Math.min(...values), first: values[0] };
-  }, [series]);
+    if (visibleSeries.length === 0) return null;
+    const values = visibleSeries.map((point) => point.p);
+    return { high: Math.max(...values), low: Math.min(...values) };
+  }, [visibleSeries]);
 
   // Change since yesterday when the API provides it, otherwise since this screen was opened.
-  const baseline = yesterdayPrice !== null && yesterdayPrice > 0 ? yesterdayPrice : stats?.first ?? null;
+  const baseline = yesterdayPrice !== null && yesterdayPrice > 0 ? yesterdayPrice : series[0]?.p ?? null;
   const change = useMemo(() => {
     if (price === null || baseline === null || baseline <= 0) return null;
     const diff = Math.round((price - baseline) * 100) / 100;
@@ -101,23 +113,53 @@ function LiveScreen({
   }, [baseline, price]);
 
   const trend = change?.trend ?? "flat";
+  const updatedTime = feedLive && feed.updatedAt
+    ? new Date(feed.updatedAt).toLocaleTimeString(locale)
+    : updatedOn
+      ? formatUtcTimestamp(updatedOn, locale)
+      : "—";
 
   return (
     <div aria-label={t("liveModeTitle")} aria-modal="true" className="live-mode" data-trend={trend} role="dialog">
+      <div aria-hidden="true" className="live-mode-map" />
+      <div aria-hidden="true" className="live-mode-art">
+        <GoldBullionArt />
+      </div>
       <div className="live-mode-top">
-        <span className="live-mode-badge">
-          <span aria-hidden="true" className="live-mode-dot" />
-          {t("liveBadge")}
-        </span>
-        <span className="live-mode-clock">
-          {new Date(now).toLocaleTimeString(locale)}
-          <small>{feedLive ? t("liveSourceFeed") : t("liveSourcePolling")}</small>
-        </span>
+        <div className="live-mode-status">
+          <span className="live-mode-badge">
+            <span aria-hidden="true" className="live-mode-dot" />
+            {t("liveBadge")}
+          </span>
+          <Signal aria-hidden="true" className="live-mode-signal" size={18} />
+          <span className="live-mode-status-source">{feedLive ? t("landingMarketSource") : t("liveSourcePolling")}</span>
+        </div>
+        <div className="live-mode-header-actions">
+          <div className="live-mode-clock">
+            <Clock3 aria-hidden="true" size={17} />
+            <span>{new Date(now).toLocaleTimeString(locale)}</span>
+            <small>{new Date(now).toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" })}</small>
+          </div>
+          <button aria-label={t("liveClose")} className="live-mode-close" onClick={onClose} type="button">
+            <X aria-hidden="true" size={22} />
+          </button>
+        </div>
       </div>
 
       <div className="live-mode-body">
-        <p className="live-mode-label">{t("goldPrice")}</p>
-        <LiveTicker formatPrice={formatPrice} price={price} series={series} waitingText={`${t("liveBadge")}\u2026`}>
+        <div className="live-mode-heading">
+          <GoldIcon aria-hidden="true" size={30} />
+          <p className="live-mode-label">{t("goldPrice")}</p>
+        </div>
+        <LiveTicker
+          chartLabel={t("priceChart")}
+          chartWindowMs={rangeSeconds * 1000}
+          formatPrice={formatPrice}
+          price={price}
+          series={visibleSeries}
+          showLastLabel
+          waitingText={`${t("liveBadge")}\u2026`}
+        >
           <p className="live-mode-unit">/ {t("damlungUnit")}</p>
 
           {change && (
@@ -139,29 +181,37 @@ function LiveScreen({
           )}
         </LiveTicker>
 
-        {stats && (
-          <div className="live-mode-stats">
-            <div>
-              <span>{t("liveHigh")}</span>
-              <strong><AnimatedNumber duration={500} format={formatPrice} value={stats.high} /></strong>
-            </div>
-            <div>
-              <span>{t("liveLow")}</span>
-              <strong><AnimatedNumber duration={500} format={formatPrice} value={stats.low} /></strong>
-            </div>
+        <div className="live-mode-stats">
+          <div className="live-mode-stat-high">
+            <span className="live-mode-stat-icon"><TrendingUp aria-hidden="true" size={19} /></span>
+            <span>{t("liveHigh")}</span>
+            <strong>{stats ? <AnimatedNumber duration={500} format={formatPrice} value={stats.high} /> : "—"}</strong>
           </div>
-        )}
+          <div className="live-mode-stat-low">
+            <span className="live-mode-stat-icon"><TrendingDown aria-hidden="true" size={19} /></span>
+            <span>{t("liveLow")}</span>
+            <strong>{stats ? <AnimatedNumber duration={500} format={formatPrice} value={stats.low} /> : "—"}</strong>
+          </div>
+          <div className="live-mode-stat-update">
+            <span className="live-mode-stat-icon"><Clock3 aria-hidden="true" size={18} /></span>
+            <span>{t("liveUpdatedAt")}</span>
+            <strong>{updatedTime}</strong>
+          </div>
+        </div>
 
-        {feedLive && feed.updatedAt ? (
-          <p className="live-mode-updated">{t("updated", { date: new Date(feed.updatedAt).toLocaleTimeString(locale) })}</p>
-        ) : (
-          updatedOn && <p className="live-mode-updated">{t("updated", { date: formatUtcTimestamp(updatedOn, locale) })}</p>
-        )}
+        <div aria-label={t("priceChart")} className="live-mode-ranges" role="group">
+          {LIVE_RANGES.map((range) => (
+            <button
+              aria-pressed={rangeSeconds === range.seconds}
+              key={range.seconds}
+              onClick={() => setRangeSeconds(range.seconds)}
+              type="button"
+            >
+              {range.label}
+            </button>
+          ))}
+        </div>
       </div>
-
-      <button aria-label={t("liveClose")} className="live-mode-close" onClick={onClose} type="button">
-        <X aria-hidden="true" size={22} />
-      </button>
     </div>
   );
 }

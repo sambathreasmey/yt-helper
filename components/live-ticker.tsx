@@ -15,11 +15,14 @@ interface LiveTickerProps {
   formatPrice: (value: number) => string;
   /** Shown instead of the chart until there is something to draw. */
   waitingText: string;
+  chartLabel?: string;
+  chartWindowMs?: number;
+  showLastLabel?: boolean;
   /** Rendered between the big price and the chart (unit label, change chip...). */
   children?: ReactNode;
 }
 
-/** How much history the chart shows at most. Once it is full, the chart scrolls left as time passes. */
+/** Default history window; callers can choose a shorter or longer live-session window. */
 const WINDOW_MS = 120_000;
 /** Right after opening the chart is zoomed in, so a few seconds of data already fill the width. */
 const MIN_WINDOW_MS = 20_000;
@@ -57,16 +60,27 @@ function smoothLine(points: { x: number; y: number }[]): string {
  *  - the chart scrolls with real time, and its newest point moves in step with the price,
  *  - the vertical scale eases, so a new high or low does not make the line jump.
  */
-export function LiveTicker({ price, series, formatPrice, waitingText, children }: LiveTickerProps) {
+export function LiveTicker({
+  price,
+  series,
+  formatPrice,
+  waitingText,
+  chartLabel,
+  chartWindowMs,
+  showLastLabel = false,
+  children,
+}: LiveTickerProps) {
   const gradientId = useId();
   const priceRef = useRef<HTMLParagraphElement>(null);
   const lineRef = useRef<SVGPathElement>(null);
   const areaRef = useRef<SVGPathElement>(null);
   const dotRef = useRef<HTMLSpanElement>(null);
+  const labelRef = useRef<HTMLSpanElement>(null);
 
   const priceTarget = useRef(price);
   const seriesRef = useRef(series);
   const formatRef = useRef(formatPrice);
+  const windowTarget = useRef(chartWindowMs ?? WINDOW_MS);
   const dirty = useRef(true);
   const displayed = useRef<number | null>(price);
   const shownCents = useRef<number | null>(null);
@@ -75,6 +89,7 @@ export function LiveTicker({ price, series, formatPrice, waitingText, children }
   priceTarget.current = price;
   seriesRef.current = series;
   formatRef.current = formatPrice;
+  windowTarget.current = chartWindowMs ?? WINDOW_MS;
   dirty.current = true;
 
   // Restart the CSS flash (green up / red down) when the price moves, without remounting the node.
@@ -128,9 +143,11 @@ export function LiveTicker({ price, series, formatPrice, waitingText, children }
       displayed.current = shown;
 
       const cents = Math.round(shown * 100);
-      if (cents !== shownCents.current && priceRef.current) {
+      if (cents !== shownCents.current) {
         shownCents.current = cents;
-        priceRef.current.textContent = formatRef.current(shown);
+        const formattedPrice = formatRef.current(shown);
+        if (priceRef.current) priceRef.current.textContent = formattedPrice;
+        if (labelRef.current) labelRef.current.textContent = formattedPrice;
       }
 
       // 2. The chart: a window that slides with time, ending at the gliding price.
@@ -142,7 +159,9 @@ export function LiveTicker({ price, series, formatPrice, waitingText, children }
 
       const now = Date.now();
       // The window grows with the data (so the line always fills the chart) until it reaches its maximum.
-      const windowMs = Math.min(WINDOW_MS, Math.max(MIN_WINDOW_MS, (now - points[0].t) * (100 / (HEAD_X - OLDEST_X))));
+      const maxWindowMs = windowTarget.current;
+      const minWindowMs = Math.min(MIN_WINDOW_MS, maxWindowMs);
+      const windowMs = Math.min(maxWindowMs, Math.max(minWindowMs, (now - points[0].t) * (100 / (HEAD_X - OLDEST_X))));
       const left = now - windowMs * (HEAD_X / 100);
       const xOf = (t: number) => ((t - left) / windowMs) * 100;
 
@@ -187,6 +206,10 @@ export function LiveTicker({ price, series, formatPrice, waitingText, children }
       area.setAttribute("d", `${d} L${fmt(head.x)} 100 L${fmt(coords[0].x)} 100 Z`);
       dot.style.left = `${head.x}%`;
       dot.style.top = `${head.y}%`;
+      if (labelRef.current) {
+        labelRef.current.style.left = `${head.x}%`;
+        labelRef.current.style.top = `${head.y}%`;
+      }
       dot.dataset.ready = "1";
     };
 
@@ -200,7 +223,7 @@ export function LiveTicker({ price, series, formatPrice, waitingText, children }
         {initialText}
       </p>
       {children}
-      <div className="live-mode-chart">
+      <div aria-label={chartLabel} className="live-mode-chart" role={chartLabel ? "img" : undefined}>
         <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 100 100">
           <defs>
             <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
@@ -215,6 +238,7 @@ export function LiveTicker({ price, series, formatPrice, waitingText, children }
           <path className="live-mode-line" ref={lineRef} />
         </svg>
         <span aria-hidden="true" className="live-mode-last" ref={dotRef} />
+        {showLastLabel && <span aria-hidden="true" className="live-mode-last-label" ref={labelRef} />}
         {series.length < 2 && <p className="live-mode-waiting">{waitingText}</p>}
       </div>
     </>
