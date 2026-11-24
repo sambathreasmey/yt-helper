@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import {
   ArrowDownRight,
   ArrowRight,
@@ -12,6 +12,8 @@ import {
   ChevronDown,
   CirclePlay,
   LayoutGrid,
+  Maximize,
+  Minimize,
   Play,
   Scale,
   Send,
@@ -113,34 +115,74 @@ function LandingHeader() {
 
 function PhoneMock() {
   const { t } = useLanguage();
+  const features = [
+    { id: "gold", icon: <GoldIcon size={20} />, title: t("goldTrading"), detail: t("goldFeature1") },
+    { id: "youtube", icon: <CirclePlay size={20} />, title: t("youtubeTitle"), detail: t("youtubeFeature1") },
+    { id: "alerts", icon: <BellRing size={20} />, title: t("priceAlerts"), detail: t("goldFeature4") },
+    { id: "live", icon: <Activity size={20} />, title: t("landingLiveAvailability"), detail: t("goldFeature5") },
+  ];
+  const slides = [...features, { ...features[0], id: "gold-loop" }];
+
   return (
     <div aria-hidden={false} className="landing-visual">
       <div aria-hidden="true" className="landing-glow" />
       <div className="landing-phone">
         <span aria-hidden="true" className="landing-phone-notch" />
-        <Image
-          alt={t("landingPhoneAlt")}
-          className="landing-phone-img"
-          height={1280}
-          priority
-          sizes="(max-width: 768px) 62vw, 320px"
-          src="/demo/helper-home-screen-mobile.jpg"
-          width={720}
-        />
+        <div aria-label={t("landingPhoneAlt")} className="landing-phone-screen" role="img">
+          <div aria-hidden="true" className="landing-phone-appbar">
+            <span className="landing-phone-app-mark">H</span>
+            <strong>Helper</strong>
+            <span className="landing-phone-live"><i />{t("liveBadge")}</span>
+          </div>
+          <div className="landing-phone-feature-window">
+            <div className="landing-phone-feature-track">
+              {slides.map((feature, index) => (
+                <div
+                  aria-hidden={index === features.length ? true : undefined}
+                  className="landing-phone-feature-slide"
+                  key={feature.id}
+                >
+                  <span className="landing-phone-slide-icon">{feature.icon}</span>
+                  <strong>{feature.title}</strong>
+                  <p>{feature.detail}</p>
+                  {feature.id === "youtube" ? (
+                    <div className="landing-phone-preview landing-phone-preview-video">
+                      <span><CirclePlay aria-hidden="true" size={27} /></span>
+                      <i />
+                      <i />
+                    </div>
+                  ) : feature.id === "alerts" ? (
+                    <div className="landing-phone-preview landing-phone-preview-alert">
+                      <BellRing aria-hidden="true" size={19} />
+                      <span><i /><i /></span>
+                    </div>
+                  ) : (
+                    <div className="landing-phone-preview landing-phone-preview-chart">
+                      <span><i />{t("liveBadge")}</span>
+                      <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 160 52">
+                        <path d="M2 42 23 35 40 39 61 24 78 30 100 16 119 22 139 8 158 12" />
+                      </svg>
+                    </div>
+                  )}
+                  <small>{`${(index % features.length) + 1} / ${features.length}`}</small>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div aria-hidden="true" className="landing-phone-bottom-bar"><i /><i /><i /></div>
+        </div>
       </div>
-      <div aria-hidden="true" className="landing-chip landing-chip-a">
-        <GoldIcon size={15} />
-        <span>{t("goldTrading")}</span>
-        <span className="landing-live"><i />{t("liveBadge")}</span>
-      </div>
-      <div aria-hidden="true" className="landing-chip landing-chip-b">
-        <CirclePlay size={15} />
-        <span>{t("youtubeTitle")}</span>
-      </div>
-      <div aria-hidden="true" className="landing-chip landing-chip-c">
-        <BellRing size={15} />
-        <span>{t("priceAlerts")}</span>
-      </div>
+      {features.map((feature, index) => (
+        <div
+          aria-hidden="true"
+          className={`landing-orbit-chip landing-orbit-chip-${index + 1}`}
+          key={feature.id}
+        >
+          <span className="landing-orbit-chip-icon">{feature.icon}</span>
+          <span>{feature.title}</span>
+          {feature.id === "gold" && <span className="landing-live"><i />{t("liveBadge")}</span>}
+        </div>
+      ))}
     </div>
   );
 }
@@ -189,13 +231,45 @@ const MARKET_UNITS: { id: MarketUnit; label: TranslationKey; divisor: number }[]
 function LandingMarket() {
   const { t, locale } = useLanguage();
   const feed = useLiveGoldFeed(true);
+  const marketCardRef = useRef<HTMLDivElement>(null);
   const [unit, setUnit] = useState<MarketUnit>("damlung");
   const [windowSize, setWindowSize] = useState<"1m" | "2m">("2m");
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fullscreenUnavailable, setFullscreenUnavailable] = useState(false);
   const [prices, setPrices] = useState<TickerPoint[]>([]);
   const [activity, setActivity] = useState<TickerPoint[]>([]);
+  const activityListRef = useRef<HTMLOListElement>(null);
+  const activityPositions = useRef(new Map<string, number>());
   const [startPrice, setStartPrice] = useState<number | null>(null);
   const [range, setRange] = useState<{ high: number; low: number } | null>(null);
   const formatPrice = useCallback((value: number) => formatUsd(String(value), locale), [locale]);
+
+  useEffect(() => {
+    const syncFullscreen = () => {
+      const active = document.fullscreenElement === marketCardRef.current;
+      setIsFullscreen(active);
+      if (active) setFullscreenUnavailable(false);
+    };
+    document.addEventListener("fullscreenchange", syncFullscreen);
+    return () => document.removeEventListener("fullscreenchange", syncFullscreen);
+  }, []);
+
+  const toggleFullscreen = async () => {
+    const card = marketCardRef.current;
+    if (!card) return;
+    setFullscreenUnavailable(false);
+    try {
+      if (document.fullscreenElement === card) {
+        await document.exitFullscreen();
+      } else if (!document.fullscreenEnabled || typeof card.requestFullscreen !== "function") {
+        setFullscreenUnavailable(true);
+      } else {
+        await card.requestFullscreen({ navigationUI: "hide" });
+      }
+    } catch {
+      setFullscreenUnavailable(true);
+    }
+  };
 
   useEffect(() => {
     const price = feed.price;
@@ -208,13 +282,57 @@ function LandingMarket() {
       }
       return [...current, { t: at, p: price }].slice(-240);
     });
-    setActivity((current) => [...current, { t: feed.updatedAt ?? Date.now(), p: price }].slice(-5));
+    setActivity((current) => [...current, { t: feed.updatedAt ?? Date.now(), p: price }].slice(-4));
     setStartPrice((current) => current ?? price);
     setRange((current) => ({
       high: current ? Math.max(current.high, price) : price,
       low: current ? Math.min(current.low, price) : price,
     }));
   }, [feed.price, feed.updatedAt]);
+
+  useLayoutEffect(() => {
+    const list = activityListRef.current;
+    if (!list) return;
+
+    const root = document.documentElement;
+    const canAnimate = root.dataset.motion !== "off"
+      && root.dataset.perf !== "lite"
+      && root.dataset.paused !== "true"
+      && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const nextPositions = new Map<string, number>();
+
+    for (const item of Array.from(list.children)) {
+      if (!(item instanceof HTMLLIElement)) continue;
+      const key = item.dataset.activityKey;
+      if (!key) continue;
+
+      const top = item.getBoundingClientRect().top;
+      nextPositions.set(key, top);
+      if (!canAnimate) continue;
+
+      const previousTop = activityPositions.current.get(key);
+      const offset = previousTop === undefined ? 0 : previousTop - top;
+      if (previousTop === undefined) {
+        item.animate(
+          [
+            { opacity: 0, transform: "translate3d(0, -12px, 0) scale(0.985)" },
+            { opacity: 1, transform: "translate3d(0, 0, 0) scale(1)" },
+          ],
+          { duration: 420, easing: "cubic-bezier(0.2, 0.75, 0.25, 1)" },
+        );
+      } else if (Math.abs(offset) > 1) {
+        item.animate(
+          [
+            { transform: `translate3d(0, ${offset}px, 0)` },
+            { transform: "translate3d(0, 0, 0)" },
+          ],
+          { duration: 420, easing: "cubic-bezier(0.2, 0.75, 0.25, 1)" },
+        );
+      }
+    }
+
+    activityPositions.current = nextPositions;
+  }, [activity]);
 
   const selectedUnit = MARKET_UNITS.find((item) => item.id === unit) ?? MARKET_UNITS[0];
   const displayedPrice = feed.price === null ? null : feed.price / selectedUnit.divisor;
@@ -245,6 +363,7 @@ function LandingMarket() {
         className="landing-market-card"
         data-status={feed.status}
         data-trend={trend > 0 ? "up" : trend < 0 ? "down" : "flat"}
+        ref={marketCardRef}
       >
         <div aria-hidden="true" className="landing-market-orb landing-market-orb-a" />
         <div aria-hidden="true" className="landing-market-orb landing-market-orb-b" />
@@ -325,6 +444,20 @@ function LandingMarket() {
                     </button>
                   ))}
                 </div>
+                <button
+                  aria-label={isFullscreen ? t("exitFullscreen") : t("enterFullscreen")}
+                  aria-pressed={isFullscreen}
+                  className="landing-market-fullscreen"
+                  onClick={() => void toggleFullscreen()}
+                  title={isFullscreen ? t("exitFullscreen") : t("enterFullscreen")}
+                  type="button"
+                >
+                  {isFullscreen ? <Minimize aria-hidden="true" size={15} /> : <Maximize aria-hidden="true" size={15} />}
+                  <span>{isFullscreen ? t("exitFullscreen") : t("enterFullscreen")}</span>
+                </button>
+                {fullscreenUnavailable && (
+                  <span className="landing-market-fullscreen-error" role="status">{t("fullscreenUnavailable")}</span>
+                )}
               </div>
             </div>
             {displayedPrice === null ? (
@@ -336,6 +469,7 @@ function LandingMarket() {
                   formatPrice={formatPrice}
                   price={displayedPrice}
                   series={chartSeries}
+                  showLastLabel
                   waitingText={statusText}
                 >
                   <p className="live-mode-unit">/ {t(selectedUnit.label)}</p>
@@ -347,9 +481,9 @@ function LandingMarket() {
           <aside aria-label={t("landingMarketActivity")} className="landing-market-activity">
             <h3><Activity aria-hidden="true" size={17} />{t("landingMarketActivity")}</h3>
             {activity.length ? (
-              <ol>
+              <ol ref={activityListRef}>
                 {[...activity].reverse().map((entry) => (
-                  <li key={`${entry.t}-${entry.p}`}>
+                  <li data-activity-key={`${entry.t}-${entry.p}`} key={`${entry.t}-${entry.p}`}>
                     <span aria-hidden="true" className="landing-market-activity-dot" />
                     <div>
                       <time dateTime={new Date(entry.t).toISOString()}>
@@ -457,7 +591,7 @@ function FeatureCard({
 function Features() {
   const { t } = useLanguage();
   const youtube = (["youtubeFeature1", "youtubeFeature2", "youtubeFeature3", "youtubeFeature4"] as const).map((key) => t(key));
-  const gold = (["goldFeature1", "goldFeature2", "goldFeature3", "goldFeature4"] as const).map((key) => t(key));
+  const gold = (["goldFeature1", "goldFeature2", "goldFeature3", "goldFeature4", "goldFeature5"] as const).map((key) => t(key));
   return (
     <section aria-labelledby="features-title" className="landing-section" id="features">
       <SectionHeading eyebrow={t("navFeatures")} id="features-title" title={t("featuresTitle")} />

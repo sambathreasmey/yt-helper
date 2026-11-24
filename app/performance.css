@@ -712,7 +712,7 @@
   .live-mode { padding-right: 1rem; padding-left: 1rem; }
   .live-mode-status { gap: 0.5rem; }
   .live-mode-status-source { display: none; }
-  .live-mode-art { top: 13%; right: -18%; width: 92vw; opacity: 0.34; }
+  .live-mode-art { top: 10%; right: -6%; width: 94vw; opacity: 0.5; }
   .live-mode-body { padding-top: clamp(1.4rem, 4vh, 2.2rem); }
   .live-mode-chart { min-height: clamp(8.5rem, 22vh, 12rem); }
   .live-mode-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
