@@ -4758,8 +4758,9 @@ body {
 .landing-brand-tag { display: none; align-items: center; gap: 0.35rem; margin-top: 0.1rem; color: var(--mut); font-size: 0.7rem; font-weight: 500; }
 .landing-dot { width: 0.4rem; height: 0.4rem; flex: 0 0 auto; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
 .landing-nav { display: none; align-items: center; gap: 1.6rem; }
-.landing-nav a { color: var(--mut); font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: color 150ms ease; }
+.landing-nav a { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--mut); font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: color 150ms ease; }
 .landing-nav a:hover { color: var(--tx); }
+.landing-nav-new { border: 1px solid rgb(var(--accent-rgb) / 30%); border-radius: 999px; background: var(--accent-soft); padding: 0.12rem 0.4rem; color: var(--accent); font-size: 0.56rem; font-weight: 850; line-height: 1.2; }
 .landing-header-actions { display: flex; align-items: center; gap: 0.7rem; }
 .landing-header-cta { display: none; }
 
@@ -4867,7 +4868,7 @@ body {
 }
 
 .landing-phone-appbar { display: flex; min-height: 2.2rem; align-items: center; gap: 0.45rem; border-bottom: 1px solid rgb(255 255 255 / 9%); padding-bottom: 0.45rem; }
-.landing-phone-app-mark { display: grid; width: 1.65rem; height: 1.65rem; place-items: center; border-radius: 0.55rem; background: linear-gradient(135deg, #13a5b1, #4269dd); font-size: 0.78rem; font-weight: 900; }
+.landing-phone-app-mark { width: 1.65rem; height: 1.65rem; flex: 0 0 auto; border: 1px solid rgb(255 255 255 / 14%); border-radius: 0.55rem; object-fit: cover; box-shadow: 0 4px 12px rgb(0 0 0 / 24%); }
 .landing-phone-appbar > strong { flex: 1; font-size: 0.68rem; }
 .landing-phone-live { display: inline-flex; align-items: center; gap: 0.25rem; border-radius: 999px; background: rgb(74 222 128 / 13%); padding: 0.2rem 0.4rem; color: #7de8a2; font-size: 0.52rem; font-weight: 750; }
 .landing-phone-live i { width: 0.32rem; height: 0.32rem; border-radius: 50%; background: currentColor; animation: live-pulse 1.8s ease-out infinite; }
@@ -4956,6 +4957,12 @@ body {
 .landing-orbit-chip-3 { top: 64%; left: 0; animation-name: landing-orbit-c; animation-delay: -4.5s; }
 .landing-orbit-chip-4 { right: 0; bottom: 8%; animation-name: landing-orbit-d; animation-delay: -2s; }
 
+.landing-new-badge,
+.landing-nav-new { animation: landing-new-pulse 2.2s ease-in-out infinite; }
+.landing-new-badge { display: inline-flex; flex: 0 0 auto; align-items: center; border: 1px solid rgb(var(--accent-rgb) / 30%); border-radius: 999px; background: var(--accent-soft); padding: 0.12rem 0.42rem; color: var(--accent); font-size: 0.58rem; font-weight: 850; line-height: 1.25; white-space: nowrap; }
+.landing-phone-feature-slide > .landing-new-badge { margin-top: 0.3rem; }
+.landing-checklist .landing-new-badge { margin-left: auto; }
+
 .landing-live { display: inline-flex; align-items: center; gap: 0.3rem; border-radius: 999px; background: rgb(74 222 128 / 16%); padding: 0.1rem 0.45rem; color: var(--pl-up); font-size: 0.6rem; letter-spacing: 0.05em; text-transform: uppercase; }
 .landing-live i { width: 0.4rem; height: 0.4rem; border-radius: 50%; background: currentColor; animation: live-pulse 1.8s ease-out infinite; }
 
@@ -4991,6 +4998,11 @@ body {
 @keyframes landing-orbit-d {
   0%, 100% { transform: translate3d(0, 0, 0) rotate(-1deg); }
   50% { transform: translate3d(-13px, -11px, 0) rotate(2deg); }
+}
+
+@keyframes landing-new-pulse {
+  0%, 100% { box-shadow: 0 0 0 rgb(var(--accent-rgb) / 0%); transform: scale(1); }
+  50% { box-shadow: 0 0 12px rgb(var(--accent-rgb) / 38%); transform: scale(1.06); }
 }
 
 /* Live market card */
@@ -5349,12 +5361,15 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .landing-phone, .landing-phone-feature-track, .landing-orbit-chip, .landing-phone-live i, .landing-live i, .landing-market-orb, .landing-market-status i, .landing-market-art svg, .landing-market-chart-title > span i, .landing-market-chart-ticker .live-mode-last::after { animation: none; }
+  .landing-new-badge, .landing-nav-new { animation: none; }
   .reveal { transition: none; }
 }
 
 :root[data-motion="off"] .landing-phone,
 :root[data-motion="off"] .landing-phone-feature-track,
 :root[data-motion="off"] .landing-orbit-chip,
+:root[data-motion="off"] .landing-new-badge,
+:root[data-motion="off"] .landing-nav-new,
 :root[data-motion="off"] .landing-phone-live i,
 :root[data-motion="off"] .landing-live i,
 :root[data-motion="off"] .landing-market-orb,
@@ -5367,6 +5382,8 @@ body {
 :root[data-perf="lite"] .landing-phone,
 :root[data-perf="lite"] .landing-phone-feature-track,
 :root[data-perf="lite"] .landing-orbit-chip,
+:root[data-perf="lite"] .landing-new-badge,
+:root[data-perf="lite"] .landing-nav-new,
 :root[data-perf="lite"] .landing-phone-live i,
 :root[data-perf="lite"] .landing-market-orb,
 :root[data-perf="lite"] .landing-market-status i,
@@ -5376,6 +5393,8 @@ body {
 :root[data-paused="true"] .landing-phone,
 :root[data-paused="true"] .landing-phone-feature-track,
 :root[data-paused="true"] .landing-orbit-chip,
+:root[data-paused="true"] .landing-new-badge,
+:root[data-paused="true"] .landing-nav-new,
 :root[data-paused="true"] .landing-phone-live i,
 :root[data-paused="true"] .landing-market-orb,
 :root[data-paused="true"] .landing-market-status i,

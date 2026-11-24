@@ -9,7 +9,7 @@ import "./performance.css";
 import type { Metadata, Viewport } from "next";
 
 const siteUrl = "https://sambathreasmey.online";
-const siteTitle = "Helper Mini App";
+const siteTitle = "Helper";
 const siteDescription = "A Telegram Mini App for YouTube and gold trading: open YouTube in one tap, track live gold prices, record purchases and sales, and get price alerts. Available in Khmer, English and Chinese.";
 
 export const metadata: Metadata = {

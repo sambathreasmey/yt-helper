@@ -4,7 +4,7 @@ import { AppFeatureShell } from "@/components/app-feature-shell";
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "Helper Mini App",
+  name: "Helper",
   applicationCategory: "UtilitiesApplication",
   operatingSystem: "Telegram",
   url: "https://sambathreasmey.online",

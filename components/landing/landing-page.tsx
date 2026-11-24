@@ -95,12 +95,13 @@ function LandingHeader() {
             src="/logo-128.webp"
             width={128}
           />
-          <span className="landing-brand-name">Helper Mini App</span>
+          <span className="landing-brand-name">Helper</span>
         </a>
         <nav aria-label="Sections" className="landing-nav">
           {links.map((link) => (
             <a href={`#${link.id}`} key={link.id} onClick={(event) => scrollToSection(event, link.id)}>
               {t(link.label)}
+              {link.id === "market" && <span className="landing-nav-new">{t("newFeature")}</span>}
             </a>
           ))}
         </nav>
@@ -130,7 +131,7 @@ function PhoneMock() {
         <span aria-hidden="true" className="landing-phone-notch" />
         <div aria-label={t("landingPhoneAlt")} className="landing-phone-screen" role="img">
           <div aria-hidden="true" className="landing-phone-appbar">
-            <span className="landing-phone-app-mark">H</span>
+          <Image alt="" className="landing-phone-app-mark" height={64} src="/logo-128.webp" width={64} />
             <strong>Helper</strong>
             <span className="landing-phone-live"><i />{t("liveBadge")}</span>
           </div>
@@ -144,6 +145,7 @@ function PhoneMock() {
                 >
                   <span className="landing-phone-slide-icon">{feature.icon}</span>
                   <strong>{feature.title}</strong>
+                  {feature.id === "live" && <span className="landing-new-badge">{t("newFeature")}</span>}
                   <p>{feature.detail}</p>
                   {feature.id === "youtube" ? (
                     <div className="landing-phone-preview landing-phone-preview-video">
@@ -180,6 +182,7 @@ function PhoneMock() {
         >
           <span className="landing-orbit-chip-icon">{feature.icon}</span>
           <span>{feature.title}</span>
+          {feature.id === "live" && <span className="landing-new-badge">{t("newFeature")}</span>}
           {feature.id === "gold" && <span className="landing-live"><i />{t("liveBadge")}</span>}
         </div>
       ))}
@@ -555,6 +558,8 @@ function FeatureCard({
   title,
   subtitle,
   bullets,
+  newBulletIndex,
+  newLabel,
   children,
   delay,
 }: {
@@ -563,6 +568,8 @@ function FeatureCard({
   title: string;
   subtitle: string;
   bullets: string[];
+  newBulletIndex?: number;
+  newLabel?: string;
   children?: ReactNode;
   delay: string;
 }) {
@@ -580,6 +587,7 @@ function FeatureCard({
           <li key={index}>
             <Check aria-hidden="true" size={15} strokeWidth={2.6} />
             <span>{bullet}</span>
+            {index === newBulletIndex && newLabel && <span className="landing-new-badge">{newLabel}</span>}
           </li>
         ))}
       </ul>
@@ -617,6 +625,8 @@ function Features() {
           subtitle={t("goldSubtitle")}
           title={t("goldTrading")}
           tone="gold"
+          newBulletIndex={4}
+          newLabel={t("newFeature")}
         >
           <div aria-hidden="true" className="landing-mini landing-mini-gold">
             <span className="landing-live"><i />{t("liveBadge")}</span>
