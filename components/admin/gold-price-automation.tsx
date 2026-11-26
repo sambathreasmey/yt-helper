@@ -38,14 +38,21 @@ function GoldPriceForm({ onSaved }: { onSaved: (message: string) => void }) {
   const queryClient = useQueryClient();
   const globalSettingsQuery = useGlobalAppSettings();
   const priceQuery = useAdminGoldPriceQuery();
-  const [enabled, setEnabled] = useState(globalSettingsQuery.data?.github_gold_price_updates_enabled ?? false);
+  const [enabled, setEnabled] = useState({
+    github: globalSettingsQuery.data?.github_gold_price_updates_enabled ?? false,
+    frontend: globalSettingsQuery.data?.frontend_gold_price_updates_enabled ?? true,
+  });
   const saveMutation = useMutation({
-    mutationFn: async (value: boolean) => {
+    mutationFn: async (value: { github: boolean; frontend: boolean }) => {
       const current = globalSettingsQuery.data;
       if (!current) throw new Error("Global app settings are not loaded");
-      const result = await updateGlobalAppSettings({ ...current, github_gold_price_updates_enabled: value });
+      const result = await updateGlobalAppSettings({
+        ...current,
+        github_gold_price_updates_enabled: value.github,
+        frontend_gold_price_updates_enabled: value.frontend,
+      });
       if (!result.ok || !result.data) {
-        throw new Error(result.message || "Unable to update GitHub price-feed setting");
+        throw new Error(result.message || "Unable to update gold price-feed settings");
       }
       return result.data;
     },
@@ -57,7 +64,12 @@ function GoldPriceForm({ onSaved }: { onSaved: (message: string) => void }) {
   });
 
   useEffect(() => {
-    if (globalSettingsQuery.data) setEnabled(globalSettingsQuery.data.github_gold_price_updates_enabled);
+    if (globalSettingsQuery.data) {
+      setEnabled({
+        github: globalSettingsQuery.data.github_gold_price_updates_enabled,
+        frontend: globalSettingsQuery.data.frontend_gold_price_updates_enabled,
+      });
+    }
   }, [globalSettingsQuery.data]);
 
   return (
@@ -75,15 +87,30 @@ function GoldPriceForm({ onSaved }: { onSaved: (message: string) => void }) {
       {priceQuery.error && <p className="status-error rounded-xl px-3 py-2 text-sm" role="alert">{priceQuery.error.message}</p>}
       <label className="admin-global-toggle">
         <input
-          checked={enabled}
+          checked={enabled.frontend}
           disabled={globalSettingsQuery.isPending || globalSettingsQuery.isError}
-          onChange={(event) => setEnabled(event.target.checked)}
+          onChange={(event) => setEnabled((current) => ({
+            frontend: event.target.checked,
+            github: event.target.checked ? false : current.github,
+          }))}
           type="checkbox"
         />
-        <span>Allow GitHub Actions to update the gold price every 15 - 20 seconds</span>
+        <span>Sync the live WebSocket price to the app database every 15 seconds</span>
+      </label>
+      <label className="admin-global-toggle">
+        <input
+          checked={enabled.github}
+          disabled={globalSettingsQuery.isPending || globalSettingsQuery.isError}
+          onChange={(event) => setEnabled((current) => ({
+            github: event.target.checked,
+            frontend: event.target.checked ? false : current.frontend,
+          }))}
+          type="checkbox"
+        />
+        <span>Allow GitHub Actions to update the gold price every 15–20 seconds</span>
       </label>
       <p className="text-xs text-muted">
-        Turning this off makes scheduled runs skip price updates. Manual price entry is disabled in this dashboard.
+        Choose one update source. The backend shares a global 15-second lock across clients and GitHub runs, so concurrent triggers cannot duplicate database updates or alerts. Manual price entry is disabled in this dashboard.
       </p>
       {globalSettingsQuery.error && (
         <p className="status-error rounded-xl px-3 py-2 text-sm" role="alert">{globalSettingsQuery.error.message}</p>
@@ -91,13 +118,14 @@ function GoldPriceForm({ onSaved }: { onSaved: (message: string) => void }) {
       <Button
         className="w-full"
         disabled={saveMutation.isPending || globalSettingsQuery.isPending || globalSettingsQuery.isError ||
-          enabled === globalSettingsQuery.data?.github_gold_price_updates_enabled}
+          (enabled.github === globalSettingsQuery.data?.github_gold_price_updates_enabled &&
+            enabled.frontend === globalSettingsQuery.data?.frontend_gold_price_updates_enabled)}
         onClick={() => saveMutation.mutate(enabled)}
         type="button"
         variant="primary"
       >
         <Save aria-hidden="true" size={16} />
-        {saveMutation.isPending ? "Saving…" : "Save price feed setting"}
+        {saveMutation.isPending ? "Saving…" : "Save price feed settings"}
       </Button>
       {saveMutation.error && <p className="status-error rounded-xl px-3 py-2 text-sm" role="alert">{saveMutation.error.message}</p>}
     </div>

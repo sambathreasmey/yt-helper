@@ -127,6 +127,7 @@ export type GlobalAppSettings = {
   support_url: string;
   default_language: AppDefaultLanguage;
   github_gold_price_updates_enabled: boolean;
+  frontend_gold_price_updates_enabled: boolean;
 };
 
 export type TelegramBroadcastKind = "maintenance" | "announcement";
@@ -150,6 +151,7 @@ export const DEFAULT_GLOBAL_APP_SETTINGS: GlobalAppSettings = {
   support_url: "",
   default_language: "KH",
   github_gold_price_updates_enabled: false,
+  frontend_gold_price_updates_enabled: true,
 };
 
 export const getAutoRedirectSetting = (): Promise<ApiResult<AutoRedirectSetting>> =>
@@ -183,6 +185,16 @@ export const updateGlobalAppSettings = (
   apiRequest(`${BASE}/global-settings`, {
     method: "PUT",
     body: settings,
+  });
+
+export const updateGoldPriceFromLiveFeed = (
+  pricePerDamlung: number,
+): Promise<ApiResult<{ updated: boolean; reason?: string }>> =>
+  apiRequest("/api/gold/price/frontend", {
+    method: "POST",
+    body: { price_per_damlung: pricePerDamlung },
+    retry: false,
+    useAuth: false,
   });
 
 export const sendGlobalTelegramNotification = (
