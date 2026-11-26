@@ -110,7 +110,7 @@ function GoldPriceForm({ onSaved }: { onSaved: (message: string) => void }) {
         <span>Allow GitHub Actions to update the gold price every 15–20 seconds</span>
       </label>
       <p className="text-xs text-muted">
-        Choose one update source. The backend shares a global 15-second lock across clients and GitHub runs, so concurrent triggers cannot duplicate database updates or alerts. Manual price entry is disabled in this dashboard.
+        Choose one update source. Frontend mode streams prices to the trading view and recalculates portfolio values locally, pausing overview polling while connected; the app&apos;s normal refresh setting applies if the feed drops. The backend shares a global 15-second lock across clients and GitHub runs, preventing duplicate database updates or alerts.
       </p>
       {globalSettingsQuery.error && (
         <p className="status-error rounded-xl px-3 py-2 text-sm" role="alert">{globalSettingsQuery.error.message}</p>
@@ -135,7 +135,7 @@ function GoldPriceForm({ onSaved }: { onSaved: (message: string) => void }) {
 export function GoldPriceSheet({ open, onClose, onSaved }: { open: boolean; onClose: () => void; onSaved: (message: string) => void }) {
   return (
     <BottomSheet
-      description="Check the current market price and control scheduled GitHub Action updates."
+      description="Check the current market price and control live WebSocket or GitHub Action updates."
       icon={<GoldIcon size={17} />}
       onClose={onClose}
       open={open}

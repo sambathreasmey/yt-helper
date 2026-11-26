@@ -15,6 +15,7 @@ import { GoldHoldingsSkeleton, GoldSummarySkeleton } from "@/components/gold-ske
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useGlobalAppSettings } from "@/hooks/use-global-app-settings";
 import { useTelegram } from "@/hooks/use-telegram";
 import { useLiveGoldFeed } from "@/hooks/use-live-gold-feed";
 import { formatUtcTimestamp } from "@/lib/date-format";
@@ -46,6 +47,7 @@ import {
 } from "@/features/gold-trading/gold-format";
 import { GoldSummary } from "@/features/gold-trading/gold-summary";
 import { GoldPricePerformanceSummary } from "@/features/gold-trading/gold-price-performance";
+import { revalueGoldOverview } from "@/features/gold-trading/gold-valuation";
 import { GoldNewsBar, GoldNewsScreen } from "@/features/gold-trading/gold-news-section";
 import { LIVE_MODE_REFRESH_MS, getLiveModeActive, subscribeLiveMode } from "@/lib/live-mode-state";
 import {
@@ -78,7 +80,11 @@ export function GoldTrading() {
   const [notice, setNotice] = useState("");
   const [fabVisible, setFabVisible] = useState(false);
   const actionsRef = useRef<HTMLDivElement>(null);
-  const feed = useLiveGoldFeed(screen === "trading");
+  const globalSettings = useGlobalAppSettings();
+  const frontendPriceUpdatesEnabled = globalSettings.data?.frontend_gold_price_updates_enabled === true
+    && globalSettings.data.github_gold_price_updates_enabled !== true;
+  const feed = useLiveGoldFeed(screen === "trading" && frontendPriceUpdatesEnabled, 1000);
+  const feedLive = frontendPriceUpdatesEnabled && feed.status === "live" && feed.price !== null;
 
   const refreshMs = appearance.refreshInterval * 1000;
   // Live mode asks for fresher prices while it is open.
@@ -89,9 +95,15 @@ export function GoldTrading() {
     enabled: Boolean(initData),
     // Keep the old numbers on screen while a new sort order loads, so the page never flashes empty.
     placeholderData: keepPreviousData,
-    refetchInterval: liveModeOpen ? LIVE_MODE_REFRESH_MS : refreshMs > 0 ? refreshMs : false,
+    refetchInterval: screen !== "trading" || feedLive
+      ? false
+      : liveModeOpen
+        ? LIVE_MODE_REFRESH_MS
+        : refreshMs > 0
+          ? refreshMs
+          : false,
     refetchIntervalInBackground: false,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: screen === "trading",
     staleTime: 5_000,
   });
   const goldNewsQuery = useQuery({
@@ -177,24 +189,30 @@ export function GoldTrading() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const overview = overviewQuery.data;
+  const serverOverview = overviewQuery.data;
+  const livePrice = feedLive
+    ? feed.price
+    : serverOverview?.current_price
+      ? Number(serverOverview.current_price.price_per_damlung)
+      : null;
+  const overview = useMemo(
+    () => serverOverview && feedLive && livePrice !== null
+      ? revalueGoldOverview(serverOverview, livePrice, sortBy, order)
+      : serverOverview,
+    [feedLive, livePrice, order, serverOverview, sortBy],
+  );
   const summary = overview?.summary;
   const holdings = overview?.holdings;
   const focusedHolding = holdings?.find((holding) => holding.id === sheet.id) ?? null;
-  const feedLive = feed.status === "live" && feed.price !== null;
-  const livePrice = feedLive
-    ? feed.price
-    : overview?.current_price
-      ? Number(overview.current_price.price_per_damlung)
-      : null;
   const currentPriceUpdatedOn = feedLive && feed.updatedAt !== null
     ? new Date(feed.updatedAt).toISOString()
     : overview?.current_price?.updated_on;
-  const priceHistory = usePriceHistory(livePrice, feedLive ? feed.updatedAt ?? 0 : overviewQuery.dataUpdatedAt);
+  const priceSeries = usePriceHistory(livePrice, feedLive ? feed.updatedAt ?? 0 : overviewQuery.dataUpdatedAt);
+  const priceHistory = useMemo(() => priceSeries.map((point) => point.p), [priceSeries]);
   // Optional: only present once the backend sends previous_price_per_damlung.
   const rawYesterday = Number(overview?.current_price?.previous_price_per_damlung);
   const yesterdayPrice = Number.isFinite(rawYesterday) && rawYesterday > 0 ? rawYesterday : null;
-  const animatePrice = appearance.priceAnimation && appearance.motion;
+  const animatePrice = appearance.priceAnimation && appearance.motion && !frontendPriceUpdatesEnabled;
   const formatMoney = useCallback((value: number) => formatUsd(String(value), locale), [locale]);
   const formatPerDamlung = useCallback(
     (value: number) => `${formatUsd(String(value), locale)} / ${t("damlungUnit")}`,
@@ -299,7 +317,7 @@ export function GoldTrading() {
                 formatChiPrice={formatPerChi}
                 formatDelta={formatMoney}
                 formatPrice={formatPerDamlung}
-                history={priceHistory}
+                history={priceSeries}
                 intervalSeconds={appearance.refreshInterval}
                 liveStream={feedLive}
                 price={livePrice}
@@ -512,7 +530,9 @@ export function GoldTrading() {
         pending={pendingAny}
       />
       <SellSheet
-        currentPricePerDamlung={overview?.current_price?.price_per_damlung ?? null}
+        currentPricePerDamlung={livePrice === null
+          ? overview?.current_price?.price_per_damlung ?? null
+          : String(livePrice)}
         error={sellPurchase.error?.message}
         holding={focusedHolding}
         onClose={closeSheet}

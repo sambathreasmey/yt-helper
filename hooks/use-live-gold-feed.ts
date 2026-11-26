@@ -54,16 +54,19 @@ async function syncLivePriceAcrossTabs(price: number) {
 }
 
 /** Live gold price (USD per damlung) straight from the market feed while `enabled` is true. */
-export function useLiveGoldFeed(enabled: boolean): FeedState {
+export function useLiveGoldFeed(enabled: boolean, throttleMs = 250): FeedState {
   const [state, setState] = useState<FeedState>({ status: "connecting", price: null, updatedAt: null });
   const settings = useGlobalAppSettings();
 
   useEffect(() => {
-    if (!enabled) return undefined;
-    const feed = new LiveGoldFeed(setState);
+    if (!enabled) {
+      setState({ status: "connecting", price: null, updatedAt: null });
+      return undefined;
+    }
+    const feed = new LiveGoldFeed(setState, { throttleMs });
     feed.start();
     return () => feed.stop();
-  }, [enabled]);
+  }, [enabled, throttleMs]);
 
   useEffect(() => {
     if (
