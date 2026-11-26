@@ -8,9 +8,9 @@ import { GoldBullionArt } from "@/components/gold-bullion-art";
 import { GoldIcon } from "@/components/icons/gold-icon";
 import { LiveTicker } from "@/components/live-ticker";
 import { formatUsd } from "@/features/gold-trading/gold-format";
-import { useLiveGoldFeed } from "@/hooks/use-live-gold-feed";
 import { useWakeLock } from "@/hooks/use-wake-lock";
 import { formatUtcTimestamp } from "@/lib/date-format";
+import type { FeedState } from "@/lib/live-gold-feed";
 import { setLiveModeActive } from "@/lib/live-mode-state";
 import { useLanguage } from "@/providers/language-provider";
 
@@ -27,6 +27,7 @@ interface Point {
 }
 
 interface GoldLiveModeProps {
+  feed: FeedState;
   price: number | null;
   yesterdayPrice: number | null;
   /** Changes on every successful price refresh (React Query `dataUpdatedAt`). */
@@ -35,6 +36,7 @@ interface GoldLiveModeProps {
 }
 
 function LiveScreen({
+  feed,
   price: polledPrice,
   yesterdayPrice,
   dataUpdatedAt: polledAt,
@@ -43,7 +45,6 @@ function LiveScreen({
 }: GoldLiveModeProps & { onClose: () => void }) {
   const { t, locale } = useLanguage();
   // Prices come straight from the market feed. If it is not reachable, fall back to the server price.
-  const feed = useLiveGoldFeed(true);
   const feedLive = feed.status === "live" && feed.price !== null;
   const price = feedLive ? feed.price : polledPrice;
   const dataUpdatedAt = feedLive ? (feed.updatedAt ?? 0) : polledAt;

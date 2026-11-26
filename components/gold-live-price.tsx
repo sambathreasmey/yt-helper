@@ -60,23 +60,26 @@ function RefreshStatus({
   updatedAt,
   intervalSeconds,
   fetching,
+  liveStream,
 }: {
   updatedAt: number;
   intervalSeconds: number;
   fetching: boolean;
+  liveStream: boolean;
 }) {
   const { t } = useLanguage();
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    if (intervalSeconds === 0) return undefined;
+    if (liveStream || intervalSeconds === 0) return undefined;
     setNow(Date.now());
     const timer = window.setInterval(() => {
       if (!document.hidden) setNow(Date.now());
     }, 1000);
     return () => window.clearInterval(timer);
-  }, [intervalSeconds, updatedAt]);
+  }, [intervalSeconds, liveStream, updatedAt]);
 
+  if (liveStream) return <span>{t("landingMarketSource")}</span>;
   if (intervalSeconds === 0) return <span>{t("liveAutoOff")}</span>;
   if (fetching) return <span>{t("liveUpdating")}</span>;
   const remaining = Math.max(0, intervalSeconds - Math.floor((now - updatedAt) / 1000));
@@ -92,6 +95,8 @@ interface GoldLivePriceProps {
   history: number[];
   /** Yesterday's price per damlung. Leave out (or null) to hide the comparison. */
   yesterdayPrice?: number | null;
+  /** True when price updates are arriving from the live WebSocket instead of polling. */
+  liveStream?: boolean;
   formatPrice: (value: number) => string;
   /** Formats the price of one chi (1/10 damlung), given the price per damlung. Leave out to hide the chi pill. */
   formatChiPrice?: (pricePerDamlung: number) => string;
@@ -106,6 +111,7 @@ export const GoldLivePrice = memo(function GoldLivePrice({
   animate,
   history,
   yesterdayPrice = null,
+  liveStream = false,
   formatPrice,
   formatChiPrice,
   formatDelta,
@@ -137,9 +143,9 @@ export const GoldLivePrice = memo(function GoldLivePrice({
     <div className="gold-live" data-trend={trend}>
       <div className="flex items-center justify-between gap-2">
         <span className="gold-live-badge">
-          <span aria-hidden="true" className="gold-live-dot" data-active={intervalSeconds > 0 ? "true" : undefined} />
+          <span aria-hidden="true" className="gold-live-dot" data-active={intervalSeconds > 0 || liveStream ? "true" : undefined} />
           {t("liveBadge")}
-          <span className="gold-live-status"><RefreshStatus fetching={fetching} intervalSeconds={intervalSeconds} updatedAt={priceUpdatedAt} /></span>
+          <span className="gold-live-status"><RefreshStatus fetching={fetching} intervalSeconds={intervalSeconds} liveStream={liveStream} updatedAt={priceUpdatedAt} /></span>
         </span>
       </div>
 
@@ -179,7 +185,7 @@ export const GoldLivePrice = memo(function GoldLivePrice({
         </div>
       )}
 
-      {intervalSeconds > 0 && (
+      {!liveStream && intervalSeconds > 0 && (
         <div aria-hidden="true" className="gold-refresh-track">
           <span
             className="gold-refresh-bar"

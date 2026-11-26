@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTelegram } from "@/hooks/use-telegram";
+import { useLiveGoldFeed } from "@/hooks/use-live-gold-feed";
 import { formatUtcTimestamp } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/providers/language-provider";
@@ -77,6 +78,7 @@ export function GoldTrading() {
   const [notice, setNotice] = useState("");
   const [fabVisible, setFabVisible] = useState(false);
   const actionsRef = useRef<HTMLDivElement>(null);
+  const feed = useLiveGoldFeed(screen === "trading");
 
   const refreshMs = appearance.refreshInterval * 1000;
   // Live mode asks for fresher prices while it is open.
@@ -179,8 +181,16 @@ export function GoldTrading() {
   const summary = overview?.summary;
   const holdings = overview?.holdings;
   const focusedHolding = holdings?.find((holding) => holding.id === sheet.id) ?? null;
-  const livePrice = overview?.current_price ? Number(overview.current_price.price_per_damlung) : null;
-  const priceHistory = usePriceHistory(livePrice, overviewQuery.dataUpdatedAt);
+  const feedLive = feed.status === "live" && feed.price !== null;
+  const livePrice = feedLive
+    ? feed.price
+    : overview?.current_price
+      ? Number(overview.current_price.price_per_damlung)
+      : null;
+  const currentPriceUpdatedOn = feedLive && feed.updatedAt !== null
+    ? new Date(feed.updatedAt).toISOString()
+    : overview?.current_price?.updated_on;
+  const priceHistory = usePriceHistory(livePrice, feedLive ? feed.updatedAt ?? 0 : overviewQuery.dataUpdatedAt);
   // Optional: only present once the backend sends previous_price_per_damlung.
   const rawYesterday = Number(overview?.current_price?.previous_price_per_damlung);
   const yesterdayPrice = Number.isFinite(rawYesterday) && rawYesterday > 0 ? rawYesterday : null;
@@ -277,7 +287,7 @@ export function GoldTrading() {
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-medium text-white/75">{t("goldPrice")}</p>
-            {overviewQuery.isPending ? (
+            {overviewQuery.isPending && !feedLive ? (
               <div className="mt-1.5 space-y-2">
                 <Skeleton className="h-7 w-48 rounded-full bg-white/15" />
                 <Skeleton className="h-2.5 w-32 rounded-full bg-white/15" />
@@ -285,25 +295,26 @@ export function GoldTrading() {
             ) : livePrice !== null ? (
               <GoldLivePrice
                 animate={animatePrice}
-                fetching={overviewQuery.isFetching}
+                fetching={!feedLive && overviewQuery.isFetching}
                 formatChiPrice={formatPerChi}
                 formatDelta={formatMoney}
                 formatPrice={formatPerDamlung}
                 history={priceHistory}
                 intervalSeconds={appearance.refreshInterval}
+                liveStream={feedLive}
                 price={livePrice}
-                priceUpdatedAt={overviewQuery.dataUpdatedAt}
+                priceUpdatedAt={feedLive ? feed.updatedAt ?? overviewQuery.dataUpdatedAt : overviewQuery.dataUpdatedAt}
                 yesterdayPrice={yesterdayPrice}
               />
             ) : (
               <p className="gold-price-amount">{t("priceUnavailable")}</p>
             )}
-            {!overviewQuery.isPending && !overview?.current_price && (
+            {!overviewQuery.isPending && !overview?.current_price && !feedLive && (
               <p className="mt-1 text-xs text-white/70">{t("adminMustSetPrice")}</p>
             )}
-            {overview?.current_price && (
+            {currentPriceUpdatedOn && (
               <p className="gold-price-updated">
-                {t("updated", { date: formatUtcTimestamp(overview.current_price.updated_on, locale) })}
+                {t("updated", { date: formatUtcTimestamp(currentPriceUpdatedOn, locale) })}
               </p>
             )}
           </div>
@@ -313,7 +324,7 @@ export function GoldTrading() {
           <GoldShareButton
             history={priceHistory}
             price={livePrice}
-            updatedOn={overview?.current_price?.updated_on}
+            updatedOn={currentPriceUpdatedOn}
             yesterdayPrice={yesterdayPrice}
           />
         )}
@@ -337,8 +348,9 @@ export function GoldTrading() {
         <GoldKeepAwake />
         <GoldLiveMode
           dataUpdatedAt={overviewQuery.dataUpdatedAt}
+          feed={feed}
           price={livePrice}
-          updatedOn={overview?.current_price?.updated_on}
+          updatedOn={currentPriceUpdatedOn}
           yesterdayPrice={yesterdayPrice}
         />
       </div>
