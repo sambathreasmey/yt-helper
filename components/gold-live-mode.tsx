@@ -8,9 +8,9 @@ import { GoldBullionArt } from "@/components/gold-bullion-art";
 import { GoldIcon } from "@/components/icons/gold-icon";
 import { LiveTicker } from "@/components/live-ticker";
 import { formatUsd } from "@/features/gold-trading/gold-format";
+import { useLiveGoldFeed } from "@/hooks/use-live-gold-feed";
 import { useWakeLock } from "@/hooks/use-wake-lock";
 import { formatUtcTimestamp } from "@/lib/date-format";
-import type { FeedState } from "@/lib/live-gold-feed";
 import { setLiveModeActive } from "@/lib/live-mode-state";
 import { useLanguage } from "@/providers/language-provider";
 
@@ -27,7 +27,8 @@ interface Point {
 }
 
 interface GoldLiveModeProps {
-  feed: FeedState;
+  frontendPriceUpdatesEnabled: boolean;
+  onOpenChange: (open: boolean) => void;
   price: number | null;
   yesterdayPrice: number | null;
   /** Changes on every successful price refresh (React Query `dataUpdatedAt`). */
@@ -35,16 +36,19 @@ interface GoldLiveModeProps {
   updatedOn?: string;
 }
 
+type LiveScreenProps = Omit<GoldLiveModeProps, "onOpenChange"> & { onClose: () => void };
+
 function LiveScreen({
-  feed,
+  frontendPriceUpdatesEnabled,
   price: polledPrice,
   yesterdayPrice,
   dataUpdatedAt: polledAt,
   updatedOn,
   onClose,
-}: GoldLiveModeProps & { onClose: () => void }) {
+}: LiveScreenProps) {
   const { t, locale } = useLanguage();
   // Prices come straight from the market feed. If it is not reachable, fall back to the server price.
+  const feed = useLiveGoldFeed(frontendPriceUpdatesEnabled, 250);
   const feedLive = feed.status === "live" && feed.price !== null;
   const price = feedLive ? feed.price : polledPrice;
   const dataUpdatedAt = feedLive ? (feed.updatedAt ?? 0) : polledAt;
@@ -221,14 +225,22 @@ function LiveScreen({
 export function GoldLiveMode(props: GoldLiveModeProps) {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
+  const openLiveMode = useCallback(() => {
+    setOpen(true);
+    props.onOpenChange(true);
+  }, [props.onOpenChange]);
+  const closeLiveMode = useCallback(() => {
+    setOpen(false);
+    props.onOpenChange(false);
+  }, [props.onOpenChange]);
 
   return (
     <>
-      <button className="gold-keep-awake" disabled={props.price === null} onClick={() => setOpen(true)} type="button">
+      <button className="gold-keep-awake" disabled={props.price === null} onClick={openLiveMode} type="button">
         <Radio aria-hidden="true" size={16} />
         <span>{t("liveModeTitle")}</span>
       </button>
-      {open && createPortal(<LiveScreen {...props} onClose={() => setOpen(false)} />, document.body)}
+      {open && createPortal(<LiveScreen {...props} onClose={closeLiveMode} />, document.body)}
     </>
   );
 }

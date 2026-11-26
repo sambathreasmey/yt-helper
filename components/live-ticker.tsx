@@ -10,6 +10,8 @@ export interface TickerPoint {
 interface LiveTickerProps {
   /** Latest price (the target the display glides to). */
   price: number | null;
+  /** Reference price included in the chart's vertical scale and marked with a guide line. */
+  baseline?: number | null;
   /** Price history, about one point per second, oldest first. */
   series: TickerPoint[];
   formatPrice: (value: number) => string;
@@ -18,6 +20,10 @@ interface LiveTickerProps {
   chartLabel?: string;
   chartWindowMs?: number;
   showLastLabel?: boolean;
+  showPrice?: boolean;
+  animate?: boolean;
+  priceClassName?: string;
+  chartClassName?: string;
   /** Rendered between the big price and the chart (unit label, change chip...). */
   children?: ReactNode;
 }
@@ -62,18 +68,24 @@ function smoothLine(points: { x: number; y: number }[]): string {
  */
 export function LiveTicker({
   price,
+  baseline = null,
   series,
   formatPrice,
   waitingText,
   chartLabel,
   chartWindowMs,
   showLastLabel = false,
+  showPrice = true,
+  animate = true,
+  priceClassName = "live-mode-price",
+  chartClassName,
   children,
 }: LiveTickerProps) {
   const gradientId = useId();
   const priceRef = useRef<HTMLParagraphElement>(null);
   const lineRef = useRef<SVGPathElement>(null);
   const areaRef = useRef<SVGPathElement>(null);
+  const baselineRef = useRef<SVGLineElement>(null);
   const dotRef = useRef<HTMLSpanElement>(null);
   const labelRef = useRef<HTMLSpanElement>(null);
 
@@ -81,6 +93,7 @@ export function LiveTicker({
   const seriesRef = useRef(series);
   const formatRef = useRef(formatPrice);
   const windowTarget = useRef(chartWindowMs ?? WINDOW_MS);
+  const baselineTarget = useRef(baseline);
   const dirty = useRef(true);
   const displayed = useRef<number | null>(price);
   const shownCents = useRef<number | null>(null);
@@ -90,6 +103,7 @@ export function LiveTicker({
   seriesRef.current = series;
   formatRef.current = formatPrice;
   windowTarget.current = chartWindowMs ?? WINDOW_MS;
+  baselineTarget.current = baseline;
   dirty.current = true;
 
   // Restart the CSS flash (green up / red down) when the price moves, without remounting the node.
@@ -118,7 +132,9 @@ export function LiveTicker({
     // Lite mode draws fewer frames; motion-off draws only when something changed.
     const minInterval = () => (document.documentElement.dataset.perf === "lite" ? 33 : 0);
     const reduceMotion = () =>
-      document.documentElement.dataset.motion === "off" || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      !animate ||
+      document.documentElement.dataset.motion === "off" ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const frame = (ts: number) => {
       raf = window.requestAnimationFrame(frame);
@@ -181,6 +197,11 @@ export function LiveTicker({
         if (point.p < lo) lo = point.p;
         if (point.p > hi) hi = point.p;
       }
+      const baselinePrice = baselineTarget.current;
+      if (baselinePrice !== null && Number.isFinite(baselinePrice)) {
+        lo = Math.min(lo, baselinePrice);
+        hi = Math.max(hi, baselinePrice);
+      }
       const pad = hi === lo ? Math.max(hi * 0.0008, 0.01) : (hi - lo) * 0.18;
       const wantMin = lo - pad;
       const wantMax = hi + pad;
@@ -204,6 +225,15 @@ export function LiveTicker({
       const d = smoothLine(coords);
       line.setAttribute("d", d);
       area.setAttribute("d", `${d} L${fmt(head.x)} 100 L${fmt(coords[0].x)} 100 Z`);
+      const baseline = baselineRef.current;
+      if (baseline && baselinePrice !== null && Number.isFinite(baselinePrice)) {
+        const baselineY = yOf(baselinePrice);
+        baseline.setAttribute("y1", fmt(baselineY));
+        baseline.setAttribute("y2", fmt(baselineY));
+        baseline.style.display = "";
+      } else if (baseline) {
+        baseline.style.display = "none";
+      }
       dot.style.left = `${head.x}%`;
       dot.style.top = `${head.y}%`;
       if (labelRef.current) {
@@ -215,15 +245,17 @@ export function LiveTicker({
 
     raf = window.requestAnimationFrame(frame);
     return () => window.cancelAnimationFrame(raf);
-  }, []);
+  }, [animate]);
 
   return (
     <>
-      <p className="live-mode-price" ref={priceRef}>
-        {initialText}
-      </p>
+      {showPrice && (
+        <p className={priceClassName} ref={priceRef}>
+          {initialText}
+        </p>
+      )}
       {children}
-      <div aria-label={chartLabel} className="live-mode-chart" role={chartLabel ? "img" : undefined}>
+      <div aria-label={chartLabel} className={`live-mode-chart ${chartClassName ?? ""}`} role={chartLabel ? "img" : undefined}>
         <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 100 100">
           <defs>
             <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
@@ -235,6 +267,7 @@ export function LiveTicker({
             <line className="live-mode-grid" key={y} x1="0" x2="100" y1={y} y2={y} />
           ))}
           <path fill={`url(#${gradientId})`} ref={areaRef} />
+          <line className="live-mode-baseline" ref={baselineRef} style={{ display: "none" }} x1="0" x2="100" y1="50" y2="50" />
           <path className="live-mode-line" ref={lineRef} />
         </svg>
         <span aria-hidden="true" className="live-mode-last" ref={dotRef} />

@@ -49,7 +49,12 @@ import { GoldSummary } from "@/features/gold-trading/gold-summary";
 import { GoldPricePerformanceSummary } from "@/features/gold-trading/gold-price-performance";
 import { revalueGoldOverview } from "@/features/gold-trading/gold-valuation";
 import { GoldNewsBar, GoldNewsScreen } from "@/features/gold-trading/gold-news-section";
-import { LIVE_MODE_REFRESH_MS, getLiveModeActive, subscribeLiveMode } from "@/lib/live-mode-state";
+import {
+  LIVE_MODE_REFRESH_MS,
+  getLiveModeActive,
+  setLiveModeActive,
+  subscribeLiveMode,
+} from "@/lib/live-mode-state";
 import {
   AlertsSheet,
   HoldingSheet,
@@ -74,6 +79,7 @@ export function GoldTrading() {
   const [order, setOrder] = useState("desc");
   const [tab, setTab] = useState<Tab>("holdings");
   const [screen, setScreen] = useState<GoldScreen>("trading");
+  const [liveModeVisible, setLiveModeVisible] = useState(false);
   // `sheet` keeps its last value after closing so the sheet can finish its exit animation with the same content.
   const [sheet, setSheet] = useState<{ kind: SheetKind; id: number | null }>({ kind: "buy", id: null });
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -83,27 +89,35 @@ export function GoldTrading() {
   const globalSettings = useGlobalAppSettings();
   const frontendPriceUpdatesEnabled = globalSettings.data?.frontend_gold_price_updates_enabled === true
     && globalSettings.data.github_gold_price_updates_enabled !== true;
-  const feed = useLiveGoldFeed(screen === "trading" && frontendPriceUpdatesEnabled, 1000);
-  const feedLive = frontendPriceUpdatesEnabled && feed.status === "live" && feed.price !== null;
+  const feed = useLiveGoldFeed(
+    screen === "trading" && frontendPriceUpdatesEnabled && !liveModeVisible,
+    1000,
+  );
+  const feedLive = frontendPriceUpdatesEnabled && !liveModeVisible
+    && feed.status === "live" && feed.price !== null;
 
   const refreshMs = appearance.refreshInterval * 1000;
-  // Live mode asks for fresher prices while it is open.
-  const liveModeOpen = useSyncExternalStore(subscribeLiveMode, getLiveModeActive, () => false);
+  const liveModeNeedsPolling = useSyncExternalStore(subscribeLiveMode, getLiveModeActive, () => false);
+  const liveModeUsingFeed = liveModeVisible && frontendPriceUpdatesEnabled && !liveModeNeedsPolling;
+  const handleLiveModeVisibility = useCallback((visible: boolean) => {
+    setLiveModeVisible(visible);
+    setLiveModeActive(visible);
+  }, []);
   const overviewQuery = useQuery({
     queryKey: ["gold-overview", initData, sortBy, order],
     queryFn: () => getGoldOverview(initData, sortBy, order),
     enabled: Boolean(initData),
     // Keep the old numbers on screen while a new sort order loads, so the page never flashes empty.
     placeholderData: keepPreviousData,
-    refetchInterval: screen !== "trading" || feedLive
+    refetchInterval: screen !== "trading" || feedLive || liveModeUsingFeed
       ? false
-      : liveModeOpen
+      : liveModeVisible && liveModeNeedsPolling
         ? LIVE_MODE_REFRESH_MS
         : refreshMs > 0
           ? refreshMs
           : false,
     refetchIntervalInBackground: false,
-    refetchOnWindowFocus: screen === "trading",
+    refetchOnWindowFocus: screen === "trading" && !liveModeUsingFeed,
     staleTime: 5_000,
   });
   const goldNewsQuery = useQuery({
@@ -212,27 +226,23 @@ export function GoldTrading() {
   // Optional: only present once the backend sends previous_price_per_damlung.
   const rawYesterday = Number(overview?.current_price?.previous_price_per_damlung);
   const yesterdayPrice = Number.isFinite(rawYesterday) && rawYesterday > 0 ? rawYesterday : null;
-  const animatePrice = appearance.priceAnimation && appearance.motion && !frontendPriceUpdatesEnabled;
+  const animatePrice = appearance.priceAnimation && appearance.motion;
+  const animatePortfolio = animatePrice && !frontendPriceUpdatesEnabled;
   const formatMoney = useCallback((value: number) => formatUsd(String(value), locale), [locale]);
-  const formatPerDamlung = useCallback(
-    (value: number) => `${formatUsd(String(value), locale)} / ${t("damlungUnit")}`,
-    [locale, t],
-  );
-  // Price of one chi (1/10 damlung), shown in its own pill under the main price.
-  const formatPerChi = useCallback(
-    (pricePerDamlung: number) =>
-      `${formatUsd(pricePerUnit(String(pricePerDamlung), "chi"), locale)} / ${t(unitLabelKey("chi"))}`,
-    [locale, t],
-  );
 
   // Soft haptic when the live price moves.
   const lastPrice = useRef<number | null>(null);
   const { haptics } = appearance;
   useEffect(() => {
     if (livePrice === null) return;
-    if (lastPrice.current !== null && lastPrice.current !== livePrice && haptics) impactTelegram(telegram, "soft");
+    if (
+      lastPrice.current !== null &&
+      lastPrice.current !== livePrice &&
+      haptics &&
+      !frontendPriceUpdatesEnabled
+    ) impactTelegram(telegram, "soft");
     lastPrice.current = livePrice;
-  }, [haptics, livePrice, telegram]);
+  }, [frontendPriceUpdatesEnabled, haptics, livePrice, telegram]);
 
   // Toast: auto-dismiss.
   useEffect(() => {
@@ -314,9 +324,8 @@ export function GoldTrading() {
               <GoldLivePrice
                 animate={animatePrice}
                 fetching={!feedLive && overviewQuery.isFetching}
-                formatChiPrice={formatPerChi}
                 formatDelta={formatMoney}
-                formatPrice={formatPerDamlung}
+                formatPrice={formatMoney}
                 history={priceSeries}
                 intervalSeconds={appearance.refreshInterval}
                 liveStream={feedLive}
@@ -349,7 +358,7 @@ export function GoldTrading() {
       </Card>
 
       {overviewQuery.isPending && <GoldSummarySkeleton />}
-      {summary && <GoldSummary animate={animatePrice} summary={summary} />}
+      {summary && <GoldSummary animate={animatePortfolio} summary={summary} />}
 
       <div className="gold-actions" ref={actionsRef}>
         <Button className="gold-primary-action" onClick={() => openSheet("buy")} type="button" variant="primary">
@@ -366,7 +375,8 @@ export function GoldTrading() {
         <GoldKeepAwake />
         <GoldLiveMode
           dataUpdatedAt={overviewQuery.dataUpdatedAt}
-          feed={feed}
+          frontendPriceUpdatesEnabled={frontendPriceUpdatesEnabled}
+          onOpenChange={handleLiveModeVisibility}
           price={livePrice}
           updatedOn={currentPriceUpdatedOn}
           yesterdayPrice={yesterdayPrice}

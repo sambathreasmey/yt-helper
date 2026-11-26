@@ -1,10 +1,10 @@
 "use client";
 
-import { memo, useEffect, useId, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
-import { AnimatedNumber } from "@/components/animated-number";
-import { GoldIcon } from "@/components/icons/gold-icon";
-import type { TickerPoint } from "@/components/live-ticker";
+import { LiveTicker, type TickerPoint } from "@/components/live-ticker";
+import { pricePerUnit, unitLabelKey, units } from "@/features/gold-trading/gold-format";
+import type { GoldUnit } from "@/services/gold-trading-api";
 import { useLanguage } from "@/providers/language-provider";
 
 const HISTORY_LIMIT = 120;
@@ -27,58 +27,6 @@ export function usePriceHistory(price: number | null, updatedAt: number): Ticker
 
   return history;
 }
-
-const LivePriceChart = memo(function LivePriceChart({ points, label }: { points: TickerPoint[]; label: string }) {
-  const gradientId = useId();
-  const path = useMemo(() => {
-    if (points.length < 2) return null;
-    const latest = points[points.length - 1].t;
-    const visible = points.filter((point) => point.t >= latest - 120_000);
-    if (visible.length < 2) return null;
-    const prices = visible.map((point) => point.p);
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-    const range = max - min || 1;
-    const width = 100;
-    const height = 100;
-    const timeRange = latest - visible[0].t || 1;
-    const coords = visible.map((point) => {
-      const x = ((point.t - visible[0].t) / timeRange) * width;
-      const y = height - 8 - ((point.p - min) / range) * (height - 16);
-      return { x, y };
-    });
-    let line = `M${coords[0].x.toFixed(2)} ${coords[0].y.toFixed(2)}`;
-    for (let index = 1; index < coords.length - 1; index += 1) {
-      const midpointX = (coords[index].x + coords[index + 1].x) / 2;
-      const midpointY = (coords[index].y + coords[index + 1].y) / 2;
-      line += ` Q${coords[index].x.toFixed(2)} ${coords[index].y.toFixed(2)} ${midpointX.toFixed(2)} ${midpointY.toFixed(2)}`;
-    }
-    const last = coords[coords.length - 1];
-    line += ` L${last.x.toFixed(2)} ${last.y.toFixed(2)}`;
-    return { line, area: `${line} L${last.x.toFixed(2)} ${height} L${coords[0].x.toFixed(2)} ${height} Z`, last };
-  }, [points]);
-
-  if (!path) return <div aria-hidden="true" className="gold-live-chart" />;
-
-  return (
-    <div aria-label={label} className="gold-live-chart live-mode-chart" role="img">
-      <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 100 100">
-        <defs>
-          <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="currentColor" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        {[25, 50, 75].map((y) => (
-          <line className="live-mode-grid" key={y} x1="0" x2="100" y1={y} y2={y} />
-        ))}
-        <path d={path.area} fill={`url(#${gradientId})`} />
-        <path className="live-mode-line" d={path.line} />
-        <circle className="gold-live-chart-dot" cx={path.last.x} cy={path.last.y} r="2.7" />
-      </svg>
-    </div>
-  );
-});
 
 /** Ticks once a second on its own, so the rest of the page does not re-render. */
 function RefreshStatus({
@@ -122,9 +70,8 @@ interface GoldLivePriceProps {
   yesterdayPrice?: number | null;
   /** True when price updates are arriving from the live WebSocket instead of polling. */
   liveStream?: boolean;
+  /** Currency formatter; values passed here are already converted to the selected unit. */
   formatPrice: (value: number) => string;
-  /** Formats the price of one chi (1/10 damlung), given the price per damlung. Leave out to hide the chi pill. */
-  formatChiPrice?: (pricePerDamlung: number) => string;
   formatDelta: (value: number) => string;
 }
 
@@ -138,10 +85,18 @@ export const GoldLivePrice = memo(function GoldLivePrice({
   yesterdayPrice = null,
   liveStream = false,
   formatPrice,
-  formatChiPrice,
   formatDelta,
 }: GoldLivePriceProps) {
   const { t } = useLanguage();
+  const [unit, setUnit] = useState<GoldUnit>("damlung");
+  const convertPrice = useCallback(
+    (value: number) => Number(pricePerUnit(String(value), unit)),
+    [unit],
+  );
+  const formatSelectedPrice = useCallback(
+    (value: number) => formatPrice(convertPrice(value)),
+    [convertPrice, formatPrice],
+  );
   // Direction since the price last moved, not just since the previous poll.
   const previous = useMemo(() => {
     for (let index = history.length - 2; index >= 0; index -= 1) {
@@ -179,41 +134,55 @@ export const GoldLivePrice = memo(function GoldLivePrice({
         </span>
       </div>
 
-      <div className="mt-1.5 flex flex-wrap items-end gap-x-3 gap-y-1">
-        {price !== null && (
-          <AnimatedNumber animate={animate} className="gold-price-amount" format={formatPrice} value={price} />
-        )}
-        {trend !== "flat" && (
-          <span className="gold-trend-chip" data-trend={trend} key={animate ? `${trend}-${price}` : undefined}>
-            {trend === "up" ? <ArrowUpRight aria-hidden="true" size={13} /> : <ArrowDownRight aria-hidden="true" size={13} />}
-            {formatDelta(Math.abs(delta))}
-          </span>
-        )}
+      <div aria-label={t("performanceUnit")} className="gold-unit-switch" role="group">
+        {units.map((option) => (
+          <button
+            aria-pressed={unit === option}
+            key={option}
+            onClick={() => setUnit(option)}
+            type="button"
+          >
+            {t(unitLabelKey(option))}
+          </button>
+        ))}
       </div>
 
-      {formatChiPrice && price !== null && (
-        <div className="gold-unit-row">
-          <span className="gold-unit-chip">
-            <span aria-hidden="true" className="gold-unit-chip-icon">
-              <GoldIcon size={12} strokeWidth={2.6} />
-            </span>
-            {formatChiPrice(price)}
-          </span>
-        </div>
-      )}
-
-      {dayChange && yesterdayPrice !== null && (
-        <div className="gold-yesterday" data-trend={dayChange.trend}>
-          <span className="gold-yesterday-label">{t("yesterdayPrice")}</span>
-          <span className="gold-yesterday-value">{formatPrice(yesterdayPrice)}</span>
-          {dayChange.trend !== "flat" && (
-            <span className="gold-yesterday-change">
-              {dayChange.trend === "up" ? <ArrowUpRight aria-hidden="true" size={12} /> : <ArrowDownRight aria-hidden="true" size={12} />}
-              {formatDelta(Math.abs(dayChange.diff))} ({dayChange.percent})
+      <LiveTicker
+        animate={animate}
+        baseline={yesterdayPrice}
+        chartClassName="gold-live-chart"
+        chartLabel={t("priceChart")}
+        chartWindowMs={120_000}
+        formatPrice={formatSelectedPrice}
+        price={price}
+        priceClassName="gold-live-ticker-price"
+        series={history}
+        showLastLabel
+        waitingText={t("liveBadge")}
+      >
+        <div className="gold-live-price-meta">
+          <span className="gold-live-unit-label">/ {t(unitLabelKey(unit))}</span>
+          {trend !== "flat" && (
+            <span className="gold-trend-chip" data-trend={trend} key={animate ? `${trend}-${price}` : undefined}>
+              {trend === "up" ? <ArrowUpRight aria-hidden="true" size={13} /> : <ArrowDownRight aria-hidden="true" size={13} />}
+              {formatDelta(convertPrice(Math.abs(delta)))}
             </span>
           )}
         </div>
-      )}
+
+        {dayChange && yesterdayPrice !== null && (
+          <div className="gold-yesterday" data-trend={dayChange.trend}>
+            <span className="gold-yesterday-label">{t("yesterdayPrice")}</span>
+            <span className="gold-yesterday-value">{formatSelectedPrice(yesterdayPrice)}</span>
+            {dayChange.trend !== "flat" && (
+              <span className="gold-yesterday-change">
+                {dayChange.trend === "up" ? <ArrowUpRight aria-hidden="true" size={12} /> : <ArrowDownRight aria-hidden="true" size={12} />}
+                {formatDelta(convertPrice(Math.abs(dayChange.diff)))} ({dayChange.percent})
+              </span>
+            )}
+          </div>
+        )}
+      </LiveTicker>
 
       {!liveStream && intervalSeconds > 0 && (
         <div aria-hidden="true" className="gold-refresh-track">
@@ -224,7 +193,6 @@ export const GoldLivePrice = memo(function GoldLivePrice({
           />
         </div>
       )}
-      <LivePriceChart label={t("priceChart")} points={history} />
     </div>
   );
 });
