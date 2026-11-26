@@ -13,6 +13,11 @@ export type GoldPrice = {
   previous_price_on?: string | null;
 };
 
+export type GoldPriceHistoryPoint = {
+  price_per_damlung: string;
+  created_on: string;
+};
+
 export type GoldPricePerformancePeriod =
   | "today"
   | "yesterday"
@@ -160,6 +165,9 @@ export const getGoldOverview = (
   order = "desc",
 ): Promise<GoldOverview> =>
   request(initData, `/overview?sort_by=${sortBy}&order=${order}`);
+
+export const getGoldPriceHistory = (initData: string): Promise<GoldPriceHistoryPoint[]> =>
+  request(initData, "/price/history");
 
 export const getGoldAlerts = (initData: string): Promise<GoldPriceAlert[]> =>
   request(initData, "/alerts");

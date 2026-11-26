@@ -29,35 +29,39 @@ export function GoldNewsBar({
   onOpen: () => void;
 }) {
   const { t } = useLanguage();
-  const tickerText = data?.items.length
-    ? data.items.map((item) => item.title).join("   •   ")
+  const headlines = data?.items.map((item) => item.title) ?? [];
+  const hasNews = headlines.length > 0;
+  const tickerText = hasNews
+    ? headlines.join("   •   ")
     : isPending
       ? t("goldNewsLoading")
       : error
         ? t("goldNewsError")
         : t("goldNewsEmpty");
   const accessibleHeadline = data?.items[0]?.title ?? tickerText;
-  const tickerDuration = `${Math.max(30, tickerText.length / 18)}s`;
+  const tickerDuration = `${Math.max(18, tickerText.length * 0.32)}s`;
 
   return (
     <button
-      aria-label={`${t("goldNewsLatest")}: ${accessibleHeadline}. ${t("goldNewsViewAll")}`}
+      aria-label={`${t("goldNewsShort")}: ${accessibleHeadline}. ${t("goldNewsViewAll")}`}
       className="gold-news-ticker"
       onClick={onOpen}
       type="button"
     >
       <Newspaper aria-hidden="true" className="gold-news-ticker-icon" size={18} />
       <span className="gold-news-ticker-copy">
-        <span className="gold-news-ticker-label">{t("goldNewsLatest")}</span>
+        <span className="gold-news-ticker-label">{t("goldNewsShort")}</span>
         <span aria-hidden="true" className="gold-news-ticker-viewport">
-          <span className="gold-news-ticker-track" style={{ animationDuration: tickerDuration }}>
+          <span
+            className={`gold-news-ticker-track${hasNews ? " is-running" : ""}`}
+            style={hasNews ? { animationDuration: tickerDuration } : undefined}
+          >
             <span className="gold-news-ticker-sequence">{tickerText}</span>
-            <span className="gold-news-ticker-sequence">{tickerText}</span>
+            {hasNews && <span className="gold-news-ticker-sequence">{tickerText}</span>}
           </span>
         </span>
       </span>
       <span className="gold-news-ticker-action">
-        <span className="gold-news-ticker-action-label">{t("goldNewsViewAll")}</span>
         <ChevronRight aria-hidden="true" size={16} />
       </span>
     </button>

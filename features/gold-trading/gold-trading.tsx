@@ -19,7 +19,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useGlobalAppSettings } from "@/hooks/use-global-app-settings";
 import { useTelegram } from "@/hooks/use-telegram";
 import { useLiveGoldFeed } from "@/hooks/use-live-gold-feed";
-import { formatUtcTimestamp } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/providers/language-provider";
 import { useTheme } from "@/providers/theme-provider";
@@ -32,6 +31,7 @@ import {
   getGoldAlerts,
   getGoldNews,
   getGoldOverview,
+  getGoldPriceHistory,
   sellGoldPurchase,
   updateGoldPurchase,
   type GoldDirection,
@@ -120,6 +120,14 @@ export function GoldTrading() {
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: screen === "trading" && !liveModeUsingFeed,
     staleTime: 5_000,
+  });
+  const priceHistoryQuery = useQuery({
+    queryKey: ["gold-price-history-24h", initData],
+    queryFn: () => getGoldPriceHistory(initData),
+    enabled: Boolean(initData),
+    refetchInterval: 5 * 60 * 1000,
+    refetchIntervalInBackground: false,
+    staleTime: 60_000,
   });
   const goldNewsQuery = useQuery({
     queryKey: ["gold-news", initData],
@@ -223,6 +231,16 @@ export function GoldTrading() {
     ? new Date(feed.updatedAt).toISOString()
     : overview?.current_price?.updated_on;
   const priceSeries = usePriceHistory(livePrice, feedLive ? feed.updatedAt ?? 0 : overviewQuery.dataUpdatedAt);
+  const chartHistory = useMemo(() => {
+    const points = new Map<number, { t: number; p: number }>();
+    for (const point of priceHistoryQuery.data ?? []) {
+      const t = Date.parse(point.created_on);
+      const p = Number(point.price_per_damlung);
+      if (Number.isFinite(t) && Number.isFinite(p)) points.set(t, { t, p });
+    }
+    for (const point of priceSeries) points.set(point.t, point);
+    return [...points.values()].sort((a, b) => a.t - b.t);
+  }, [priceHistoryQuery.data, priceSeries]);
   const priceHistory = useMemo(() => priceSeries.map((point) => point.p), [priceSeries]);
   // Optional: only present once the backend sends previous_price_per_damlung.
   const rawYesterday = Number(overview?.current_price?.previous_price_per_damlung);
@@ -311,11 +329,26 @@ export function GoldTrading() {
 
       <Card className="gold-price-hero">
         <div className="gold-price-content">
-          <span className="gold-price-icon gold-price-live-mark" aria-hidden="true">
+          <div aria-hidden="true" className="gold-price-bullion">
             <GoldBullionArt />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-white/75">{t("goldPrice")}</p>
+          </div>
+          <div className="gold-price-header">
+            <span className="gold-price-icon gold-price-brand-mark" aria-hidden="true">
+              <GoldIcon size={28} strokeWidth={1.8} />
+            </span>
+            <div className="gold-price-brand-copy">
+              <p>{t("goldPrice")}</p>
+              <span>
+                <svg aria-hidden="true" className="gold-price-flag" viewBox="0 0 30 20">
+                  <rect fill="#032ea1" height="20" rx="1.5" width="30" />
+                  <path d="M0 5h30v10H0z" fill="#e00025" />
+                  <path d="M8 14h14v-1h-1v-3h-2V8h-1V6h-1V4h-1V2h-1v2h-1v2h-1v2h-2v2h-1v3H8z" fill="#fff" />
+                </svg>
+                {t("nationalGoldPrice")}
+              </span>
+            </div>
+          </div>
+          <div className="gold-price-body">
             {overviewQuery.isPending && !feedLive ? (
               <div className="mt-1.5 space-y-2">
                 <Skeleton className="h-7 w-48 rounded-full bg-white/15" />
@@ -328,6 +361,9 @@ export function GoldTrading() {
                 formatDelta={formatMoney}
                 formatPrice={formatMoney}
                 history={priceSeries}
+                chartHistory={chartHistory}
+                historicalRangesEnabled={Boolean(priceHistoryQuery.data?.length)}
+                historyLoading={priceHistoryQuery.isPending}
                 intervalSeconds={appearance.refreshInterval}
                 liveStream={feedLive}
                 price={livePrice}
@@ -339,11 +375,6 @@ export function GoldTrading() {
             )}
             {!overviewQuery.isPending && !overview?.current_price && !feedLive && (
               <p className="mt-1 text-xs text-white/70">{t("adminMustSetPrice")}</p>
-            )}
-            {currentPriceUpdatedOn && (
-              <p className="gold-price-updated">
-                {t("updated", { date: formatUtcTimestamp(currentPriceUpdatedOn, locale) })}
-              </p>
             )}
           </div>
         </div>
@@ -392,6 +423,12 @@ export function GoldTrading() {
       )}
       {alertsQuery.error && (
         <p className="status-error rounded-xl px-4 py-3 text-sm" role="alert">{alertsQuery.error.message}</p>
+      )}
+      {priceHistoryQuery.error && (
+        <p className="status-error rounded-xl px-4 py-3 text-sm" role="alert">{priceHistoryQuery.error.message}</p>
+      )}
+      {priceHistoryQuery.isSuccess && priceHistoryQuery.data.length === 0 && (
+        <p className="gold-history-unavailable" role="status">{t("goldHistoryUnavailable")}</p>
       )}
 
       <Card className="gold-list-card">

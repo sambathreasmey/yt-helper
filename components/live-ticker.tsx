@@ -23,7 +23,10 @@ interface LiveTickerProps {
   showPrice?: boolean;
   animate?: boolean;
   priceClassName?: string;
+  pricePanelClassName?: string;
   chartClassName?: string;
+  afterPrice?: ReactNode;
+  footer?: ReactNode;
   /** Rendered between the big price and the chart (unit label, change chip...). */
   children?: ReactNode;
 }
@@ -78,7 +81,10 @@ export function LiveTicker({
   showPrice = true,
   animate = true,
   priceClassName = "live-mode-price",
+  pricePanelClassName,
   chartClassName,
+  afterPrice,
+  footer,
   children,
 }: LiveTickerProps) {
   const gradientId = useId();
@@ -175,7 +181,8 @@ export function LiveTicker({
 
       const now = Date.now();
       // The window grows with the data (so the line always fills the chart) until it reaches its maximum.
-      const maxWindowMs = windowTarget.current;
+      // The selected range spans the plotted line from OLDEST_X to HEAD_X, not the full SVG width.
+      const maxWindowMs = windowTarget.current * (100 / (HEAD_X - OLDEST_X));
       const minWindowMs = Math.min(MIN_WINDOW_MS, maxWindowMs);
       const windowMs = Math.min(maxWindowMs, Math.max(minWindowMs, (now - points[0].t) * (100 / (HEAD_X - OLDEST_X))));
       const left = now - windowMs * (HEAD_X / 100);
@@ -247,7 +254,7 @@ export function LiveTicker({
     return () => window.cancelAnimationFrame(raf);
   }, [animate]);
 
-  return (
+  const priceContent = (
     <>
       {showPrice && (
         <p className={priceClassName} ref={priceRef}>
@@ -255,6 +262,13 @@ export function LiveTicker({
         </p>
       )}
       {children}
+    </>
+  );
+
+  return (
+    <>
+      {pricePanelClassName ? <div className={pricePanelClassName}>{priceContent}</div> : priceContent}
+      {afterPrice}
       <div aria-label={chartLabel} className={`live-mode-chart ${chartClassName ?? ""}`} role={chartLabel ? "img" : undefined}>
         <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 100 100">
           <defs>
@@ -274,6 +288,7 @@ export function LiveTicker({
         {showLastLabel && <span aria-hidden="true" className="live-mode-last-label" ref={labelRef} />}
         {series.length < 2 && <p className="live-mode-waiting">{waitingText}</p>}
       </div>
+      {footer}
     </>
   );
 }
