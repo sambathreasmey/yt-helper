@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { createPortal } from "react-dom";
 import { AppHeader } from "@/components/app-header";
 import { GoldIcon } from "@/components/icons/gold-icon";
+import { GoldBullionArt } from "@/components/gold-bullion-art";
 import { UserProfileSheet } from "@/components/user-profile-sheet";
 import { GoldLivePrice, usePriceHistory } from "@/components/gold-live-price";
 import { GoldKeepAwake } from "@/components/gold-keep-awake";
@@ -310,8 +311,8 @@ export function GoldTrading() {
 
       <Card className="gold-price-hero">
         <div className="gold-price-content">
-          <span className="gold-price-icon" aria-hidden="true">
-            <GoldIcon size={24} strokeWidth={2.1} />
+          <span className="gold-price-icon gold-price-live-mark" aria-hidden="true">
+            <GoldBullionArt />
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-medium text-white/75">{t("goldPrice")}</p>
@@ -345,7 +346,6 @@ export function GoldTrading() {
               </p>
             )}
           </div>
-          <ChartNoAxesCombined className="gold-price-decoration" aria-hidden="true" />
         </div>
         {livePrice !== null && (
           <GoldShareButton

@@ -121,7 +121,7 @@ export const GoldLivePrice = memo(function GoldLivePrice({
 
   return (
     <div className="gold-live" data-trend={trend}>
-      <div className="flex items-center justify-between gap-2">
+      <div className="gold-live-controls">
         <span className="gold-live-badge">
           <span
             aria-hidden="true"
@@ -132,19 +132,18 @@ export const GoldLivePrice = memo(function GoldLivePrice({
           {t("liveBadge")}
           <span className="gold-live-status"><RefreshStatus fetching={fetching} intervalSeconds={intervalSeconds} liveStream={liveStream} updatedAt={priceUpdatedAt} /></span>
         </span>
-      </div>
-
-      <div aria-label={t("performanceUnit")} className="gold-unit-switch" role="group">
-        {units.map((option) => (
-          <button
-            aria-pressed={unit === option}
-            key={option}
-            onClick={() => setUnit(option)}
-            type="button"
-          >
-            {t(unitLabelKey(option))}
-          </button>
-        ))}
+        <div aria-label={t("performanceUnit")} className="gold-unit-switch" role="group">
+          {units.map((option) => (
+            <button
+              aria-pressed={unit === option}
+              key={option}
+              onClick={() => setUnit(option)}
+              type="button"
+            >
+              {t(unitLabelKey(option))}
+            </button>
+          ))}
+        </div>
       </div>
 
       <LiveTicker
@@ -157,7 +156,6 @@ export const GoldLivePrice = memo(function GoldLivePrice({
         price={price}
         priceClassName="gold-live-ticker-price"
         series={history}
-        showLastLabel
         waitingText={t("liveBadge")}
       >
         <div className="gold-live-price-meta">
@@ -172,6 +170,7 @@ export const GoldLivePrice = memo(function GoldLivePrice({
 
         {dayChange && yesterdayPrice !== null && (
           <div className="gold-yesterday" data-trend={dayChange.trend}>
+            <span aria-hidden="true" className="gold-yesterday-key" />
             <span className="gold-yesterday-label">{t("yesterdayPrice")}</span>
             <span className="gold-yesterday-value">{formatSelectedPrice(yesterdayPrice)}</span>
             {dayChange.trend !== "flat" && (

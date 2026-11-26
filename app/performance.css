@@ -56,11 +56,18 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.15rem 0.5rem;
-  margin-top: 0.4rem;
+  gap: 0.12rem 0.4rem;
+  margin-top: 0.28rem;
   color: rgb(255 255 255 / 72%);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-variant-numeric: tabular-nums;
+}
+
+.gold-yesterday-key {
+  width: 0.8rem;
+  height: 0;
+  border-top: 2px dashed #bae6fd;
+  flex: 0 0 auto;
 }
 
 .gold-yesterday-value {
